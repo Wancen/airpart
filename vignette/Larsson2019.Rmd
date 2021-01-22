@@ -1,0 +1,225 @@
+---
+title: "Larsson2019"
+author: 
+  - name: Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, Rob Patro, Michael I. Love
+date: "January 13, 2021"
+abstract: |
+  airpart is an R package that identifies subsets of genes displaying differential CTS allelic imbalance across all cell types.
+
+  It consists of two paragraphs.
+tags: [fusedlasso, Single cell]
+output: 
+  html_document:
+    toc: true  
+    toc_float: true 
+    theme: united  
+    highlight: tango  
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(apeglm)
+library(tidyverse)
+library(dynamicTreeCut)
+library(pheatmap)
+library(boot)
+library(smurf)
+library(mclust)
+library(pbapply)
+library(clue)
+library(fastmatch)
+library(binom)
+library(gplots) #bluered
+library(VGAM)
+library(igraph)
+source("../R/cluster.R")
+source("../R/fusedlasso.R")
+```
+
+# Load data
+
+First, we load the preprocessed [Larsson 2019](https://www.nature.com/articles/s41586-018-0836-1) data. It includes one allelic counts(`c57_fil`) and total counts(`total_fil`) which was derived after QC step. `cell_meta_unique` is a character vector of unique cell types names. `celltype` is a character vector of all cell types.
+```{r}
+load("../data/larsson_postprocess.rda")
+nct<-length(cell_meta_unique) # number of cell types
+head(total_fil[1:5,1:5])
+```
+Note that we require genes expressed in at least **25%** cells within each cell types. And the code for gene QC after cell QC could be 
+```{r, eval=FALSE}
+library(scater)
+celltype_check<-pbsapply(unique(celltype[cellQC]),function(c){
+  nexprs(as.matrix(total_CellQC), byrow=TRUE,  detection_limit=1,subset_col=which(celltypeQC$cell_state==c))>= length(which(celltypeQC$cell_state==c))*0.25
+})
+keep_feature<-rowSums(celltype_check)==nct
+total_fil<-total_CellQC[keep_feature,]
+```
+
+# Create Ratio matrix
+
+Here we add the pseudo count for gene clustering and visualization.
+```{r}
+ratio<-c57_fil/total_fil
+ratio_pseudo<-(c57_fil+2)/(total_fil+4)
+```
+# Gene clustering
+
+We provide two methods for gene clustering. 
+
+## * Gaussian Mixture modeling
+
+This is the default methods. The scatter plot is shown based on Top 2 PCs.
+```{r}
+cluster<-genecluster(ratio_pseudo,nct,G=c(4,12,20,24,28,32))
+table(cluster)
+```
+
+## * Hierarchical clustering 
+```{r,eval=FALSE}
+cluster<-genecluster(ratio_pseudo,nct,method="hierarchical")
+table(cluster)
+```
+
+# Running airpart
+
+Here we run `airpart`on cluster 26 for example.
+
+## Construct dataframe
+
+Wide format -> Long format
+```{r}
+i=26
+set.seed(i)
+feat<-which(cluster==i) # choose genes location
+cl_ratio<-as.vector(unlist(ratio[feat,]))
+cl_total<-as.vector(unlist(total_fil[feat,]))
+dat<-tibble(ratio=cl_ratio,x=factor(rep(as.vector(celltypeQC[,1]),each=length(feat)),levels = cell_meta_unique),cts=cl_total)
+summary<-dat %>% group_by(x) %>% summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = T),mean=mean(ratio,na.rm = T),var=var(ratio,na.rm = T)) %>% data.frame()
+print(knitr::kable(summary)) #check summary table
+summary<-summary[order(summary$weighted.mean),]
+max(diff(summary$weighted.mean))>0.05
+```
+Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference>0.05 for speed up and accuracy. Because we find that the allelic ratio of most of the gene clusters here are consistent and won't detect any differential allelic imbalance.
+
+## Modeling using fused lasso with quasibinomial likelihood
+
+```{r}
+f <- ratio ~ p(x, pen = "gflasso")
+print(paste(length(feat),"genes may exists allelic ratio imbalance"))
+t<-system.time(coef<-sapply(1:5,function(t){
+  fit<-fusedlasso(formula=f,model="quasibinomial",data=dat,ncores=4)
+  index.1<-which(rowMeans(fit$lambda.measures$dev) < min(rowMeans(fit$lambda.measures$dev)) +0.5*mean(matrixStats::rowSds(fit$lambda.measures$dev)/sqrt(5)))[1]
+  fit2<-fusedlasso(formula=f,model="quasibinomial",data=dat,ncores=4,lambda=fit$lambda.vector[index.1]) #0.5 SE
+    co <- coef_reest(fit2)
+    co <- co + c(0,rep(co[1],nct-1))
+     return(co)
+   }))[[3]]
+   
+```
+Here `ncores` is the number of CPU used for parallelization. And it takes `r t`s with 4 CPU to test 24*367=8808 elements 5 times.
+
+
+## Consensus partation
+```{r,results='asis',collapse=TRUE}
+bootcl <-apply(coef, 2, function(x) fmatch(x,unique(x)))
+print(knitr::kable(bootcl %>% data.frame()))
+  consens_par<-cl_consensus(cl_ensemble(list = apply(bootcl,2,as.cl_hard_partition)),method = "SM")
+class <- max.col(consens_par$.Data)
+class <-fmatch(class,unique(class))
+
+label<-tibble(type=cell_meta_unique,par=factor(class))
+celltypeQC2<-celltypeQC %>% left_join(label,by=c("cell_state"="type"))
+rownames(celltypeQC2)<-rownames(celltypeQC)
+
+
+pheatmap(ratio_pseudo[feat,],color=bluered(95), cluster_rows = FALSE, cluster_cols = FALSE,
+annotation_col = celltypeQC2,show_colnames = F,show_rownames = F)
+
+g4 <- graph( c("G1", "S", "G1", "S", "G1", "S", "G1", "S","G1", "S","G1","S","S","G2/M"), 
+
+             isolates=c("mESC"),directed = F )  
+
+# In named graphs we can specify isolates by providing a list of their names.
+E(g4)
+E(g4)$type <- c(rep("model",5),rep("origin",2))
+V(g4)
+V(g4)$celltype <- c("fib","fib","fib","stem")
+plot(g4, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=1.5,
+     vertex.color=c( "pink", "skyblue")[1+(V(g4)$celltype=="fib")],
+     edge.color=c("dark red", "slategrey")[(E(g4)$type=="origin")+1], ) 
+```
+
+Output 5 times partition results. And `par` at the top of heatmap represents consensus partition result.
+
+```{r}
+# label<-majorityVote(sapply(coef %>% data.frame, paste, collapse=""))
+# co<-coef[,which(sapply(coef %>% data.frame, paste, collapse="")==label$majority)[1]]
+# co <-1/(1+exp(-co))
+```
+
+## Wilcoxon
+
+### Derive partation
+```{r,results='asis',warning=FALSE}
+
+t2<-system.time(fit2<-wilcox_adj(dat,nct=nct,threshold =10^seq(from=-2,to=-0.4,by=0.1)))[[3]]
+label<-tibble(type=cell_meta_unique,par_fused=class,par_wilcoxon=factor(fit2))
+dat2<-dat %>% left_join(label,by=c("x"="type"))
+```
+
+It takes `r t2`s to run Wilcoxon.
+
+### Beta-binomial estimator for Wilcoxon
+```{r,warning=FALSE}
+bb<-tryCatch({
+      vglm(cbind(ratio*cts, cts-ratio*cts) ~ par_wilcoxon, betabinomial, data = dat2, trace = F)}, error=function(e) {
+        vglm(cbind(ratio*cts, cts-ratio*cts) ~ 1, betabinomial, data = dat2, trace = F)}) # beta binomial confidence interval
+ #subset = cts>1
+coef_bb<-coef(bb)[-2] # betabinomial estimator
+coef_bb <- coef_bb + c(0,rep(coef_bb[1],length(coef_bb)-1))
+coef_wilcoxon<-1/(1+exp(-coef_bb))
+estimator<-tibble(par_wilcoxon=seq_len(length(coef_wilcoxon)),estimator=coef_wilcoxon)
+estimator2<-merge(label, estimator, by="par_wilcoxon", all = T)
+print(knitr::kable(estimator2))
+```
+
+### Normal approximation confidence interval
+```{r,results='asis',warning=FALSE}
+confint_bb<-matrix(confintvglm(bb)[-2,],ncol=2)
+confint_bb <- confint_bb + matrix(c(0,0,rep(confint_bb[1,],nrow(confint_bb)-1)),ncol=2,byrow = T)
+confint_wilcoxon<-matrix(1/(1+exp(-confint_bb)),ncol=2)
+confint_wilcoxon<-confint_wilcoxon[rep(seq_len(nrow(confint_wilcoxon)), table(factor(fit2))),]
+row.names(confint_wilcoxon)<-cell_meta_unique
+print(knitr::kable(confint_wilcoxon))
+```
+```{r}
+# empirical bayes using methods of moment
+mu <- summary$mean
+vr <- summary$var
+alpha <- ((1 - mu) / vr - 1 / mu) * mu ^ 2
+beta <- alpha * (1 / mu - 1)
+alpha
+beta
+size<-dat %>% group_by(x) %>% summarise(n=sum(cts)) %>% data.frame()
+binom.bayes(x = estimator$estimator*size$n, n = size$n, tol = 1e-8,prior.shape1 = alpha,prior.shape2 = beta)
+```
+
+## Graph-Guided Fused Lasso
+Use the Graph-Guided Fused Lasso penalty to only regularize the differences of coefficients of neighboring areas. When using a Graph-Guided Fused Lasso penalty, the adjacency matrix corresponding to the graph needs to be provided. The elements of this matrix are zero when two levels are not connected (areas that do not share a border in our example), and one when they are adjacent (i.e. connected).
+```{r}
+adj <- matrix(0, nct, nct)
+colnames(adj) <- rownames(adj) <- cell_meta_unique
+adj[2,3]<-1
+adj[3,c(2,4)]<-1
+adj[4,3]<-1
+f2 <- ratio ~ p(x, pen = "ggflasso")
+fit3<-fusedlasso(formula=f2,data=dat,ncores=4,lambda=0.04,adj.matrix=list(x=adj))
+co2 <- coef_reest(fit3)
+co2 <- co2 + c(0,rep(co2[1],nct-1))
+co2<-1/(1+exp(-co2))
+print(co2)
+```
+# Session Info
+```{r}
+sessionInfo()
+```
+
