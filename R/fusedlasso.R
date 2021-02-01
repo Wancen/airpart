@@ -1,4 +1,4 @@
-#' @importFrom smurf glmsmurf
+#' @import smurf
 #'
 #' @export
 #' @title Run generalized fused lasso to part cell-type-specific allelic imbalance across all cell types

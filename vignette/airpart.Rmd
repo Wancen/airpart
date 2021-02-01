@@ -1,0 +1,147 @@
+---
+title: "Differential cell-type-specific allelic imbalance with airpart"
+author: 
+  - name: Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, Rob Patro, Michael I. Love
+date: "Feb 1, 2021"
+abstract: |
+  airpart is an R package that identifies subsets of genes displaying differential CTS allelic imbalance across all cell types.
+output: 
+  html_document:
+    toc: true  
+    toc_float: true 
+    theme: united  
+    highlight: tango  
+vignette: |
+  %\VignetteIndexEntry{Differential cell-type-specific allelic imbalance with airpart}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Download package
+
+```{r}
+library(devtools)
+# load_all("..")
+install_github("Wancen/airpart")
+library(airpart)
+suppressMessages(suppressWarnings(library("gplots")))
+suppressMessages(suppressWarnings(library(clue)))
+suppressMessages(suppressWarnings(library(pheatmap)))
+suppressMessages(suppressWarnings(library(fastmatch)))
+suppressMessages(suppressWarnings(library(tidyverse)))
+```
+
+# Overview of data
+We will simulate some data using `makeSimulatedata` function provided within the `airpart` package
+
+### Simulation set-up:
+
+* noise cells count is 3
+* normal cells count is 20
+* 4 cell types
+* 10 cells within each cell types
+* 25 genes within each gene cluster
+* overdispersion parameter in `rbetabinom` is 20
+
+```{r}
+obj<-makeSimulatedata(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
+```
+
+```{r}
+ase.mat<-obj$ase.mat # maternal allelic expression matrix
+ase.pat<-obj$ase.pat # paternal allelic expression matrix
+x<-obj$x # cell types factors
+nct<-max(as.numeric(x))
+head(ase.mat[,1:5])
+```
+# Create Ratio matrix
+Here we add the pseudo count for gene clustering and visualization.
+```{r}
+total<-ase.mat+ase.pat
+ratio<-ase.mat/total
+ratio_pseudo<-(ase.mat+2)/(total+4)
+pheatmap(ratio_pseudo,color=bluered(95), cluster_rows = FALSE, cluster_cols = FALSE,show_colnames = F,show_rownames = F)
+```
+# Gene clustering
+
+We provide two methods for gene clustering. 
+
+## * Gaussian Mixture modeling
+
+This is the default methods. The scatter plot is shown based on Top 2 PCs.
+```{r}
+cluster<-genecluster(ratio_pseudo,nct,G=4)
+table(cluster)
+```
+
+## * Hierarchical clustering 
+```{r,eval=FALSE}
+cluster<-genecluster(ratio_pseudo,nct,method="hierarchical")
+table(cluster)
+```
+# Running airpart
+
+## Construct dataframe
+
+Wide format -> Long format
+```{r}
+i=1
+feat<-which(cluster==i) # choose genes location
+cl_ratio<-as.vector(unlist(ratio[feat,]))
+cl_total<-as.vector(unlist(total[feat,]))
+dat<-tibble(ratio=cl_ratio,x=factor(rep(x,each=length(feat))),cts=cl_total)
+summary<-dat %>% group_by(x) %>% summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = T),mean=mean(ratio,na.rm = T),var=var(ratio,na.rm = T)) %>% data.frame()
+print(knitr::kable(summary)) #check summary table
+summary<-summary[order(summary$weighted.mean),]
+max(diff(summary$weighted.mean))>0.05
+```
+Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference>0.05 for speed up and accuracy. Because we find that the allelic ratio of most of the gene clusters here are consistent and won't detect any differential allelic imbalance.
+
+## Modeling using fused lasso with quasibinomial likelihood
+
+```{r}
+f <- ratio ~ p(x, pen = "gflasso")
+print(paste(length(feat),"genes may exists allelic ratio imbalance"))
+t<-system.time(coef<-sapply(1:5,function(t){
+  fit<-fusedlasso(formula=f,model="quasibinomial",data=dat,ncores=4)
+  index.1<-which(rowMeans(fit$lambda.measures$dev) < min(rowMeans(fit$lambda.measures$dev)) +0.5*mean(matrixStats::rowSds(fit$lambda.measures$dev)/sqrt(5)))[1]
+  fit2<-fusedlasso(formula=f,model="quasibinomial",data=dat,ncores=4,lambda=fit$lambda.vector[index.1]) #0.5 SE
+    co <- coef_reest(fit2)
+    co <- co + c(0,rep(co[1],nct-1))
+     return(co)
+   }))[[3]]
+   
+```
+Here `ncores` is the number of CPU used for parallelization. And it takes `r t`s with 4 CPU to test 24*367=8808 elements 5 times.
+
+## Consensus partation
+```{r,results='asis',collapse=TRUE}
+bootcl <-apply(coef, 2,function(x)fmatch(x,unique(x)))
+print(knitr::kable(bootcl %>% data.frame()))
+consens_par<-cl_consensus(cl_ensemble(list = apply(bootcl,2,as.cl_hard_partition)),method = "SM")
+class <- max.col(consens_par$.Data)
+class <-fmatch(class,unique(class))
+
+label<-tibble(type=levels(x),par=factor(class))
+print(knitr::kable(label))
+
+# Show result by graph
+# g4 <- graph( c("G1", "S", "G1", "S", "G1", "S", "G1", "S","G1", "S","G1","S","S","G2/M"), 
+# 
+#              isolates=c("mESC"),directed = F )  
+# 
+# # In named graphs we can specify isolates by providing a list of their names.
+# E(g4)
+# E(g4)$type <- c(rep("model",5),rep("origin",2))
+# V(g4)
+# V(g4)$celltype <- c("fib","fib","fib","stem")
+# plot(g4, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=1.5,
+#      vertex.color=c( "pink", "skyblue")[1+(V(g4)$celltype=="fib")],
+#      edge.color=c("dark red", "slategrey")[(E(g4)$type=="origin")+1], ) 
+```
+
+Output 5 times partition results. And `par` at the top of heatmap represents consensus partition result.

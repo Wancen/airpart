@@ -11,7 +11,12 @@ Description: Identifies subsets of genes displaying differential cell-type-speci
 License: GPL (>=2)
 Imports: 
     tidyverse,
-    stats
+    stats,
+    mclust,
+    smurf,
+    dynamicTreeCut,
+    ggplot2,
+    emdbook
 Suggests: 
     bookdown,
     knitr,
