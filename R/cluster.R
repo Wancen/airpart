@@ -1,8 +1,8 @@
 #' @import mclust
+#' @import ggplot2
 #' @importFrom dynamicTreeCut cutreeDynamic
-#' @importFrom ggplot2 ggplot
 #' @export
-genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="mclust",...){
+genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="mclust",plot=TRUE,...){
   #PCA first
   pca<-prcomp(ratio,rank. = 2*nct) #use 2*nct
   # vari<-summary(pca)$importance[2,1:2*nct]
@@ -15,9 +15,11 @@ genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="mclust",...){
     # plot(d_clust)
     m.best <- dim(d_clust$z)[2]
     cat("model-based optimal number of clusters:", m.best, "\n")
-    p<-ggplot2::ggplot(data.frame(ratio_pca),aes(ratio_pca[,1],ratio_pca[,2],col=as.factor(d_clust$classification))) +
-      geom_point() +xlab("PC1")+ylab("PC2")+scale_color_manual(values = rainbow(m.best))+theme_minimal()+labs(col = "Gene Cluster")
-    print(p)
+    if(plot==TRUE){
+      p<-ggplot(data.frame(ratio_pca),aes(ratio_pca[,1],ratio_pca[,2],col=as.factor(d_clust$classification))) +
+        geom_point() +xlab("PC1")+ylab("PC2")+scale_color_manual(values = rainbow(m.best))+theme_minimal()+labs(col = "Gene Cluster")
+      print(p)
+    }
     # mod<-MclustDR(d_clust)
     # plot(mod)
     return(d_clust$classification)
@@ -26,7 +28,11 @@ genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="mclust",...){
     my.dist <- dist(ratio_pca,method = "manhattan")
     my.tree <- hclust(my.dist, method="ward.D2")
     my.clusters <- unname(cutreeDynamic(my.tree, distM=as.matrix(my.dist), verbose=0))
-    plot(ratio_pca[,1],ratio_pca[,2],col=my.clusters)
+    if(plot==TRUE){
+      p<-ggplot(data.frame(ratio_pca),aes(ratio_pca[,1],ratio_pca[,2],col=as.factor(my.clusters))) +
+        geom_point() +xlab("PC1")+ylab("PC2")+scale_color_manual(values = rainbow(m.best))+theme_minimal()+labs(col = "Gene Cluster")
+      print(p)
+    }
     return(my.clusters)
   }
 }

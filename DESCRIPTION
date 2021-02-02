@@ -1,6 +1,6 @@
 Package: airpart
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.1
+Title: Identifies subsets of genes displaying differential cell-type-specific allelic imbalance across all cell types or states.
+Version: 0.0.2
 Authors@R: 
     person(given = "Wancen",
            family = "Mu",
@@ -18,11 +18,12 @@ Imports:
     ggplot2,
     emdbook
 Suggests: 
-    bookdown,
     knitr,
     rmarkdown,
     roxygen2 (>= 6.0.0),
-    testthat
+    testthat,
+    pheatmap,
+    gplots
 VignetteBuilder: knitr, rmarkdown
 Encoding: UTF-8
 LazyData: true

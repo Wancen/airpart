@@ -36,6 +36,7 @@
 #'               }
 #'               E.g. \code{"is.aic"} indicates in-sample selection of lambda with the AIC as measure.
 #'               When \code{lambda} is missing or \code{NULL}, it will be selected using cross-validation with the one standard error rule and the deviance as measure (\code{"cv1se.dev"}).
+#' @param niter number of iteration to run
 #' @param adj.matrix A named list containing the adjacency matrices (a.k.a. neighbor matrices) for each of the predictors with a Graph-Guided Fused Lasso penalty.
 #'                The list elements should have the names of the corresponding predictors. If only one predictor has a Graph-Guided Fused Lasso penalty,
 #'                it is also possible to only give the adjacency matrix itself (not in a list).
@@ -45,7 +46,7 @@
 #' @details See the package vignette for more details and a complete description of a use case.
 #'
 #' @seealso \code{\link[smurf]{glmsmurf}}, \code{\link[smurf]{glmsmurf.control}}, \code{\link[smurf]{p}}, \code{\link[stats]{glm}}
-fusedlasso<-function(formula,model="quasibinomial",data,pen.weights,lambda="cv1se.dev",k=5,adj.matrix,lambda.length=50L,...){
+fusedlasso<-function(formula,model="quasibinomial",data,pen.weights,lambda="cv1se.dev",k=5,niter=1,adj.matrix,lambda.length=50L,...){
   misspoi<-which(!is.na(data$ratio))
   # Default is empty list
   if (missing(adj.matrix)) {

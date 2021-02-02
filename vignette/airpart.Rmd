@@ -24,11 +24,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # Download package
 
 ```{r}
-library(devtools)
-# load_all("..")
-install_github("Wancen/airpart")
-library(airpart)
-suppressMessages(suppressWarnings(library("gplots")))
+suppressMessages(suppressWarnings(library(devtools)))
+load_all("..")
+suppressMessages(suppressWarnings(library(gplots)))
 suppressMessages(suppressWarnings(library(clue)))
 suppressMessages(suppressWarnings(library(pheatmap)))
 suppressMessages(suppressWarnings(library(fastmatch)))
@@ -39,6 +37,7 @@ suppressMessages(suppressWarnings(library(tidyverse)))
 We will simulate some data using `makeSimulatedata` function provided within the `airpart` package
 
 ### Simulation set-up:
+Default is 3 gene clusters, one has differential allelic imbalance(DAI) with larger allelic ratio(AR) difference, one is bi-allelic expression and the third one has DAI with smaller AR difference.
 
 * noise cells count is 3
 * normal cells count is 20
@@ -58,6 +57,7 @@ x<-obj$x # cell types factors
 nct<-max(as.numeric(x))
 head(ase.mat[,1:5])
 ```
+
 # Create Ratio matrix
 Here we add the pseudo count for gene clustering and visualization.
 ```{r}
@@ -66,28 +66,27 @@ ratio<-ase.mat/total
 ratio_pseudo<-(ase.mat+2)/(total+4)
 pheatmap(ratio_pseudo,color=bluered(95), cluster_rows = FALSE, cluster_cols = FALSE,show_colnames = F,show_rownames = F)
 ```
+
 # Gene clustering
 
 We provide two methods for gene clustering. 
 
-## * Gaussian Mixture modeling
+* Gaussian Mixture modeling
 
-This is the default methods. The scatter plot is shown based on Top 2 PCs.
+This is the default methods. The scatter plot is shown based on Top 2 PCs. And `plot=FALSE` to avoid showing the plot.
 ```{r}
-cluster<-genecluster(ratio_pseudo,nct,G=4)
+cluster<-genecluster(ratio_pseudo,nct,G=c(1:8))
 table(cluster)
 ```
 
-## * Hierarchical clustering 
+* Hierarchical clustering 
 ```{r,eval=FALSE}
-cluster<-genecluster(ratio_pseudo,nct,method="hierarchical")
+cluster<-genecluster(ratio_pseudo,nct,method="hierarchical",plot = FALSE)
 table(cluster)
 ```
 # Running airpart
 
 ## Construct dataframe
-
-Wide format -> Long format
 ```{r}
 i=1
 feat<-which(cluster==i) # choose genes location
@@ -101,7 +100,7 @@ max(diff(summary$weighted.mean))>0.05
 ```
 Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference>0.05 for speed up and accuracy. Because we find that the allelic ratio of most of the gene clusters here are consistent and won't detect any differential allelic imbalance.
 
-## Modeling using fused lasso with quasibinomial likelihood
+## Modeling using fused lasso with binomial likelihood
 
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso")
