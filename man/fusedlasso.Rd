@@ -6,11 +6,12 @@
 \usage{
 fusedlasso(
   formula,
-  model = "quasibinomial",
+  model = "binomial",
   data,
   pen.weights,
   lambda = "cv1se.dev",
   k = 5,
+  niter = 1,
   adj.matrix,
   lambda.length = 50L,
   ...
@@ -20,7 +21,7 @@ fusedlasso(
 \item{formula}{A \code{\link[stats]{formula}} object describing the model to be fitted.
 Penalties are specified using the \code{\link{p}} function.}
 
-\item{model}{Either "quasibinomial" or "gaussian"used to model the generalized fused lasso}
+\item{model}{Either "binomial" or "gaussian" used to model the generalized fused lasso}
 
 \item{data}{A data frame containing the model response and predictors for \code{N} observations}
 
@@ -52,6 +53,8 @@ Penalties are specified using the \code{\link{p}} function.}
 }
 E.g. \code{"is.aic"} indicates in-sample selection of lambda with the AIC as measure.
 When \code{lambda} is missing or \code{NULL}, it will be selected using cross-validation with the one standard error rule and the deviance as measure (\code{"cv1se.dev"}).}
+
+\item{niter}{number of iteration to run, recommend run 5 times if allelic ratio difference within [0.05,0.1]}
 
 \item{adj.matrix}{A named list containing the adjacency matrices (a.k.a. neighbor matrices) for each of the predictors with a Graph-Guided Fused Lasso penalty.
 The list elements should have the names of the corresponding predictors. If only one predictor has a Graph-Guided Fused Lasso penalty,

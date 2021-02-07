@@ -105,23 +105,14 @@ Note that we recommend users only run `airpart` when the largest ordered allelic
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso")
 print(paste(length(feat),"genes may exists allelic ratio imbalance"))
-t<-system.time(coef<-sapply(1:5,function(t){
-  fit<-fusedlasso(formula=f,model="quasibinomial",data=dat,ncores=4)
-  index.1<-which(rowMeans(fit$lambda.measures$dev) < min(rowMeans(fit$lambda.measures$dev)) +0.5*mean(matrixStats::rowSds(fit$lambda.measures$dev)/sqrt(5)))[1]
-  fit2<-fusedlasso(formula=f,model="quasibinomial",data=dat,ncores=4,lambda=fit$lambda.vector[index.1]) #0.5 SE
-    co <- coef_reest(fit2)
-    co <- co + c(0,rep(co[1],nct-1))
-     return(co)
-   }))[[3]]
-   
+t<-system.time(cl<-fusedlasso(formula=f,model="binomial",data=dat,ncores=4,niter = 5))[[3]]
+print(knitr::kable(cl %>% data.frame()))
 ```
-Here `ncores` is the number of CPU used for parallelization. And it takes `r t`s with 4 CPU to test 24*367=8808 elements 5 times.
+Here `ncores` is the number of CPU used for parallelization.You can specify `niter=1` which is the default when the CTS weighted allelic ratio difference large than 0.1 and therefore there won't have uncertainty.
 
 ## Consensus partation
 ```{r,results='asis',collapse=TRUE}
-bootcl <-apply(coef, 2,function(x)fmatch(x,unique(x)))
-print(knitr::kable(bootcl %>% data.frame()))
-consens_par<-cl_consensus(cl_ensemble(list = apply(bootcl,2,as.cl_hard_partition)),method = "SM")
+consens_par<-cl_consensus(cl_ensemble(list = apply(cl,2,as.cl_hard_partition)),method = "SM")
 class <- max.col(consens_par$.Data)
 class <-fmatch(class,unique(class))
 

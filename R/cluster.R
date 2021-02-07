@@ -2,14 +2,21 @@
 #' @import ggplot2
 #' @importFrom dynamicTreeCut cutreeDynamic
 #' @export
-genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="mclust",plot=TRUE,...){
+#' @title Gene clustering based on allelic ratio matrix with pseudo count
+#'
+#' @description cluster on genes
+#'
+#' @param ratio an allelic ratio matrix with pseudo count added in
+#' @param nct number of cell types or states
+#' @param method either \code{"GMM"} or \code{"hierarchical"}
+genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="GMM",plot=TRUE,...){
   #PCA first
   pca<-prcomp(ratio,rank. = 2*nct) #use 2*nct
   # vari<-summary(pca)$importance[2,1:2*nct]
   # sum(vari)
   ratio_pca<-as.matrix(pca$x)
 
-  if(method=="mclust"){
+  if(method=="GMM"){
     d_clust<-Mclust(ratio_pca,G=G,modelNames = "EII",initialization = list(hcPairs = hc(ratio_pca,modelName = "EII", use = "VARS")),...)
     # summary(d_clust)
     # plot(d_clust)
