@@ -1,2 +1,2 @@
 # airpart
-Differential allelic imbalancepartition across group of cells
+Differential allelic imbalance partition across group of cells
