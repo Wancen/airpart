@@ -13,7 +13,7 @@ fusedlasso(
   k = 5,
   niter = 1,
   adj.matrix,
-  lambda.length = 50L,
+  lambda.length = 25L,
   ...
 )
 }
@@ -64,7 +64,7 @@ it is also possible to only give the adjacency matrix itself (not in a list).}
 An object of class 'glmsmurf' is returned.
 }
 \description{
-Fit generalized fused lasso with either quasibinomial(link="logit") or gaussian likelihood.
+Fit generalized fused lasso with either binomial(link="logit") or gaussian likelihood.
 }
 \details{
 See the package vignette for more details and a complete description of a use case.

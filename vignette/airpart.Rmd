@@ -7,10 +7,10 @@ abstract: |
   airpart is an R package that identifies subsets of genes displaying differential CTS allelic imbalance across all cell types.
 output: 
   html_document:
-    toc: true  
+    toc: true
     toc_float: true 
-    theme: united  
-    highlight: tango  
+    theme: united
+    highlight: tango
 vignette: |
   %\VignetteIndexEntry{Differential cell-type-specific allelic imbalance with airpart}
   %\VignetteEngine{knitr::rmarkdown}
@@ -23,18 +23,28 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Download package
 
+TODO...
+
 ```{r}
-suppressMessages(suppressWarnings(library(devtools)))
-load_all("..")
-suppressMessages(suppressWarnings(library(gplots)))
-suppressMessages(suppressWarnings(library(clue)))
-suppressMessages(suppressWarnings(library(pheatmap)))
-suppressMessages(suppressWarnings(library(fastmatch)))
-suppressMessages(suppressWarnings(library(tidyverse)))
+library(airpart)
+```
+
+Recommend to call `library` at the position when you need the package,
+instead of at the top, so users know which package is needed for which
+chunk of code. Also you can use `suppressPackageStartupMessages`.
+
+```{r}
+suppressPackageStartupMessages({
+  library(gplots)
+  library(clue)
+  library(pheatmap)
+  library(fastmatch)
+  library(tidyverse)
+})
 ```
 
 # Overview of data
-We will simulate some data using `makeSimulatedata` function provided within the `airpart` package
+We will simulate some data using `makeSimulateData` function provided within the `airpart` package
 
 ### Simulation set-up:
 Default is 3 gene clusters, one has differential allelic imbalance(DAI) with larger allelic ratio(AR) difference, one is bi-allelic expression and the third one has DAI with smaller AR difference.
@@ -47,7 +57,7 @@ Default is 3 gene clusters, one has differential allelic imbalance(DAI) with lar
 * overdispersion parameter in `rbetabinom` is 20
 
 ```{r}
-obj<-makeSimulatedata(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
+obj <- makeSimulatedData(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
 ```
 
 ```{r}

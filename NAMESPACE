@@ -3,7 +3,7 @@
 export(boot_fusedlasso)
 export(fusedlasso)
 export(genecluster)
-export(makeSimulatedata)
+export(makeSimulatedData)
 export(wilcox)
 import(ggplot2)
 import(mclust)

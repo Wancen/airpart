@@ -1,7 +1,4 @@
-#' @importFrom emdbook rbetabinom
-#' @export
-#'
-#' @title Make simulate data for airpart
+#' @title Make simulated data for airpart
 #'
 #' @param ngenecl number of gene per gene cluster
 #' @param mu1 low count
@@ -14,8 +11,11 @@
 #' \item{ase.mat}{maternal allelic expression matrix}
 #' \item{ase.pat}{paternal allelic expression matrix}
 #' \item{x}{a vector of annotated cell types in the same order as cells in count matrix}
-makeSimulatedata<-function(mu1,mu2,nct,n,ngenecl,theta){
-  set.seed(as.numeric(Sys.Date()))
+#'
+#' @importFrom emdbook rbetabinom
+#' 
+#' @export
+makeSimulatedData <- function(mu1,mu2,nct,n,ngenecl,theta){
 
   if((nct %% 2) == 1){
     stop("require even number of cell types for simulation setup")
@@ -32,7 +32,9 @@ makeSimulatedata<-function(mu1,mu2,nct,n,ngenecl,theta){
 
   # maternal allelic expression matrix
   ase.mat<-lapply(1:ncl,function(m) {
-    matrix(rbetabinom(nclcell, prob=p[(nclcell*m-nclcell+1):(nclcell*m)], size=cts[(m*ngenecl-ngenecl+1):(m*ngenecl),], theta=theta),ncol = nct*n)})
+    matrix(rbetabinom(nclcell, prob=p[(nclcell*m-nclcell+1):(nclcell*m)],
+                      size=cts[(m*ngenecl-ngenecl+1):(m*ngenecl),],
+                      theta=theta),ncol = nct*n)})
   ase.mat<-do.call(rbind,ase.mat)
   colnames(ase.mat)<-paste0("cell",1:(nct*n))
   rownames(ase.mat)<-paste0("gene",1:ngene)
@@ -41,14 +43,5 @@ makeSimulatedata<-function(mu1,mu2,nct,n,ngenecl,theta){
 
   x <- factor(rep(1:nct,each=n)) # cell type vector
 
-  dat = list(ase.mat = ase.mat, ase.pat = ase.pat, x = x)
+  list(ase.mat = ase.mat, ase.pat = ase.pat, x = x)
 }
-
-
-
-
-
-
-
-
-
