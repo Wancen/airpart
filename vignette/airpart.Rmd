@@ -33,16 +33,6 @@ Recommend to call `library` at the position when you need the package,
 instead of at the top, so users know which package is needed for which
 chunk of code. Also you can use `suppressPackageStartupMessages`.
 
-```{r}
-suppressPackageStartupMessages({
-  library(gplots)
-  library(clue)
-  library(pheatmap)
-  library(fastmatch)
-  library(tidyverse)
-})
-```
-
 # Overview of data
 We will simulate some data using `makeSimulateData` function provided within the `airpart` package
 
@@ -71,6 +61,8 @@ head(ase.mat[,1:5])
 # Create Ratio matrix
 Here we add the pseudo count for gene clustering and visualization.
 ```{r}
+suppressPackageStartupMessages({library(gplots)})
+suppressPackageStartupMessages({library(pheatmap)})
 total<-ase.mat+ase.pat
 ratio<-ase.mat/total
 ratio_pseudo<-(ase.mat+2)/(total+4)
@@ -98,6 +90,7 @@ table(cluster)
 
 ## Construct dataframe
 ```{r}
+library(tidyverse)
 i=1
 feat<-which(cluster==i) # choose genes location
 cl_ratio<-as.vector(unlist(ratio[feat,]))
@@ -122,6 +115,8 @@ Here `ncores` is the number of CPU used for parallelization.You can specify `nit
 
 ## Consensus partation
 ```{r,results='asis',collapse=TRUE,eval=FALSE}
+suppressPackageStartupMessages({library(clue)})
+suppressPackageStartupMessages({library(fastmatch)})
 consens_par<-cl_consensus(cl_ensemble(list = apply(cl,2,as.cl_hard_partition)),method = "SM")
 class <- max.col(consens_par$.Data)
 class <-fmatch(class,unique(class))
