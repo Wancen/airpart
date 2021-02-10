@@ -1,5 +1,15 @@
 #' @export
-wilcox<-function(data,nct,threshold=0.05,p.adjust.method="none",...){
+#' @title Extension on Pairwise Mann Whitney Wilcoxon Test for partition
+#'
+#' @description Extend the Pairwise Mann Whitney Wilcoxon Test by combining hierarchical cluster for partition.
+#'
+#' @param data A data frame containing the model response (\code{ratio}), and grouping factors (\code{x})
+#' @param threshold a vector with candidate thresholds as p-value cut-off. Details please look at vignette
+#' @param p.adjust.method method for adjusting p values (see \code{\link[stats]{p.adjust}}). Can be abbreviated
+#'
+#' @return A vector of grouping factor partition is returned.
+wilcox<-function(data,threshold=0.05,p.adjust.method="none",...){
+  nct<-length(levels(data$x))
   res <- pairwise.wilcox.test(data$ratio,data$x,p.adjust.method=p.adjust.method,...)
   # res <- pairwise.wilcox.test(dat$ratio,dat$x, p.adjust.method ="holm")
   adj<-as.data.frame(res$p.value)[lower.tri(res$p.value, diag = T)]
@@ -14,11 +24,11 @@ wilcox<-function(data,nct,threshold=0.05,p.adjust.method="none",...){
   return(my.clusters)
 }
 
-wilcox_adj<-function(data,nct,k,threshold,p.adjust.method="none",...){
+wilcox_adj<-function(data,threshold,p.adjust.method="none",...){
   set.seed(as.numeric(Sys.Date()))
   out<-list()
   obj<-sapply (1:length(threshold), function(j){
-    fit<-wilcox(data,nct=nct,p.adjust.method=p.adjust.method,threshold=threshold[j],...)
+    fit<-wilcox(data,p.adjust.method=p.adjust.method,threshold=threshold[j],...)
     label<-tibble(type=factor(seq_along(1:nct)),par=fit)
     data2<-data %>% left_join(label,by=c("x"="type"))
     data2<-data2 %>% group_by(par) %>% mutate(grpmean=mean(ratio,na.rm = T))

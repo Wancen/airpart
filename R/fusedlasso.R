@@ -63,7 +63,7 @@ fusedlasso<-function(formula,model="binomial",data,pen.weights,lambda="cv1se.dev
                              control=list(lambda.length=lambda.length, k=k,...));
         co <- coef_reest(fit)
         co <- co + c(0,rep(co[1],nct-1))
-        if(nct<10){
+        if(nct<=8){
           index.1<-which(rowMeans(fit$lambda.measures$dev) < min(rowMeans(fit$lambda.measures$dev)) +0.5*mean(matrixStats::rowSds(fit$lambda.measures$dev)/sqrt(5)))[1]
           fit2<-smurf::glmsmurf(formula=formula, family=binomial(link = "logit"), data=data,adj.matrix=adj.matrix,
                                 weights=data$cts[misspoi], pen.weights="glm.stand",lambda=fit$lambda.vector[index.1],
@@ -86,7 +86,7 @@ fusedlasso<-function(formula,model="binomial",data,pen.weights,lambda="cv1se.dev
                              control=list(lambda.length=lambda.length, k=k,...));
         co <- coef_reest(fit)
         co <- co + c(0,rep(co[1],nct-1))
-        if(nct<10){
+        if(nct<=8){
           index.1<-which(rowMeans(fit$lambda.measures$dev) < min(rowMeans(fit$lambda.measures$dev)) +0.5*mean(matrixStats::rowSds(fit$lambda.measures$dev)/sqrt(5)))[1]
           fit2<-smurf::glmsmurf(formula=formula, family=gaussian(), data=data,adj.matrix=adj.matrix,
                                 weights=data$cts[misspoi], pen.weights="glm.stand",lambda=fit$lambda.vector[index.1]) #0.5 SE
