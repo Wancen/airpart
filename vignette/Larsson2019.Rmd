@@ -40,6 +40,7 @@ First, we load the preprocessed [Larsson 2019](https://www.nature.com/articles/s
 load("../data/larsson_postprocess.rda")
 nct<-length(cell_meta_unique) # number of cell types
 head(total_fil[1:5,1:5])
+knitr::kable(total_fil[a[1:10],sample(ncol(total_fil),5)])
 ```
 Note that we require genes expressed in at least **25%** cells within each cell types. And the code for gene QC after cell QC could be 
 ```{r, eval=FALSE}
@@ -84,7 +85,7 @@ Here we run `airpart`on cluster 26 for example.
 
 Wide format -> Long format
 ```{r}
-i=18
+i=12
 set.seed(i)
 feat<-which(cluster==i) # choose genes location
 cl_ratio<-as.vector(unlist(ratio[feat,]))
@@ -103,6 +104,7 @@ Note that we recommend users only run `airpart` when the largest ordered allelic
 f <- ratio ~ p(x, pen = "gflasso")
 print(paste(length(feat),"genes may exists allelic ratio imbalance"))
 t<-system.time(cl<-fusedlasso(formula=f,model="binomial",data=dat,ncores=4,niter = 1))[[3]]
+cl
 ```
 Here `ncores` is the number of CPU used for parallelization. And it takes `r t`s with 4 CPU to test 24*367=8808 elements 5 times.
 
@@ -114,13 +116,13 @@ consens_par<-cl_consensus(cl_ensemble(list = apply(cl,2,as.cl_hard_partition)),m
 class <- max.col(consens_par$.Data)
 class <-fmatch(class,unique(class))
 
-label<-tibble(type=cell_meta_unique,par=factor(class))
+label<-tibble(type=cell_meta_unique,par=factor(cl))
 celltypeQC2<-celltypeQC %>% left_join(label,by=c("cell_state"="type"))
 rownames(celltypeQC2)<-rownames(celltypeQC)
 
 
 pheatmap(ratio_pseudo[feat,],color=bluered(95), cluster_rows = FALSE, cluster_cols = FALSE,
-annotation_col = celltypeQC2,show_colnames = F,show_rownames = F)
+annotation_col = celltypeQC2,show_colnames = F,show_rownames = T)
 
 g4 <- graph( c("G1", "S", "G1", "S", "G1", "S", "G1", "S","G1", "S","G1","S","S","G2/M"), 
 
@@ -150,7 +152,8 @@ Output 5 times partition results. And `par` at the top of heatmap represents con
 ```{r,results='asis',warning=FALSE}
 
 t2<-system.time(fit2<-wilcox_adj(dat,nct=nct,threshold =10^seq(from=-2,to=-0.4,by=0.1)))[[3]]
-label<-tibble(type=cell_meta_unique,par_fused=class,par_wilcoxon=factor(fit2))
+label<-tibble(type=cell_meta_unique,par_fused=as.vector(cl),par_wilcoxon=factor(fit2))
+label
 dat2<-dat %>% left_join(label,by=c("x"="type"))
 ```
 
@@ -158,16 +161,26 @@ It takes `r t2`s to run Wilcoxon.
 
 ### Beta-binomial estimator for Wilcoxon
 ```{r,warning=FALSE}
-bb<-tryCatch({
-      vglm(cbind(ratio*cts, cts-ratio*cts) ~ par_wilcoxon, betabinomial, data = dat2, trace = F)}, error=function(e) {
-        vglm(cbind(ratio*cts, cts-ratio*cts) ~ 1, betabinomial, data = dat2, trace = F)}) # beta binomial confidence interval
- #subset = cts>1
-coef_bb<-coef(bb)[-2] # betabinomial estimator
-coef_bb <- coef_bb + c(0,rep(coef_bb[1],length(coef_bb)-1))
-coef_wilcoxon<-1/(1+exp(-coef_bb))
-estimator<-tibble(par_wilcoxon=seq_len(length(coef_wilcoxon)),estimator=coef_wilcoxon)
-estimator2<-merge(label, estimator, by="par_wilcoxon", all = T)
-print(knitr::kable(estimator2))
+estimator<-sapply (1:max(cl), function(m){
+  bb<-vglm(cbind(ratio*cts, cts-ratio*cts) ~1, betabinomial, data = dat2[which(dat2$par_wilcoxon==m),], trace = F)
+  coef_bb<-Coef(bb)[-2] # betabinomial estimator
+  rho<-Coef(bb)[2]
+  confint_bb<-confintvglm(bb,matrix=T)[-2,]
+  confint_wilcoxon<-1/(1+exp(-confint_bb))
+  return(list(coef_bb,confint_wilcoxon,rho))
+  })
+  
+  # allelic ratio estimator
+  coef<-as.vector(do.call(rbind, estimator[seq(1,length(estimator), by = 3)]))
+  est<-tibble(par_wilcoxon=factor(seq_len(length(coef))),estimator=coef)
+  est2<-merge(label, est, by="par_wilcoxon", all = T) #combine with partation label
+  print(knitr::kable(est2))
+  
+  # Normal approximation
+  confint<-matrix(do.call(rbind, estimator[seq(2,length(estimator), by = 3)]),ncol=2) %>%as_tibble() %>% setNames(names(estimator[[2]]))
+  normal<-round(confint[as.numeric(cl),],3)
+  row.names(normal)<-label$type
+  print(knitr::kable(normal))
 ```
 
 ### Normal approximation confidence interval
@@ -178,17 +191,6 @@ confint_wilcoxon<-matrix(1/(1+exp(-confint_bb)),ncol=2)
 confint_wilcoxon<-confint_wilcoxon[rep(seq_len(nrow(confint_wilcoxon)), table(factor(fit2))),]
 row.names(confint_wilcoxon)<-cell_meta_unique
 print(knitr::kable(confint_wilcoxon))
-```
-```{r}
-# empirical bayes using methods of moment
-mu <- summary$mean
-vr <- summary$var
-alpha <- ((1 - mu) / vr - 1 / mu) * mu ^ 2
-beta <- alpha * (1 / mu - 1)
-alpha
-beta
-size<-dat %>% group_by(x) %>% summarise(n=sum(cts)) %>% data.frame()
-binom.bayes(x = estimator$estimator*size$n, n = size$n, tol = 1e-8,prior.shape1 = alpha,prior.shape2 = beta)
 ```
 
 ## Graph-Guided Fused Lasso

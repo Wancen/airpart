@@ -108,8 +108,8 @@ Note that we recommend users only run `airpart` when the largest ordered allelic
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso")
 print(paste(length(feat),"genes may exists allelic ratio imbalance"))
-t<-system.time(cl<-fusedlasso(formula=f,model="binomial",data=dat,ncores=4,niter = 1))[[3]]
-print(knitr::kable(cl %>% data.frame()))
+t<-system.time(cl_gfl<-fusedlasso(formula=f,model="binomial",data=dat,ncores=4,niter = 1))[[3]]
+print(knitr::kable(cl_gfl))
 ```
 Here `ncores` is the number of CPU used for parallelization.You can specify `niter=5` when the CTS weighted allelic ratio difference smaller than 0.1 and therefore there will have uncertainty.
 
@@ -128,10 +128,39 @@ If you run `niter=5`, please use consensus partition to derive the final partiti
 
 # Wilcoxon 
 ```{r}
-t<-system.time(cl<-wilcox_adj(dat,threshold =10^seq(from=-2,to=-0.4,by=0.1)))[[3]]
+t<-system.time(cl_wilcoxon<-wilcox_adj(dat,threshold =10^seq(from=-2,to=-0.4,by=0.1)))[[3]]
 cl
 ```
+```{r}
+label<-tibble(type=levels(x),par_fused=as.vector(cl),par_wilcoxon=as.numeric(cl_wilcoxon))
+label
+dat2<-dat %>% left_join(label,by=c("x"="type"))
+```
 
+
+### Beta-binomial estimator for fused lasso
+```{r,warning=FALSE}
+estimator<-sapply (1:max(cl_gfl), function(m){
+  bb<-vglm(cbind(ratio*cts, cts-ratio*cts) ~1, betabinomial, data = dat2[which(dat2$par_wilcoxon==m),], trace = F)
+  coef_bb<-Coef(bb)[-2] # betabinomial estimator
+  rho<-Coef(bb)[2]
+  confint_bb<-confintvglm(bb,matrix=T)[-2,] # CI
+  confint_wilcoxon<-1/(1+exp(-confint_bb)) 
+  return(list(coef_bb,confint_wilcoxon,rho))
+  })
+  
+  # allelic ratio estimator
+  coef<-as.vector(do.call(rbind, estimator[seq(1,length(estimator), by = 3)]))
+  est<-tibble(par_wilcoxon=factor(seq_len(length(coef))),estimator=coef)
+  est2<-merge(label, est, by="par_wilcoxon", all = T) #combine with partation label
+  print(knitr::kable(est2))
+  
+  # Normal approximation
+  confint<-matrix(do.call(rbind, estimator[seq(2,length(estimator), by = 3)]),ncol=2) %>%as_tibble() %>% setNames(names(estimator[[2]]))
+  normal<-round(confint[as.numeric(cl),],3)
+  row.names(normal)<-label$type
+  print(knitr::kable(normal))
+```
 
 ```{r}
 # Show result by graph
