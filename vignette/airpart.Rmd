@@ -28,10 +28,6 @@ knitr::opts_chunk$set(echo=TRUE)
 library(airpart)
 ```
 
-Recommend to call `library` at the position when you need the package,
-instead of at the top, so users know which package is needed for which
-chunk of code. Also you can use `suppressPackageStartupMessages`.
-
 # Overview of data
 
 We will simulate some data using `makeSimulatedData` function provided
@@ -173,20 +169,25 @@ robustness.
 
 ## Consensus partition
 
+If you run `niter=5`, please use a consensus partition to derive the
+final partition.
+
+TODO: this should probably be live code... it's short enough that it
+doesn't need a wrapper
+
 ```{r,results='asis',collapse=TRUE,eval=FALSE}
 suppressPackageStartupMessages({library(clue)})
 # why do we need fast match? is this a slow step?
 suppressPackageStartupMessages({library(fastmatch)})
-consens_par <- cl_consensus(cl_ensemble(list=apply(cl,2,as.cl_hard_partition)),
-                            method = "SM")
-class  <-  max.col(consens_par$.Data)
-class  <- fmatch(class,unique(class))
-label <- tibble(type=levels(x),par=factor(class))
+consens_part <- cl_consensus(
+  cl_ensemble(list=apply(cl,2,as.cl_hard_partition)),
+  method = "SM"
+)
+class <- max.col(consens_part$.Data)
+class <- fmatch(class,unique(class))
+label <- tibble(type=levels(x),part=factor(class))
 print(knitr::kable(label))
 ```
-
-If you run `niter=5`, please use a consensus partition to derive the
-final partition.
 
 # Wilcoxon 
 
@@ -210,7 +211,8 @@ dat2 <- dat %>% left_join(label, by=c("x"="type"))
 
 ### Beta-binomial estimator for fused lasso
 
-TODO we should probably wrap this to make it more convenient for users.
+TODO: we should probably wrap this to make it more convenient for
+users. curious your thoughts...
 
 ```{r,warning=FALSE}
 library(VGAM)
@@ -239,6 +241,8 @@ est2 <- merge(label, est, by="part_wilcoxon", all=TRUE) # combine with partition
 knitr::kable(est2)
 ```
 
+TODO: do we still include this part, or only the BB?
+
 Normal approximation...
 
 ```{r}
@@ -250,18 +254,19 @@ row.names(normal) <- label$type
 print(knitr::kable(normal))
 ```
 
-```{r}
+TODO: this will be a demo of how to graph the result?
+I like this idea, probably worth wrapping as a function
+
+```{r, eval=FALSE}
 # Show result by graph
-# g4 <- graph( c("G1", "S", "G1", "S", "G1", "S", "G1", "S","G1", "S","G1","S","S","G2/M"), 
-# 
-#              isolates=c("mESC"),directed = F )  
-# 
-# # In named graphs we can specify isolates by providing a list of their names.
-# E(g4)
-# E(g4)$type <- c(rep("model",5),rep("origin",2))
-# V(g4)
-# V(g4)$celltype <- c("fib","fib","fib","stem")
-# plot(g4, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=1.5,
-#      vertex.color=c( "pink", "skyblue")[1+(V(g4)$celltype=="fib")],
-#      edge.color=c("dark red", "slategrey")[(E(g4)$type=="origin")+1], ) 
+g4 <- graph( c("G1", "S", "G1", "S", "G1", "S", "G1", "S","G1", "S","G1","S","S","G2/M"), 
+             isolates=c("mESC"), directed=FALSE)  
+# In named graphs we can specify isolates by providing a list of their names
+E(g4)
+E(g4)$type <- c(rep("model",5),rep("origin",2))
+V(g4)
+V(g4)$celltype <- c("fib","fib","fib","stem")
+plot(g4, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=1.5,
+     vertex.color=c( "pink", "skyblue")[1+(V(g4)$celltype=="fib")],
+     edge.color=c("dark red", "slategrey")[(E(g4)$type=="origin")+1], ) 
 ```
