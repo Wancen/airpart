@@ -1,6 +1,6 @@
 Package: airpart
 Title: Differential cell-type-specific allelic imbalance with airpart
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     c(person(given = "Wancen",
            family = "Mu",
@@ -22,7 +22,8 @@ Imports:
     smurf,
     dynamicTreeCut,
     ggplot2,
-    emdbook
+    emdbook,
+    matrixStats
 Suggests: 
     knitr,
     rmarkdown,

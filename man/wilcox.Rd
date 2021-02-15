@@ -2,20 +2,25 @@
 % Please edit documentation in R/wilcoxon.R
 \name{wilcox}
 \alias{wilcox}
-\title{Extension on Pairwise Mann Whitney Wilcoxon Test for partition}
+\title{Extension on Pairwise Mann Whitney Wilcoxon Test for partitioning}
 \usage{
 wilcox(data, threshold = 0.05, p.adjust.method = "none", ...)
 }
 \arguments{
-\item{data}{A data frame containing the model response (\code{ratio}), and grouping factors (\code{x})}
+\item{data}{A data frame containing the model response (\code{ratio}),
+and grouping factors (\code{x})}
 
-\item{threshold}{a vector with candidate thresholds as p-value cut-off. Details please look at vignette}
+\item{threshold}{a vector with candidate thresholds for raw p-value
+cut-off. For details please see vignette}
 
-\item{p.adjust.method}{method for adjusting p values (see \code{\link[stats]{p.adjust}}). Can be abbreviated}
+\item{p.adjust.method}{method for adjusting p-values
+(see \code{\link[stats]{p.adjust}}). Can be abbreviated}
 }
 \value{
-A vector of grouping factor partition is returned.
+A vector grouping factor partition is returned
+(TODO: recommend having same output as fusedlass()...x )
 }
 \description{
-Extend the Pairwise Mann Whitney Wilcoxon Test by combining hierarchical cluster for partition.
+Extends the Pairwise Mann Whitney Wilcoxon Test by combining
+hierarchical clustering for partition.
 }

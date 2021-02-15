@@ -1,16 +1,18 @@
-#' @title Make simulated data for airpart
+#' Make simulated data for airpart
 #'
 #' @param ngenecl number of genes per gene cluster
-#' @param mu1 low count
+#' @param mu1 low count (typical of "noisy" ratio estimates)
 #' @param mu2 high count
 #' @param nct number of cell types
 #' @param n number of cells per cell type
 #' @param theta overdispersion parameter (higher is closer to binomial)
 #'
 #' @return a list with the following elements:
-#' \item{ase.mat}{maternal allelic expression matrix}
-#' \item{ase.pat}{paternal allelic expression matrix}
-#' \item{x}{a vector of annotated cell types in the same order as cells in count matrix}
+#' \itemize{
+#'   \item{ase.mat}{maternal allelic expression matrix}
+#'   \item{ase.pat}{paternal allelic expression matrix}
+#'   \item{x}{a vector of annotated cell types in the same order as cells in count matrix}
+#' }
 #'
 #' @importFrom emdbook rbetabinom
 #' 

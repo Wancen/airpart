@@ -2,7 +2,7 @@
 % Please edit documentation in R/cluster.R
 \name{genecluster}
 \alias{genecluster}
-\title{Gene clustering based on allelic ratio matrix with pseudo count}
+\title{Gene clustering based on allelic ratio matrix with pseudo-count}
 \usage{
 genecluster(
   ratio,
@@ -14,7 +14,7 @@ genecluster(
 )
 }
 \arguments{
-\item{ratio}{an allelic ratio matrix with pseudo count added}
+\item{ratio}{an allelic ratio matrix with pseudo-count added}
 
 \item{nct}{number of cell types or states}
 
@@ -26,7 +26,7 @@ genecluster(
 a vector of the gene cluster IDs
 }
 \description{
-Clustering of genes
+Gene clustering based on allelic ratio matrix with pseudo-count
 }
 \references{
 This function leverages Mclust from the mclust package, or hclust.

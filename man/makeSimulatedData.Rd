@@ -7,7 +7,7 @@
 makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
 }
 \arguments{
-\item{mu1}{low count}
+\item{mu1}{low count (typical of "noisy" ratio estimates)}
 
 \item{mu2}{high count}
 
@@ -21,9 +21,11 @@ makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
 }
 \value{
 a list with the following elements:
-\item{ase.mat}{maternal allelic expression matrix}
-\item{ase.pat}{paternal allelic expression matrix}
-\item{x}{a vector of annotated cell types in the same order as cells in count matrix}
+\itemize{
+  \item{ase.mat}{maternal allelic expression matrix}
+  \item{ase.pat}{paternal allelic expression matrix}
+  \item{x}{a vector of annotated cell types in the same order as cells in count matrix}
+}
 }
 \description{
 Make simulated data for airpart

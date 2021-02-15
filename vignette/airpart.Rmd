@@ -210,6 +210,8 @@ dat2 <- dat %>% left_join(label, by=c("x"="type"))
 
 ### Beta-binomial estimator for fused lasso
 
+TODO we should probably wrap this to make it more convenient for users.
+
 ```{r,warning=FALSE}
 library(VGAM)
 estimator <- sapply(1:max(cl_gfl), function(m) {

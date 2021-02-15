@@ -2,7 +2,7 @@
 % Please edit documentation in R/fusedlasso.R
 \name{fusedlasso}
 \alias{fusedlasso}
-\title{Run generalized fused lasso to partition cell-type-specific allelic imbalance across all cell types}
+\title{Generalized fused lasso to partition cell types by allelic imbalance}
 \usage{
 fusedlasso(
   formula,
@@ -19,55 +19,23 @@ fusedlasso(
 }
 \arguments{
 \item{formula}{A \code{\link[stats]{formula}} object describing the model to be fitted.
-Penalties are specified using the \code{\link{p}} function.}
+See \code{\link[smurf]{glmsmurf}} for more details}
 
-\item{model}{Either "binomial" or "gaussian" used to model the generalized fused lasso}
+\item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso}
 
-\item{data}{A data frame containing the model response and predictors for \code{N} observations}
+\item{data}{A data frame containing the allelic ratio, the cell assignment,
+and the total counts for weighting (total counts should be specified as a
+column \code{cts}). The allelic ratio and cell assignment are as named in
+\code{formula}, e.g. \code{ratio ~ p(x, pen="gflasso")}}
 
-\item{pen.weights}{Either a string describing the method to compute the penalty weights:
- \itemize{
-                 \item \code{"eq"} (equal penalty weights),
-                 \item \code{"stand"} (standardization penalty weights),
-                 \item \code{"glm"} (adaptive GLM penalty weights),
-                 \item \code{"glm.stand"} (default; stand. ad. GLM penalty weights),
-                 \item \code{"gam"} (ad. GAM penalty weights),
-                 \item \code{"gam.stand"} (stand. ad. GAM penalty weights);
-              }
-or a list with the penalty weight vector per predictor.
-This list should have length equal to the number of predictors
-and predictor names as element names.}
+\item{pen.weights}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
-\item{lambda}{Either the penalty parameter, a positive number;
-or a string describing the method and measure used to select
-the penalty parameter:
-              \itemize{
-                 \item \code{"is.aic"} (in-sample; Akaike Information Criterion (AIC)),
-                 \item \code{"is.bic"} (in-sample; Bayesian Information Criterion (BIC)),
-                 \item \code{"is.gcv"} (in-sample; Generalized Cross-Validation (GCV) score),
-                 \item \code{"oos.dev"} (out-of-sample; deviance),
-                 \item \code{"oos.mse"} (out-of-sample; Mean Squared Error (MSE)),
-                 \item \code{"oos.dss"} (out-of-sample; Dawid-Sebastiani Score (DSS)),
-                 \item \code{"cv.dev"} (cross-validation (CV); deviance),
-                 \item \code{"cv.mse"} (CV; MSE),
-                 \item \code{"cv.dss"} (CV; DSS),
-                 \item \code{"cv1se.dev"} (default; CV with one standard error (SE) rule; deviance),
-                 \item \code{"cv1se.mse"} (CV with one SE rule; MSE),
-                 \item \code{"cv1se.dss"} (CV with one SE rule; DSS).
-              }
-E.g. \code{"is.aic"} indicates in-sample selection of lambda with the AIC as measure.
-When \code{lambda} is missing or \code{NULL}, it will be selected
-using cross-validation with the one standard error rule and
-the deviance as measure (\code{"cv1se.dev"}).}
+\item{lambda}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
-\item{niter}{number of iteration to run, recommend run 5 times
-if allelic ratio difference within [0.05,0.1]}
+\item{niter}{number of iteration to run; recommended to run 5 times
+if allelic ratio differences are within [0.05,0.1]}
 
-\item{adj.matrix}{A named list containing the adjacency matrices
-(a.k.a. neighbor matrices) for each of the predictors with a Graph-Guided Fused Lasso penalty.
-The list elements should have the names of the corresponding predictors.
-If only one predictor has a Graph-Guided Fused Lasso penalty,
-it is also possible to only give the adjacency matrix itself (not in a list).}
+\item{adj.matrix}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
 \item{...}{additional arguments passed to \code{\link[smurf]{glmsmurf}}}
 }
@@ -75,8 +43,9 @@ it is also possible to only give the adjacency matrix itself (not in a list).}
 An object of class 'glmsmurf' is returned.
 }
 \description{
-Fits generalized fused lasso with either binomial(link="logit") or gaussian likelihood,
-leveraging functions from the \code{smurf} package
+Fits generalized fused lasso with either binomial(link="logit")
+or gaussian likelihood, leveraging functions from the
+\code{smurf} package.
 }
 \details{
 See the package vignette for more details and a complete description of a use case.
