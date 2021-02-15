@@ -25,7 +25,6 @@ wilcox<-function(data,threshold=0.05,p.adjust.method="none",...){
 }
 
 wilcox_adj<-function(data,threshold,p.adjust.method="none",...){
-  set.seed(as.numeric(Sys.Date()))
   out<-list()
   obj<-sapply (1:length(threshold), function(j){
     fit<-wilcox(data,p.adjust.method=p.adjust.method,threshold=threshold[j],...)
