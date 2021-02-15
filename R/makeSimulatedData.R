@@ -1,11 +1,11 @@
 #' @title Make simulated data for airpart
 #'
-#' @param ngenecl number of gene per gene cluster
+#' @param ngenecl number of genes per gene cluster
 #' @param mu1 low count
 #' @param mu2 high count
 #' @param nct number of cell types
-#' @param n number of cells per cell types
-#' @param theta overdispersion parameter
+#' @param n number of cells per cell type
+#' @param theta overdispersion parameter (higher is closer to binomial)
 #'
 #' @return a list with the following elements:
 #' \item{ase.mat}{maternal allelic expression matrix}
@@ -43,5 +43,6 @@ makeSimulatedData <- function(mu1,mu2,nct,n,ngenecl,theta){
 
   x <- factor(rep(1:nct,each=n)) # cell type vector
 
-  list(ase.mat = ase.mat, ase.pat = ase.pat, x = x)
+  list(ase.mat = ase.mat, ase.pat = ase.pat, x = x,
+       p.mat = matrix(p.vec,ncol=4,byrow=TRUE,dimnames=list(1:3,1:4)))
 }
