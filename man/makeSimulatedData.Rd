@@ -13,11 +13,11 @@ makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
 
 \item{nct}{number of cell types}
 
-\item{n}{number of cells per cell types}
+\item{n}{number of cells per cell type}
 
-\item{ngenecl}{number of gene per gene cluster}
+\item{ngenecl}{number of genes per gene cluster}
 
-\item{theta}{overdispersion parameter}
+\item{theta}{overdispersion parameter (higher is closer to binomial)}
 }
 \value{
 a list with the following elements:

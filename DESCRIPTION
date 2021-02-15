@@ -1,13 +1,19 @@
 Package: airpart
-Title: Identifies subsets of genes displaying differential cell-type-specific allelic imbalance across all cell types or states.
-Version: 0.0.2
+Title: Differential cell-type-specific allelic imbalance with airpart
+Version: 0.0.3
 Authors@R: 
-    person(given = "Wancen",
+    c(person(given = "Wancen",
            family = "Mu",
            role = c("aut", "cre"),
            email = "wancen@ad.unc.edu",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Identifies subsets of genes displaying differential cell-type-specific allelic imbalance across all cell types or states.
+           comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Michael",
+           family = "Love",
+           role = c("aut", "ctb"),
+           comment = c(ORCID = "0000-0001-8401-0545")))
+Description: Identifies subsets of genes displaying differential
+    cell-type-specific allelic imbalance across all cell types
+    or states.
 License: GPL (>=2)
 Imports: 
     tidyverse,

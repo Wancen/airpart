@@ -11,8 +11,21 @@
 #' @param method either \code{"GMM"} or \code{"hierarchical"}
 #' @param plot logical, whether to make a plot
 #'
+#' @references
+#'
+#' This function leverages Mclust from the mclust package, or hclust.
+#'
+#' For mclust see:
+#' Luca Scrucca and Michael Fop and T. Brendan Murphy, Adrian E. Raftery
+#' "mclust 5: clustering, classification and density
+#' estimation using {G}aussian finite mixture models"
+#' 2016. The R Journal. doi: 10.32614/RJ-2016-021
+#' 
+#' @seealso \code{\link[mclust]{Mclust}}
+#' 
 #' @return a vector of the gene cluster IDs
-genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="GMM",plot=TRUE,...){
+genecluster <- function(ratio, nct, G=c(4,8,12,16,20),
+                        method="GMM", plot=TRUE,...) {
   # PCA first
   pca <- prcomp(ratio, rank. = 2*nct) #use 2*nct
   # vari<-summary(pca)$importance[2,1:2*nct]
@@ -29,7 +42,7 @@ genecluster<-function(ratio,nct,G=c(4,8,12,16,20),method="GMM",plot=TRUE,...){
     my.clusters <- d_clust$classification
     cat("model-based optimal number of clusters:", nclust, "\n")
   }
-  if(method=="hierarchical"){
+  if (method=="hierarchical") {
     my.dist <- dist(ratio_pca, method="manhattan")
     my.tree <- hclust(my.dist, method="ward.D2")
     my.clusters <- unname(cutreeDynamic(my.tree, distM=as.matrix(my.dist), verbose=0))

@@ -37,6 +37,8 @@ wilcox_adj<-function(data,threshold,p.adjust.method="none",...){
     out[["loss1"]]<-loss1
     return(out)
   })
+  # TODO: can you fix the warning:
+  # ...The `x` argument of `as_tibble.matrix()` must have unique column names...
   cl<-as_tibble(do.call(rbind, obj[seq(1,length(obj), by = 2)]))
   loss1<-as_tibble(do.call(rbind, obj[seq(2,length(obj), by = 2)]))
   return(cl[which.min(unlist(loss1)),])

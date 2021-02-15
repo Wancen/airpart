@@ -14,12 +14,29 @@ genecluster(
 )
 }
 \arguments{
-\item{ratio}{an allelic ratio matrix with pseudo count added in}
+\item{ratio}{an allelic ratio matrix with pseudo count added}
 
 \item{nct}{number of cell types or states}
 
 \item{method}{either \code{"GMM"} or \code{"hierarchical"}}
+
+\item{plot}{logical, whether to make a plot}
+}
+\value{
+a vector of the gene cluster IDs
 }
 \description{
-cluster on genes
+Clustering of genes
+}
+\references{
+This function leverages Mclust from the mclust package, or hclust.
+
+For mclust see:
+Luca Scrucca and Michael Fop and T. Brendan Murphy, Adrian E. Raftery
+"mclust 5: clustering, classification and density
+estimation using {G}aussian finite mixture models"
+2016. The R Journal. doi: 10.32614/RJ-2016-021
+}
+\seealso{
+\code{\link[mclust]{Mclust}}
 }

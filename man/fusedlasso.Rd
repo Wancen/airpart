@@ -2,7 +2,7 @@
 % Please edit documentation in R/fusedlasso.R
 \name{fusedlasso}
 \alias{fusedlasso}
-\title{Run generalized fused lasso to part cell-type-specific allelic imbalance across all cell types}
+\title{Run generalized fused lasso to partition cell-type-specific allelic imbalance across all cell types}
 \usage{
 fusedlasso(
   formula,
@@ -26,49 +26,70 @@ Penalties are specified using the \code{\link{p}} function.}
 \item{data}{A data frame containing the model response and predictors for \code{N} observations}
 
 \item{pen.weights}{Either a string describing the method to compute the penalty weights:
-\itemize{
-                \item \code{"eq"} (equal penalty weights),
-                \item \code{"stand"} (standardization penalty weights),
-                \item \code{"glm"} (adaptive GLM penalty weights),
-                \item \code{"glm.stand"} (default; stand. ad. GLM penalty weights),
-                \item \code{"gam"} (ad. GAM penalty weights),
-                \item \code{"gam.stand"} (stand. ad. GAM penalty weights);
-             }
-              or a list with the penalty weight vector per predictor. This list should have length equal to the number of predictors and predictor names as element names.}
+ \itemize{
+                 \item \code{"eq"} (equal penalty weights),
+                 \item \code{"stand"} (standardization penalty weights),
+                 \item \code{"glm"} (adaptive GLM penalty weights),
+                 \item \code{"glm.stand"} (default; stand. ad. GLM penalty weights),
+                 \item \code{"gam"} (ad. GAM penalty weights),
+                 \item \code{"gam.stand"} (stand. ad. GAM penalty weights);
+              }
+or a list with the penalty weight vector per predictor.
+This list should have length equal to the number of predictors
+and predictor names as element names.}
 
-\item{lambda}{Either the penalty parameter, a positive number; or a string describing the method and measure used to select the penalty parameter:
-\itemize{
-   \item \code{"is.aic"} (in-sample; Akaike Information Criterion (AIC)),
-   \item \code{"is.bic"} (in-sample; Bayesian Information Criterion (BIC)),
-   \item \code{"is.gcv"} (in-sample; Generalized Cross-Validation (GCV) score),
-   \item \code{"oos.dev"} (out-of-sample; deviance),
-   \item \code{"oos.mse"} (out-of-sample; Mean Squared Error (MSE)),
-   \item \code{"oos.dss"} (out-of-sample; Dawid-Sebastiani Score (DSS)),
-   \item \code{"cv.dev"} (cross-validation (CV); deviance),
-   \item \code{"cv.mse"} (CV; MSE),
-   \item \code{"cv.dss"} (CV; DSS),
-   \item \code{"cv1se.dev"} (default; CV with one standard error (SE) rule; deviance),
-   \item \code{"cv1se.mse"} (CV with one SE rule; MSE),
-   \item \code{"cv1se.dss"} (CV with one SE rule; DSS).
-}
+\item{lambda}{Either the penalty parameter, a positive number;
+or a string describing the method and measure used to select
+the penalty parameter:
+              \itemize{
+                 \item \code{"is.aic"} (in-sample; Akaike Information Criterion (AIC)),
+                 \item \code{"is.bic"} (in-sample; Bayesian Information Criterion (BIC)),
+                 \item \code{"is.gcv"} (in-sample; Generalized Cross-Validation (GCV) score),
+                 \item \code{"oos.dev"} (out-of-sample; deviance),
+                 \item \code{"oos.mse"} (out-of-sample; Mean Squared Error (MSE)),
+                 \item \code{"oos.dss"} (out-of-sample; Dawid-Sebastiani Score (DSS)),
+                 \item \code{"cv.dev"} (cross-validation (CV); deviance),
+                 \item \code{"cv.mse"} (CV; MSE),
+                 \item \code{"cv.dss"} (CV; DSS),
+                 \item \code{"cv1se.dev"} (default; CV with one standard error (SE) rule; deviance),
+                 \item \code{"cv1se.mse"} (CV with one SE rule; MSE),
+                 \item \code{"cv1se.dss"} (CV with one SE rule; DSS).
+              }
 E.g. \code{"is.aic"} indicates in-sample selection of lambda with the AIC as measure.
-When \code{lambda} is missing or \code{NULL}, it will be selected using cross-validation with the one standard error rule and the deviance as measure (\code{"cv1se.dev"}).}
+When \code{lambda} is missing or \code{NULL}, it will be selected
+using cross-validation with the one standard error rule and
+the deviance as measure (\code{"cv1se.dev"}).}
 
-\item{niter}{number of iteration to run, recommend run 5 times if allelic ratio difference within [0.05,0.1]}
+\item{niter}{number of iteration to run, recommend run 5 times
+if allelic ratio difference within [0.05,0.1]}
 
-\item{adj.matrix}{A named list containing the adjacency matrices (a.k.a. neighbor matrices) for each of the predictors with a Graph-Guided Fused Lasso penalty.
-The list elements should have the names of the corresponding predictors. If only one predictor has a Graph-Guided Fused Lasso penalty,
+\item{adj.matrix}{A named list containing the adjacency matrices
+(a.k.a. neighbor matrices) for each of the predictors with a Graph-Guided Fused Lasso penalty.
+The list elements should have the names of the corresponding predictors.
+If only one predictor has a Graph-Guided Fused Lasso penalty,
 it is also possible to only give the adjacency matrix itself (not in a list).}
+
+\item{...}{additional arguments passed to \code{\link[smurf]{glmsmurf}}}
 }
 \value{
 An object of class 'glmsmurf' is returned.
 }
 \description{
-Fit generalized fused lasso with either binomial(link="logit") or gaussian likelihood.
+Fits generalized fused lasso with either binomial(link="logit") or gaussian likelihood,
+leveraging functions from the \code{smurf} package
 }
 \details{
 See the package vignette for more details and a complete description of a use case.
 }
+\references{
+This function leverages the glmsmurf function from the smurf package.
+For more details see the following manuscript:
+
+Sander Devriendt, Katrien Antonio, Tom Reynkens, Roel Verbelen
+"Sparse Regression with Multi-type Regularized Feature Modeling"
+2018. arXiv:1810.03136 [stat.CO].
+}
 \seealso{
-\code{\link[smurf]{glmsmurf}}, \code{\link[smurf]{glmsmurf.control}}, \code{\link[smurf]{p}}, \code{\link[stats]{glm}}
+\code{\link[smurf]{glmsmurf}}, \code{\link[smurf]{glmsmurf.control}},
+\code{\link[smurf]{p}}, \code{\link[stats]{glm}}
 }
