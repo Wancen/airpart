@@ -15,7 +15,7 @@ makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
 
 \item{n}{number of cells per cell type}
 
-\item{ngenecl}{number of genes per gene cluster}
+\item{ngenecl}{number of genes per cluster}
 
 \item{theta}{overdispersion parameter (higher is closer to binomial)}
 }
@@ -25,6 +25,7 @@ a list with the following elements:
   \item{ase.mat}{maternal allelic expression matrix}
   \item{ase.pat}{paternal allelic expression matrix}
   \item{x}{a vector of annotated cell types in the same order as cells in count matrix}
+  \item{true.ratio}{a matrix of the true probabilities (allelic ratios) for the cell types}
 }
 }
 \description{

@@ -56,7 +56,7 @@ obj <- makeSimulatedData(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
 ase.mat <- obj$ase.mat # maternal allelic expression matrix
 ase.pat <- obj$ase.pat # paternal allelic expression matrix
 x <- obj$x # cell types factors
-p.mat <- obj$p.mat
+true.ratio <- obj$true.ratio
 nct <- nlevels(x)
 head(ase.mat[,1:5])
 ```
@@ -83,7 +83,7 @@ pheatmap(ratio_pseudo,
 The true partition is given by these underlying ratios:
 
 ```{r}
-pheatmap(p.mat,
+pheatmap(true.ratio,
          color=bluered(101),
          breaks=0:100/100,
          annotation_col=data.frame(x=factor(1:4), row.names=1:4),
