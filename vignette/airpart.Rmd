@@ -50,9 +50,6 @@ specify:
 
 ```{r}
 obj <- makeSimulatedData(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
-```
-
-```{r}
 ase.mat <- obj$ase.mat # maternal allelic expression matrix
 ase.pat <- obj$ase.pat # paternal allelic expression matrix
 x <- obj$x # cell types factors
@@ -65,15 +62,14 @@ head(ase.mat[,1:5])
 
 Here we add the pseudo count for gene clustering and visualization.
 
-```{r}
-suppressPackageStartupMessages({library(gplots)})
-suppressPackageStartupMessages({library(pheatmap)})
+```{r, messages=FALSE}
+library(pheatmap)
 total <- ase.mat+ase.pat
 ratio <- ase.mat/total
 ratio_pseudo <- (ase.mat+2)/(total+4)
 anno_df <- data.frame(x=factor(x), row.names=colnames(total))
 pheatmap(ratio_pseudo,
-         color=bluered(101),
+         color=colorRampPalette(c("blue","white","red"))(101),
          breaks=0:100/100,
          annotation_col=anno_df,
          cluster_rows=FALSE, cluster_cols=FALSE,
@@ -122,7 +118,7 @@ i <- 1
 feat <- which(cluster == i) # choose genes location
 cl_ratio <- as.vector(unlist(ratio[feat,]))
 cl_total <- as.vector(unlist(total[feat,]))
-dat <- tibble(ratio=cl_ratio,
+dat <- data.frame(ratio=cl_ratio,
               x=factor(rep(x,each=length(feat))),
               cts=cl_total)
 summary <- dat %>%
@@ -151,7 +147,7 @@ enough evidence to detect differential allelic imbalance.
 ## Modeling using fused lasso with binomial likelihood
 
 ```{r}
-f  <-  ratio ~ p(x, pen = "gflasso") # formula for the GFL
+f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 print(paste(length(feat),"genes may exhibit allelic ratio imbalance"))
 t <- system.time({
   cl_gfl <- fusedlasso(formula=f,model="binomial",data=dat,ncores=2,niter=1)
@@ -185,7 +181,7 @@ consens_part <- cl_consensus(
 )
 class <- max.col(consens_part$.Data)
 class <- fmatch(class,unique(class))
-label <- tibble(type=levels(x),part=factor(class))
+label <- data.frame(type=levels(x),part=factor(class))
 print(knitr::kable(label))
 ```
 
@@ -202,7 +198,7 @@ cl_wilcoxon
 ```
 
 ```{r}
-label <- tibble(type = levels(x),
+label <- data.frame(type = levels(x),
                 part_fused = as.vector(cl_gfl),
                 part_wilcoxon = as.numeric(cl_wilcoxon))
 label
@@ -233,7 +229,7 @@ Allelic ratio estimator...
 
 ```{r}
 coef <- as.vector(do.call(rbind, estimator[seq(1,length(estimator), by = 3)]))
-est <- tibble(part_wilcoxon=factor(seq_len(length(coef))), estimator=coef)
+est <- data.frame(part_wilcoxon=factor(seq_len(length(coef))), estimator=coef)
 est2 <- merge(label, est, by="part_wilcoxon", all=TRUE) # combine with partition label
 ```
 
@@ -247,26 +243,57 @@ Normal approximation...
 
 ```{r}
 confint <- matrix(do.call(rbind, estimator[seq(2,length(estimator), by = 3)]),ncol=2) %>%
-  as_tibble() %>%
+  as.data.frame() %>%
   setNames(names(estimator[[2]]))
 normal <- round(confint[as.numeric(cl),],3)
 row.names(normal) <- label$type
 print(knitr::kable(normal))
 ```
 
-TODO: this will be a demo of how to graph the result?
-I like this idea, probably worth wrapping as a function
+# Displaying results on heatmap
 
-```{r, eval=FALSE}
-# Show result by graph
-g4 <- graph( c("G1", "S", "G1", "S", "G1", "S", "G1", "S","G1", "S","G1","S","S","G2/M"), 
-             isolates=c("mESC"), directed=FALSE)  
-# In named graphs we can specify isolates by providing a list of their names
-E(g4)
-E(g4)$type <- c(rep("model",5),rep("origin",2))
-V(g4)
-V(g4)$celltype <- c("fib","fib","fib","stem")
-plot(g4, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=1.5,
-     vertex.color=c( "pink", "skyblue")[1+(V(g4)$celltype=="fib")],
-     edge.color=c("dark red", "slategrey")[(E(g4)$type=="origin")+1], ) 
+To demonstrate showing partition results on a heatmap, let's make a more
+complex simulation:
+
+TODO: looking at the code in one chunk helps to see that the code
+could be simplified for the user, and it may makes sense to have an
+object (a simple list is fine) that stores the parts for the
+user. Let's discuss later. The basic steps are:
+
+* make total, ratio, ratio_pseudo matrix
+* genecluster [check]
+* make data frame 
+* add partition information to cell level information to make plots
+
+```{r}
+obj <- makeSimulatedData(mu1=3,mu2=20,nct=10,n=10,ngenecl=25,theta=20)
+ase.mat <- obj$ase.mat # maternal allelic expression matrix
+ase.pat <- obj$ase.pat # paternal allelic expression matrix
+x <- obj$x # cell types factors
+nct <- nlevels(x)
+total <- ase.mat+ase.pat
+ratio <- ase.mat/total
+ratio_pseudo <- (ase.mat+2)/(total+4)
+cluster <- genecluster(ratio_pseudo,nct,G=c(1:8))
+i <- 1
+feat <- which(cluster == i) # choose genes location
+cl_ratio <- as.vector(unlist(ratio[feat,]))
+cl_total <- as.vector(unlist(total[feat,]))
+dat <- data.frame(ratio=cl_ratio,
+                  x=factor(rep(x,each=length(feat))),
+                  cts=cl_total)
+f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
+cl_gfl <- fusedlasso(formula=f,model="binomial",data=dat,ncores=2,niter=1)
+anno_df <- data.frame(x=factor(x),
+                      row.names=colnames(total))
+anno_df$part <- factor(cl_gfl$part[match(anno_df$x, cl_gfl$x)])
+library(pheatmap)
+pheatmap(ratio_pseudo[feat,],
+         color=colorRampPalette(c("blue","white","red"))(101),
+         breaks=0:100/100,
+         annotation_col=anno_df,
+         cluster_rows=FALSE, cluster_cols=FALSE,
+         show_colnames=FALSE, show_rownames=FALSE)
 ```
+
+TODO: also show boxplot of allelic ratios with partition as color?

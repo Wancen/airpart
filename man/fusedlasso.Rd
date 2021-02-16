@@ -18,15 +18,16 @@ fusedlasso(
 )
 }
 \arguments{
-\item{formula}{A \code{\link[stats]{formula}} object describing the model to be fitted.
+\item{formula}{A \code{\link[stats]{formula}} object which will typically be:
+\code{ratio ~ p(x, pen="gflasso")}.
 See \code{\link[smurf]{glmsmurf}} for more details}
 
 \item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso}
 
-\item{data}{A data frame containing the allelic ratio, the cell assignment,
-and the total counts for weighting (total counts should be specified as a
-column \code{cts}). The allelic ratio and cell assignment are as named in
-\code{formula}, e.g. \code{ratio ~ p(x, pen="gflasso")}}
+\item{data}{A data frame containing:
+the allelic ratio (\code{"ratio"}),
+the cell assignment (\code{"x"}),
+and the total counts for weighting (\code{"cts"})}
 
 \item{pen.weights}{argument as described in \code{\link[smurf]{glmsmurf}}}
 

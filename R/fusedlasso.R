@@ -4,13 +4,14 @@
 #' or gaussian likelihood, leveraging functions from the
 #' \code{smurf} package.
 #'
-#' @param formula A \code{\link[stats]{formula}} object describing the model to be fitted.
+#' @param formula A \code{\link[stats]{formula}} object which will typically be:
+#' \code{ratio ~ p(x, pen="gflasso")}.
 #' See \code{\link[smurf]{glmsmurf}} for more details
 #' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso
-#' @param data A data frame containing the allelic ratio, the cell assignment,
-#' and the total counts for weighting (total counts should be specified as a
-#' column \code{cts}). The allelic ratio and cell assignment are as named in
-#' \code{formula}, e.g. \code{ratio ~ p(x, pen="gflasso")}
+#' @param data A data frame containing:
+#' the allelic ratio (\code{"ratio"}),
+#' the cell assignment (\code{"x"}),
+#' and the total counts for weighting (\code{"cts"})
 #' @param pen.weights argument as described in \code{\link[smurf]{glmsmurf}}
 #' @param lambda argument as described in \code{\link[smurf]{glmsmurf}}
 #' @param niter number of iteration to run; recommended to run 5 times
@@ -42,8 +43,11 @@ fusedlasso <- function(formula, model="binomial", data,
                        pen.weights, lambda="cv1se.dev",
                        k=5, niter=1, adj.matrix,
                        lambda.length=25L, ...) {
+
+  stopifnot(c("ratio","x","cts") %in% names(data))
+  
   # TODO: can we just use this?
-  data <- data[!is.na(data$ratio),]
+  data <- data[!is.nan(data$ratio),]
   nct <- length(levels(data$x))
   # default is empty list
   if (missing(adj.matrix)) {
@@ -85,7 +89,6 @@ fusedlasso <- function(formula, model="binomial", data,
   }, error=function(e) {
     message(msg)
   })
-  cl <- apply(coef, 2, function(x) match(x,unique(x)))
-  rownames(cl) <- levels(x)
+  cl <- data.frame(x=levels(x), part=match(coef[,1], unique(coef[,1])))
   return(cl)
 }

@@ -57,5 +57,5 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
   x <- factor(rep(1:nct,each=n)) # cell type vector
 
   list(ase.mat = ase.mat, ase.pat = ase.pat, x = x,
-       true.ratio = matrix(p.vec,ncol=4,byrow=TRUE,dimnames=list(1:3,1:4)))
+       true.ratio = matrix(p.vec,ncol=nct,byrow=TRUE,dimnames=list(1:3,1:nct)))
 }

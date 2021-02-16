@@ -19,7 +19,7 @@
 #' 
 #' @return a vector of the gene cluster IDs
 #'
-#' @importFrom mclust Mclust hc
+#' @importFrom mclust Mclust hc hcEII mclustBIC
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_manual theme_minimal labs
 #' @importFrom dynamicTreeCut cutreeDynamic
 #' 
