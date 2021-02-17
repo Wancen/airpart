@@ -12,11 +12,19 @@
 #' the allelic ratio (\code{"ratio"}),
 #' the cell assignment (\code{"x"}),
 #' and the total counts for weighting (\code{"cts"})
-#' @param pen.weights argument as described in \code{\link[smurf]{glmsmurf}}
-#' @param lambda argument as described in \code{\link[smurf]{glmsmurf}}
 #' @param niter number of iteration to run; recommended to run 5 times
 #' if allelic ratio differences are within [0.05,0.1]
+#' @param pen.weights argument as described in \code{\link[smurf]{glmsmurf}}
+#' @param lambda argument as described in \code{\link[smurf]{glmsmurf}}
+#' @param k number of cross-validation folds
 #' @param adj.matrix argument as described in \code{\link[smurf]{glmsmurf}}
+#' @param lambda.length argument as described in \code{\link[smurf]{glmsmurf}}
+#' @param se.rule.nct the number of cell types to trigger an SE based rule
+#' (to prioritize smaller models, more fusing). When the number of cell types
+#' is less than or equal to this value, the SE rule is used
+#' @param se.rule.mult the multiplier of the SE in determining the lambda:
+#' the chosen lambda is within \code{se.rule.mult} x SE of the minimum
+#' deviance
 #' @param ... additional arguments passed to \code{\link[smurf]{glmsmurf}}
 #'
 #' @return An object of class 'glmsmurf' is returned.
@@ -39,13 +47,14 @@
 #' @importFrom matrixStats rowSds
 #'
 #' @export
-fusedlasso <- function(formula, model="binomial", data,
-                       pen.weights, lambda="cv1se.dev",
-                       k=5, niter=1, adj.matrix,
-                       lambda.length=25L, ...) {
+fusedlasso <- function(formula, model="binomial", data, niter=1,
+                       pen.weights, lambda="cv1se.dev", k=5,
+                       adj.matrix, lambda.length=25L,
+                       se.rule.nct=8,
+                       se.rule.mult=0.5,
+                       ...) {
 
   stopifnot(c("ratio","x","cts") %in% names(data))
-  
   # TODO: can we just use this?
   data <- data[!is.nan(data$ratio),]
   nct <- length(levels(data$x))
@@ -67,19 +76,24 @@ fusedlasso <- function(formula, model="binomial", data,
                              data=data, adj.matrix=adj.matrix,
                              weights=data$cts,
                              pen.weights="glm.stand", lambda=lambda,
-                             control=list(lambda.length=lambda.length, k=k,...))
+                             control=list(lambda.length=lambda.length, k=k, ...))
       co <- coef_reest(fit)
       co <- co + c(0,rep(co[1],nct-1))
-      if (nct <= 8) {
-        # TODO: can you put comments here what this code is for?
-        # probably it should also be described in the details above
-        idx <- which(rowMeans(fit$lambda.measures$dev) < min(rowMeans(fit$lambda.measures$dev)) +
-                         0.5 * mean(matrixStats::rowSds(fit$lambda.measures$dev)/sqrt(5)))[1]
+      # if number of cell types is 'se.rule.nct' or less:
+      if (nct <= se.rule.nct) {
+        # choose lambda by the lowest deviance within 'se.rule.mult' standard error of the min
+        mean.dev <- rowMeans(fit$lambda.measures$dev)
+        min.dev <- min(mean.dev)
+        sd.dev <- matrixStats::rowSds(fit$lambda.measures$dev)
+        se.dev <- mean(sd.dev)/sqrt(k)
+        idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
+        # this is faster, running the GFL for a single lambda value
         fit2 <- smurf::glmsmurf(formula=formula, family=fam,
                                 data=data, adj.matrix=adj.matrix,
                                 weights=data$cts, pen.weights="glm.stand",
                                 lambda=fit$lambda.vector[idx],
-                                control = list(...)) # 0.5 SE
+                                control = list(...))
+        # rearrange coefficients so not comparing to reference cell type
         co <- coef_reest(fit2)
         co <- co + c(0,rep(co[1],nct-1))
       }
@@ -89,6 +103,14 @@ fusedlasso <- function(formula, model="binomial", data,
   }, error=function(e) {
     message(msg)
   })
-  cl <- data.frame(x=levels(x), part=match(coef[,1], unique(coef[,1])))
+  if (niter == 1) {
+    part <- match(coef[,1], unique(coef[,1]))
+    cl <- data.frame(x=levels(x), part=part)
+  } else {
+    # multiple partitions
+    part <- apply(coef, 2, function(z) match(z, unique(z)))
+    colnames(part) <- paste0("part",seq_len(niter))
+    cl <- data.frame(x=levels(x), part)
+  }
   return(cl)
 }

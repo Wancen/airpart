@@ -8,12 +8,14 @@ fusedlasso(
   formula,
   model = "binomial",
   data,
+  niter = 1,
   pen.weights,
   lambda = "cv1se.dev",
   k = 5,
-  niter = 1,
   adj.matrix,
   lambda.length = 25L,
+  se.rule.nct = 8,
+  se.rule.mult = 0.5,
   ...
 )
 }
@@ -29,14 +31,26 @@ the allelic ratio (\code{"ratio"}),
 the cell assignment (\code{"x"}),
 and the total counts for weighting (\code{"cts"})}
 
+\item{niter}{number of iteration to run; recommended to run 5 times
+if allelic ratio differences are within [0.05,0.1]}
+
 \item{pen.weights}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
 \item{lambda}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
-\item{niter}{number of iteration to run; recommended to run 5 times
-if allelic ratio differences are within [0.05,0.1]}
+\item{k}{number of cross-validation folds}
 
 \item{adj.matrix}{argument as described in \code{\link[smurf]{glmsmurf}}}
+
+\item{lambda.length}{argument as described in \code{\link[smurf]{glmsmurf}}}
+
+\item{se.rule.nct}{the number of cell types to trigger an SE based rule
+(to prioritize smaller models, more fusing). When the number of cell types
+is less than or equal to this value, the SE rule is used}
+
+\item{se.rule.mult}{the multiplier of the SE in determining the lambda:
+the chosen lambda is within \code{se.rule.mult} x SE of the minimum
+deviance}
 
 \item{...}{additional arguments passed to \code{\link[smurf]{glmsmurf}}}
 }

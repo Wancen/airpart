@@ -283,7 +283,7 @@ dat <- data.frame(ratio=cl_ratio,
                   x=factor(rep(x,each=length(feat))),
                   cts=cl_total)
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-cl_gfl <- fusedlasso(formula=f,model="binomial",data=dat,ncores=2,niter=1)
+cl_gfl <- fusedlasso(formula=f,model="binomial",data=dat,ncores=2,niter=2)
 anno_df <- data.frame(x=factor(x),
                       row.names=colnames(total))
 anno_df$part <- factor(cl_gfl$part[match(anno_df$x, cl_gfl$x)])
