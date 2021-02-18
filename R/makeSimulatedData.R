@@ -10,14 +10,14 @@
 #'
 #' @return a list with the following elements:
 #' \itemize{
-#'   \item{ase.mat}{maternal allelic expression matrix}
-#'   \item{ase.pat}{paternal allelic expression matrix}
-#'   \item{x}{a vector of annotated cell types in the same order as cells in count matrix}
-#'   \item{true.ratio}{a matrix of the true probabilities (allelic ratios) for the cell types}
+#'   \item{ase.mat} {maternal allelic expression matrix}
+#'   \item{ase.pat} {paternal allelic expression matrix}
+#'   \item{x} {a vector of annotated cell types in the same order as cells in count matrix}
+#'   \item{true.ratio} {a matrix of the true probabilities (allelic ratios) for the cell types}
 #' }
 #'
 #' @importFrom emdbook rbetabinom
-#' 
+#'
 #' @export
 makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
 
@@ -30,7 +30,7 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
   nclcell <- nct*n*ngenecl # number elements within each gene cluster
   mean_total_count <- rep(rep(c(mu1, mu2),each=n/2), times=nct*ngene) # mean total count
   cts <- matrix(rpois(n * nct*ngene, mean_total_count), # total count matrix
-                nrow = ngene, byrow = TRUE) 
+                nrow = ngene, byrow = TRUE)
 
   # sets up the three gene clusters:
   # first cluster has pairs of cell types with same allelic ratio spanning from 1/10 to 9/10

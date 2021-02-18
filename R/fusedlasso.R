@@ -39,7 +39,7 @@
 #' Sander Devriendt, Katrien Antonio, Tom Reynkens, Roel Verbelen
 #' "Sparse Regression with Multi-type Regularized Feature Modeling"
 #' 2018. arXiv:1810.03136 [stat.CO].
-#' 
+#'
 #' @seealso \code{\link[smurf]{glmsmurf}}, \code{\link[smurf]{glmsmurf.control}},
 #' \code{\link[smurf]{p}}, \code{\link[stats]{glm}}
 #'
@@ -105,12 +105,12 @@ fusedlasso <- function(formula, model="binomial", data, niter=1,
   })
   if (niter == 1) {
     part <- match(coef[,1], unique(coef[,1]))
-    cl <- data.frame(x=levels(x), part=part)
+    cl <- data.frame( part=part,row.names =levels(x))
   } else {
     # multiple partitions
     part <- apply(coef, 2, function(z) match(z, unique(z)))
     colnames(part) <- paste0("part",seq_len(niter))
-    cl <- data.frame(x=levels(x), part)
+    cl <- data.frame(part,row.names =levels(x))
   }
   return(cl)
 }

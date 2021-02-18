@@ -17,7 +17,7 @@
 wilcox <- function(data,threshold=0.05,p.adjust.method="none",...) {
   nct <- length(levels(data$x))
   res  <-  pairwise.wilcox.test(data$ratio,data$x,p.adjust.method=p.adjust.method,...)
-  # res <- pairwise.wilcox.test(dat$ratio,dat$x, p.adjust.method ="holm")
+
   adj <- as.data.frame(res$p.value)[lower.tri(res$p.value, diag = T)]
   adj <- ifelse(is.nan(adj),1,adj) # Wilcoxon output Nan if ratio of two cell types are exactly same
   b <- matrix(0, nct, nct)
@@ -47,10 +47,10 @@ wilcox_adj <- function(data,threshold,p.adjust.method="none",...) {
     out[["loss1"]] <- loss1
     return(out)
   })
-  # TODO: can you fix the warning:
-  # ...The `x` argument of `as_tibble.matrix()` must have unique column names...
-  cl <- as_tibble(do.call(rbind, obj[seq(1,length(obj), by = 2)]))
-  loss1 <- as_tibble(do.call(rbind, obj[seq(2,length(obj), by = 2)]))
-  return(cl[which.min(unlist(loss1)),])
+
+  cl <- do.call(rbind, obj[seq(1,length(obj), by = 2)])
+  loss1 <- do.call(rbind, obj[seq(2,length(obj), by = 2)])
+  partition <- data.frame(part=cl[which.min(loss1),], row.names =levels(x))
+  return(partition)
 }
 
