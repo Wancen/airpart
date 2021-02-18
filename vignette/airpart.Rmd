@@ -263,31 +263,13 @@ dat <- data.frame(ratio=cl_ratio,
                   cts=cl_total)
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 cl <- fusedlasso(formula=f,model="binomial",data=dat,ncores=2,niter=1)
-<<<<<<< HEAD
-cl["x"]<-levels(x) 
-anno_df <- data.frame(x=factor(x),
-                      row.names=colnames(total))
-anno_df$part <- factor(cl_gfl$part[match(anno_df$x, cl$x)])
-library(pheatmap)
-pheatmap(ratio_pseudo[feat,],
-         color=colorRampPalette(c("blue","white","red"))(101),
-         breaks=0:100/100,
-         annotation_col=anno_df,
-         cluster_rows=FALSE, cluster_cols=FALSE,
-         show_colnames=FALSE, show_rownames=FALSE)
-```
-
-```{r}
-library()
-```
-
-=======
 anno_df <- data.frame(x=factor(x),
                       row.names=colnames(total))
 cl["x"]<-levels(x) 
 anno_df$part <- factor(cl$part[match(anno_df$x, cl$x)])
 ```
 
+# Heatmap
 ```{r}
 library(ComplexHeatmap)
 m<-ratio_pseudo[feat,]
@@ -334,4 +316,3 @@ group_block_anno(9:10, "empty", gp = gpar(fill = 5), label = "group 5",labels_gp
 
 ```
 
->>>>>>> a28f13bf08d29498e487bea0be1c4483815e1b98
