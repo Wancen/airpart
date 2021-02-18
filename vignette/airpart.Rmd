@@ -213,7 +213,7 @@ estimator<-betabinom(dat2,"part")
 ```{r}
 coef <- as.vector(do.call(rbind, estimator[seq(1,length(estimator), by = 3)]))
 est0 <- data.frame(part=factor(seq_len(length(coef))), estimator=coef)
-est <- merge(cl, est, by="part", all=TRUE) # combine with partition label
+est <- merge(cl, est0, by="part", all=TRUE) # combine with partition label
 ```
 
 ### Allelic Ratio Confidence interval
@@ -267,7 +267,52 @@ anno_df <- data.frame(x=factor(x),
                       row.names=colnames(total))
 cl["x"]<-levels(x) 
 anno_df$part <- factor(cl$part[match(anno_df$x, cl$x)])
+dat2 <- dat %>% left_join(cl, by="x")
+estimator<-betabinom(dat2,"part")
+coef <- as.vector(do.call(rbind, estimator[seq(1,length(estimator), by = 3)]))
+est0 <- data.frame(part=factor(seq_len(length(coef))), estimator=round(coef,3))
+est <- merge(cl, est0, by="part", all=TRUE) # combine with partition label
+confint <- matrix(do.call(rbind, estimator[seq(2,length(estimator), by = 3)]),ncol=2) %>%
+  as.data.frame() %>%
+  setNames(names(estimator[[2]]))
+ci <- round(confint[as.numeric(cl$part),],3)
+ar<-cbind(est,ci)
+
+library(forestplot)
+forest_text<-rbind(colnames(ar),ar)
+forest_plot<-data.frame(mean=c(NA,est$estimator),lower=c(NA,ci[,1]),upper=c(NA,ci[,2]))
+xticks <- seq(from = 0, to = 1, by = 0.05)
+xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
+attr(xticks, "labels") <- xtlab
+forestplot(forest_text, 
+           forest_plot,new_page = TRUE, boxsize = 0.15,
+           hrzl_lines = list("2" = gpar(lty = 2)), lwd.ci = 2,
+           clip = c(0,1.1),xticks = xticks, grid = structure(c(0.1, 0.5, 0.9), 
+                            gp = gpar(lty = 2, col = "#CCCCFF")), 
+           col = fpColors(box = "royalblue"),xlab = "Allelic Ratio")
 ```
+
+```{r}
+library(forestplot)
+
+ar<-cbind(
+  c("cell type","1","2","3","4"),
+  c("part","1","1","2","2"),
+  c("AR",0.1,0.1,0.9,0.9)
+)
+
+cochrane_from<-data.frame(mean=c(NA,0.1,0.1,0.9,0.9),
+                          lower=c(NA,0.09,0.09,0.89,0.89),
+                          upper=c(NA,0.11,0.11,0.91,0.91))
+
+forestplot(ar, 
+           cochrane_from,new_page = TRUE,
+           xlog = TRUE, 
+           col = fpColors(box = "royalblue",
+                          line = "darkblue",
+                          summary = "royalblue"))
+```
+
 
 # Heatmap
 ```{r}
