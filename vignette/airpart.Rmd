@@ -361,3 +361,7 @@ group_block_anno(9:10, "empty", gp = gpar(fill = 5), label = "group 5",labels_gp
 
 ```
 
+```{r}
+dat2$x <- factor(dat2$x, 1:10)
+with(dat2, boxplot(ratio ~ x, col=factor(cl$part)))
+```
