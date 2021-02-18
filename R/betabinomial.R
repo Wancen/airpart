@@ -19,7 +19,7 @@ betabinom<-function(data,part,...){
   cl<-data[[part]]
   # Modeling each group separately because they may have different scale of over-dispersion
   estimator<-sapply (1:max(cl), function(m){
-    bb<-vglm(cbind(ratio*cts, cts-ratio*cts) ~1, betabinomial, data = data[which(cl==m),], trace = F)
+    bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, betabinomial, data = data[which(cl==m),], trace = F)
     coef_bb<-Coef(bb)[-2] # betabinomial estimator
     rho<-Coef(bb)[2]
     confint_bb<-confintvglm(bb,matrix=T)[-2,] #ci
