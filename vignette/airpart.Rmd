@@ -292,28 +292,6 @@ forestplot(forest_text,
            col = fpColors(box = "royalblue"),xlab = "Allelic Ratio")
 ```
 
-```{r}
-library(forestplot)
-
-ar<-cbind(
-  c("cell type","1","2","3","4"),
-  c("part","1","1","2","2"),
-  c("AR",0.1,0.1,0.9,0.9)
-)
-
-cochrane_from<-data.frame(mean=c(NA,0.1,0.1,0.9,0.9),
-                          lower=c(NA,0.09,0.09,0.89,0.89),
-                          upper=c(NA,0.11,0.11,0.91,0.91))
-
-forestplot(ar, 
-           cochrane_from,new_page = TRUE,
-           xlog = TRUE, 
-           col = fpColors(box = "royalblue",
-                          line = "darkblue",
-                          summary = "royalblue"))
-```
-
-
 # Heatmap
 ```{r}
 library(ComplexHeatmap)

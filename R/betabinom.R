@@ -1,5 +1,3 @@
-#' @import  VGAM
-#' @export
 #' @title Fit betabinomial on each cell type groups
 #'
 #' @description Fit betabinomial on each cell type groups
@@ -15,11 +13,15 @@
 #' \item{confint_wilcoxon}{the allelic ratio confindence interval for each cell type group}
 #' \item{rho}{the correlation between the N individuals within a group. rho is given by 1/(1 + alpha + beta) and is
 #' It is known as the over-dispersion parameter}
+#' @import  VGAM
+#'
+#' @export
 betabinom<-function(data,part,...){
   cl<-data[[part]]
   # Modeling each group separately because they may have different scale of over-dispersion
   estimator<-sapply (1:max(cl), function(m){
-    bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, VGAM::betabinomial, data = data[which(cl==m),], trace = F)
+    bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, VGAM::betabinomial, data = data[which(cl==m),],
+                   trace = F)
     coef_bb<-VGAM::Coef(bb)[-2] # betabinomial estimator
     rho<-VGAM::Coef(bb)[2]
     confint_bb<-VGAM::confintvglm(bb,matrix=T)[-2,] #ci

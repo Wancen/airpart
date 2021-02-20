@@ -39,7 +39,7 @@ First, we load the preprocessed [Larsson 2019](https://www.nature.com/articles/s
 ```{r}
 load("../data/larsson_postprocess.rda")
 nct<-length(cell_meta_unique) # number of cell types
-head(total_fil[1:5,1:5])
+a<-order(rowSums(total_fil),decreasing = T)
 knitr::kable(total_fil[a[1:10],sample(ncol(total_fil),5)])
 ```
 Note that we require genes expressed in at least **25%** cells within each cell types. And the code for gene QC after cell QC could be 
