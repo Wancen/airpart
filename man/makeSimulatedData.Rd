@@ -22,10 +22,10 @@ makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
 \value{
 a list with the following elements:
 \itemize{
-  \item{ase.mat}{maternal allelic expression matrix}
-  \item{ase.pat}{paternal allelic expression matrix}
-  \item{x}{a vector of annotated cell types in the same order as cells in count matrix}
-  \item{true.ratio}{a matrix of the true probabilities (allelic ratios) for the cell types}
+  \item{ase.mat} {maternal allelic expression matrix}
+  \item{ase.pat} {paternal allelic expression matrix}
+  \item{x} {a vector of annotated cell types in the same order as cells in count matrix}
+  \item{true.ratio} {a matrix of the true probabilities (allelic ratios) for the cell types}
 }
 }
 \description{
