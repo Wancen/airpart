@@ -45,7 +45,7 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
 
   # maternal allelic expression matrix
   ase.mat<-lapply(1:ncl,function(m) {
-    matrix(rbetabinom(nclcell, prob=p[(nclcell*m-nclcell+1):(nclcell*m)],
+    matrix(emdbook::rbetabinom(nclcell, prob=p[(nclcell*m-nclcell+1):(nclcell*m)],
                       size=cts[(m*ngenecl-ngenecl+1):(m*ngenecl),],
                       theta=theta),ncol = nct*n)})
   ase.mat <- do.call(rbind,ase.mat)

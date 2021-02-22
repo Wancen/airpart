@@ -28,14 +28,14 @@
 #' @import forestplot
 #'
 #' @export
-makeForest <- function(ar,xticks,boxsize = 0.15,
+makeForest <- function(ar,xticks,
                        xlab ="Allelic Ratio",col = fpColors(),grid = structure(c(0.1, 0.5, 0.9),
                                                                                gp = gpar(lty = 2, col = "#CCCCFF")),...) {
 forest_text<-rbind(colnames(ar),ar)
 forest_plot<-data.frame(mean=c(NA,ar$estimator),lower=c(NA,ar[,4]),upper=c(NA,ar[,5]))
 
 forestplot::forestplot(forest_text,
-           forest_plot,new_page = TRUE, boxsize = boxsize,
+           forest_plot,new_page = TRUE, boxsize,
            hrzl_lines = list("2" = gpar(lty = 2)), lwd.ci = 2,
            clip = c(0,1.1),xticks = xticks, grid = grid,
            col = col,xlab =xlab ,...)

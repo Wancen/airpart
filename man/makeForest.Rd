@@ -7,7 +7,6 @@
 makeForest(
   ar,
   xticks,
-  boxsize = 0.15,
   xlab = "Allelic Ratio",
   col = fpColors(),
   grid = structure(c(0.1, 0.5, 0.9), gp = gpar(lty = 2, col = "#CCCCFF")),
@@ -20,8 +19,6 @@ and last two column is the confidence interval.}
 
 \item{xticks}{argument as described in \code{\link[forestplot]{forestplot}}}
 
-\item{boxsize}{Override the default box size based on precision}
-
 \item{xlab}{x-axis label. Default is "Allelic Ratio"}
 
 \item{col}{Set the colors for all the elements. See \code{\link[forestplot]{fpColors}} for details}
@@ -31,6 +28,8 @@ you can set this parameter to TRUE.
 If you set the parameter to a vector of values lines will be drawn at the corresponding positions.
 If you want to specify the \code{\link[grid]{gpar}} of the lines then either directly pass a \code{\link[grid]{gpar}} object
 or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}(lty=2, col = "red")}
+
+\item{boxsize}{Override the default box size based on precision}
 }
 \description{
 Draw a forest plot to visualized cell type specific allelic ratio estimator. It is based on the \pkg{rmeta}-package`s
