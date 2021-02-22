@@ -13,7 +13,7 @@
 #' \item{confint_wilcoxon}{the allelic ratio confindence interval for each cell type group}
 #' \item{rho}{the correlation between the N individuals within a group. rho is given by 1/(1 + alpha + beta) and is
 #' It is known as the over-dispersion parameter}
-#' @import  VGAM
+#' @importFrom  VGAM vglm betabinomial Coef confintvglm
 #'
 #' @export
 betabinom<-function(data,part,...){
