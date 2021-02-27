@@ -8,15 +8,18 @@
 #' @param ngenecl number of genes per cluster
 #' @param theta overdispersion parameter (higher is closer to binomial)
 #'
-#' @return a list with the following elements:
+#' @return SummarizedExperiment with the following elements as assays
 #' \itemize{
 #'   \item{ase.mat} {maternal allelic expression matrix}
 #'   \item{ase.pat} {paternal allelic expression matrix}
-#'   \item{x} {a vector of annotated cell types in the same order as cells in count matrix}
-#'   \item{true.ratio} {a matrix of the true probabilities (allelic ratios) for the cell types}
+#'   \item{true.ratio} {a matrix of the true probabilities
+#' (allelic ratios) for the cell types}
 #' }
+#' Also \code{x} in the colData is a vector of annotated
+#' cell types in the same order as cells in count matrix
 #'
 #' @importFrom emdbook rbetabinom
+#' @importFrom SummarizedExperiment SummarizedExperiment
 #'
 #' @export
 makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
@@ -26,10 +29,10 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
   }
 
   ncl <- 3 # number of gene clusters
-  ngene <- ncl*ngenecl # total number of genes
-  nclcell <- nct*n*ngenecl # number elements within each gene cluster
-  mean_total_count <- rep(rep(c(mu1, mu2),each=n/2), times=nct*ngene) # mean total count
-  cts <- matrix(rpois(n * nct*ngene, mean_total_count), # total count matrix
+  ngene <- ncl * ngenecl # total number of genes
+  nclcell <- nct * n * ngenecl # number elements within each gene cluster
+  mean_total_count <- rep(rep(c(mu1, mu2),each=n/2), times=nct * ngene) # mean total count
+  cts <- matrix(rpois(n * nct * ngene, mean_total_count), # total count matrix
                 nrow = ngene, byrow = TRUE)
 
   # sets up the three gene clusters:
@@ -44,7 +47,7 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
   p <- rep(p.vec, each=n*nct*ngene/length(p.vec))
 
   # maternal allelic expression matrix
-  ase.mat<-lapply(1:ncl,function(m) {
+  ase.mat <- lapply(1:ncl,function(m) {
     matrix(emdbook::rbetabinom(nclcell, prob=p[(nclcell*m-nclcell+1):(nclcell*m)],
                       size=cts[(m*ngenecl-ngenecl+1):(m*ngenecl),],
                       theta=theta),ncol = nct*n)})
@@ -56,6 +59,15 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
 
   x <- factor(rep(1:nct,each=n)) # cell type vector
 
-  list(ase.mat = ase.mat, ase.pat = ase.pat, x = x,
-       true.ratio = matrix(p.vec,ncol=nct,byrow=TRUE,dimnames=list(1:3,1:nct)))
+  true.ratio <- matrix(c(rep(p.vec[1:nct], ngenecl),
+                         rep(p.vec[(nct+1):(2*nct)], ngenecl),
+                         rep(p.vec[(2*nct+1):(3*nct)], ngenecl)),
+                       ncol=nct,
+                       byrow=TRUE)
+  colnames(true.ratio) <- paste0("ct", 1:nct) # cell type names
+  
+  coldata <- data.frame(x=x)
+  rowdata <- data.frame(true.ratio)
+  assay.list <- list(ase.mat=ase.mat, ase.pat=ase.pat)
+  SummarizedExperiment(assays=assay.list, colData=coldata, rowData=rowdata)
 }

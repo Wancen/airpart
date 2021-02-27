@@ -20,13 +20,15 @@ makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
 \item{theta}{overdispersion parameter (higher is closer to binomial)}
 }
 \value{
-a list with the following elements:
+SummarizedExperiment with the following elements as assays
 \itemize{
   \item{ase.mat} {maternal allelic expression matrix}
   \item{ase.pat} {paternal allelic expression matrix}
-  \item{x} {a vector of annotated cell types in the same order as cells in count matrix}
-  \item{true.ratio} {a matrix of the true probabilities (allelic ratios) for the cell types}
+  \item{true.ratio} {a matrix of the true probabilities
+(allelic ratios) for the cell types}
 }
+Also \code{x} in the colData is a vector of annotated
+cell types in the same order as cells in count matrix
 }
 \description{
 Make simulated data for airpart
