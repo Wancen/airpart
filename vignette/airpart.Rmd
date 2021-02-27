@@ -65,28 +65,20 @@ assays(se)[["ase.mat"]][1:5,1:5]
 
 Here we add the pseudo count for gene clustering and visualization.
 
-```{r, messages=FALSE}
+```{r}
+se <- preprocess(se)
+plotRatioHeatmap(se)
+```
+
+The true partition in the simulation is given by these underlying ratios:
+
+```{r}
 library(pheatmap)
-library(gplots)
-total <- ase.mat+ase.pat
-ratio <- ase.mat/total
-ratio_pseudo <- (ase.mat+2)/(total+4)
-anno_df <- data.frame(x=factor(x), row.names=colnames(total))
-pheatmap(ratio_pseudo,
+anno_df <- data.frame(x=factor(1:4), row.names=paste0("ct",1:4))
+pheatmap(rowData(se)[c(1,26,51),],
          color=colorRampPalette(c("blue","white","red"))(101),
          breaks=0:100/100,
          annotation_col=anno_df,
-         cluster_rows=FALSE, cluster_cols=FALSE,
-         show_colnames=FALSE, show_rownames=FALSE)
-```
-
-The true partition is given by these underlying ratios:
-
-```{r}
-pheatmap(true.ratio,
-         color=bluered(101),
-         breaks=0:100/100,
-         annotation_col=data.frame(x=factor(1:4), row.names=1:4),
          cluster_rows=FALSE, cluster_cols=FALSE,
          show_colnames=FALSE, show_rownames=FALSE)
 ```
@@ -100,8 +92,11 @@ We provide two methods for gene clustering.
 This is the default method. The scatter plot is shown based on Top 2
 PCs. And `plot=FALSE` can be used to avoid showing the plot. 
 
+TODO: from here you can keep going, where the functions should take in
+the `se` object and return the `se` object...
+
 ```{r}
-cluster <- genecluster(ratio_pseudo,nct,G=c(1:8))
+cluster <- genecluster(ratio_pseudo, nct, G=c(1:8))
 table(cluster)
 ```
 
