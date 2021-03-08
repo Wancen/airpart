@@ -8,10 +8,10 @@
 #' \code{ratio ~ p(x, pen="gflasso")}.
 #' See \code{\link[smurf]{glmsmurf}} for more details
 #' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso
-#' @param data A data frame containing:
-#' the allelic ratio (\code{"ratio"}),
-#' the cell assignment (\code{"x"}),
-#' and the total counts for weighting (\code{"cts"})
+#' @param se A SummarizedExpeirment containing assays (\code{"ratio"},
+#' \code{"total"}) and colData \code{"x"}
+#' @param genecluster which gene cluster result want to be returned.
+#' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
 #' @param niter number of iteration to run; recommended to run 5 times
 #' if allelic ratio differences are within [0.05,0.1]
 #' @param pen.weights argument as described in \code{\link[smurf]{glmsmurf}}
@@ -47,17 +47,17 @@
 #' @importFrom matrixStats rowSds
 #'
 #' @export
-fusedlasso <- function(formula, model="binomial", data, niter=1,
+fusedLasso <- function(formula, model="binomial", se, genecluster, niter=1,
                        pen.weights, lambda="cv1se.dev", k=5,
                        adj.matrix, lambda.length=25L,
                        se.rule.nct=8,
                        se.rule.mult=0.5,
                        ...) {
+  if (missing(genecluster)) {
+    stop("No gene cluster number")
+  }
+  stopifnot(c("ratio","total") %in% assayNames(se))
 
-  stopifnot(c("ratio","x","cts") %in% names(data))
-  # TODO: can we just use this?
-  data <- data[!is.nan(data$ratio),]
-  nct <- length(levels(data$x))
   # default is empty list
   if (missing(adj.matrix)) {
     adj.matrix <- list()
@@ -69,12 +69,20 @@ fusedlasso <- function(formula, model="binomial", data, niter=1,
     fam <- gaussian()
     msg <- "Failed determining max of lambda, try other weights"
   }
+  se_sub<-se[rowData(se)$cluster == genecluster, ]
+  cl_ratio <- as.vector(unlist(assays(se_sub)[["ratio"]]))
+  cl_total <- as.vector(unlist(assays(se_sub)[["total"]]))
+  dat <- data.frame(ratio=cl_ratio,
+                    x=factor(rep(se_sub$x,each=length(se_sub))),
+                    cts=cl_total)
+  dat <- dat[!is.nan(dat$ratio),]
+  nct<-nlevels(se$x)
   # need to use tryCatch to avoid lambda.max errors
   try <- tryCatch({
     coef <- sapply(1:niter, function(t) {
       fit <- smurf::glmsmurf(formula=formula, family=fam,
-                             data=data, adj.matrix=adj.matrix,
-                             weights=data$cts,
+                             data=dat, adj.matrix=adj.matrix,
+                             weights=dat$cts,
                              pen.weights="glm.stand", lambda=lambda,
                              control=list(lambda.length=lambda.length, k=k, ...))
       co <- coef_reest(fit)
@@ -89,8 +97,8 @@ fusedlasso <- function(formula, model="binomial", data, niter=1,
         idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
         # this is faster, running the GFL for a single lambda value
         fit2 <- smurf::glmsmurf(formula=formula, family=fam,
-                                data=data, adj.matrix=adj.matrix,
-                                weights=data$cts, pen.weights="glm.stand",
+                                data=dat, adj.matrix=adj.matrix,
+                                weights=dat$cts, pen.weights="glm.stand",
                                 lambda=fit$lambda.vector[idx],
                                 control = list(...))
         # rearrange coefficients so not comparing to reference cell type
@@ -105,12 +113,15 @@ fusedlasso <- function(formula, model="binomial", data, niter=1,
   })
   if (niter == 1) {
     part <- match(coef[,1], unique(coef[,1]))
-    cl <- data.frame( part=part,row.names =levels(x))
+    cl <- data.frame(part,x =levels(se_sub$x))
+    colData(se_sub)<-DataFrame(merge(colData(se_sub),cl,by="x"))
+
   } else {
     # multiple partitions
     part <- apply(coef, 2, function(z) match(z, unique(z)))
     colnames(part) <- paste0("part",seq_len(niter))
-    cl <- data.frame(part,row.names =levels(x))
+    cl <- data.frame(part,x =levels(se_sub$x))
+    colData(se_sub)<-DataFrame(merge(colData(se_sub),cl,by="x"))
   }
-  return(cl)
+  return(se_sub)
 }

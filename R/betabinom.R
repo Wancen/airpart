@@ -2,30 +2,38 @@
 #'
 #' @description Fit betabinomial on each cell type groups
 #'
-#' @param data A data frame containing:
-#' the allelic ratio (\code{"ratio"}),
-#' and the total counts for weighting (\code{"cts"})
-#' the cell type group (\code{"part"})
-#' @param part the column name of cell type group
+#' @param se A SummarizedExpeirment containing assays (\code{"ratio"},
+#' \code{"total"}) and colData (\code{"x"}, \code{"part"})
 #'
-#' @return a list with the following elements:
-#' \item{coef_bb}{the allelic ratio estimator for each cell type group}
-#' \item{confint_wilcoxon}{the allelic ratio confindence interval for each cell type group}
-#' \item{rho}{the correlation between the N individuals within a group. rho is given by 1/(1 + alpha + beta) and is
-#' It is known as the over-dispersion parameter}
 #' @importFrom  VGAM vglm betabinomial Coef confintvglm
 #'
 #' @export
-betabinom<-function(data,part,...){
-  cl<-data[[part]]
+betaBinom<-function(se,...){
+  cl_ratio <- as.vector(unlist(assays(se)[["ratio"]]))
+  cl_total <- as.vector(unlist(assays(se)[["total"]]))
+  dat <- data.frame(ratio=cl_ratio,
+                    x=factor(rep(se$x,each=length(se))),
+                    cts=cl_total,
+                    part=rep(se$part,each=length(se)))
   # Modeling each group separately because they may have different scale of over-dispersion
-  estimator<-sapply (1:max(cl), function(m){
-    bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, VGAM::betabinomial, data = data[which(cl==m),],
+  estimator<-sapply (1:max(se$part), function(m){
+    bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, VGAM::betabinomial, data = dat[which(dat$part==m),],
                    trace = F)
     coef_bb<-VGAM::Coef(bb)[-2] # betabinomial estimator
     rho<-VGAM::Coef(bb)[2]
     confint_bb<-VGAM::confintvglm(bb,matrix=T)[-2,] #ci
     confint_wilcoxon<-1/(1+exp(-confint_bb))
-    return(list(coef_bb,confint_wilcoxon,rho))
+    return(list(coef_bb,confint_wilcoxon))
   })
+  coef <- as.vector(do.call(rbind, estimator[seq(1,length(estimator), by = 2)]))
+  est0 <- data.frame(part=factor(seq_len(length(coef))), estimator=round(coef,3)) # allelic ratio estimator
+
+  confint <- matrix(do.call(rbind, estimator[seq(2,length(estimator), by = 2)]),ncol=2) %>%
+    as.data.frame() %>%
+    setNames(names(estimator[[2]]))
+  ci <- cbind(part=factor(seq_len(length(coef))),round(confint,3))
+  coldata<-Reduce(function(x,y) merge(x = x, y = y, by = "part"),
+         list(colData(se), est0, ci))
+  colData(se) <-coldata %>% DataFrame() %>% setNames(colnames(coldata)) # combine with partition label
+  return(se)
 }

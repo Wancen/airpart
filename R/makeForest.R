@@ -1,9 +1,9 @@
-#' Extension on Pairwise Mann Whitney Wilcoxon Test for partitioning
+#' Plot allelic ratio result as forest
 #'
-#' Draw a forest plot to visualized cell type specific allelic ratio estimator. It is based on the \pkg{rmeta}-package`s
+#' Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval. It is based on the \pkg{rmeta}-package`s
 #' \code{forestplot} function.
 #'
-#' @param ar A data frame containing: the allelic ratio estimator ("estimator"),
+#' @param se A SummarizedExpeirment containing colData allelic ratio estimator in the third column
 #' and last two column is the confidence interval.
 #' @param xticks argument as described in \code{\link[forestplot]{forestplot}}
 #' @param boxsize Override the default box size based on precision
@@ -28,14 +28,21 @@
 #' @import forestplot
 #'
 #' @export
-makeForest <- function(ar,xticks,
+makeForest <- function(se,xticks,boxsize=0.1,
                        xlab ="Allelic Ratio",col = fpColors(),grid = structure(c(0.1, 0.5, 0.9),
                                                                                gp = gpar(lty = 2, col = "#CCCCFF")),...) {
-forest_text<-rbind(colnames(ar),ar)
-forest_plot<-data.frame(mean=c(NA,ar$estimator),lower=c(NA,ar[,4]),upper=c(NA,ar[,5]))
+  if (missing(xticks)) {
+    xticks=seq(from = 0, to = 1, by = 0.05)
+    xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
+    attr(xticks, "labels") <- xtlab
+  }
 
-forestplot::forestplot(forest_text,
-           forest_plot,new_page = TRUE, boxsize,
+  ar<-apply(unique(colData(se_sub)), 2, as.character)
+  forest_text<-rbind(colnames(ar),ar)
+  forest_plot<-data.frame(mean=c(NA,ar[,3]),lower=c(NA,ar[,4]),upper=c(NA,ar[,5]))
+
+  forestplot::forestplot(forest_text,
+           forest_plot,new_page = TRUE, boxsize=boxsize,
            hrzl_lines = list("2" = gpar(lty = 2)), lwd.ci = 2,
            clip = c(0,1.1),xticks = xticks, grid = grid,
            col = col,xlab =xlab ,...)

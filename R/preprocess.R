@@ -1,6 +1,6 @@
 #' Preprocess the SummarizedExperiment
 #'
-#' @param se SummarizedExperiment with ...
+#' @param se SummarizedExperiment with \code{ase.mat} and \code{ase.pat}
 #' @param pc pseudocount for calculating the
 #' smoothed ratio
 #'
@@ -10,8 +10,6 @@
 #'
 #' @export
 preprocess <- function(se, pc=2) {
-  ase.mat <- 
-  ase.pat <- 
   assays(se)[["total"]] <- assays(se)[["ase.mat"]] + assays(se)[["ase.pat"]]
   assays(se)[["ratio"]] <- assays(se)[["ase.mat"]] / assays(se)[["total"]]
   assays(se)[["ratio_pseudo"]] <- (assays(se)[["ase.mat"]] + pc) /

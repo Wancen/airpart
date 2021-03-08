@@ -3,8 +3,10 @@
 #' Extends the Pairwise Mann Whitney Wilcoxon Test by combining
 #' hierarchical clustering for partition.
 #'
-#' @param data A data frame containing the model response (\code{ratio}),
-#' and grouping factors (\code{x})
+#' @param se A SummarizedExpeirment containing assays (\code{"ratio"},
+#' \code{"total"}) and colData \code{"x"}
+#' @param genecluster which gene cluster result want to be returned.
+#' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
 #' @param threshold a vector with candidate thresholds for raw p-value
 #' cut-off. For details please see vignette
 #' @param p.adjust.method method for adjusting p-values
@@ -13,19 +15,28 @@
 #' @return A vector grouping factor partition is returned
 #'
 #' @export
-wilcox_adj <- function(data,threshold,p.adjust.method="none",...) {
+wilcoxExt <- function(se, genecluster, threshold, p.adjust.method="none",...) {
+  # construct data frame
+  se_sub<-se[rowData(se)$cluster == genecluster, ]
+  cl_ratio <- as.vector(unlist(assays(se_sub)[["ratio"]]))
+  cl_total <- as.vector(unlist(assays(se_sub)[["total"]]))
+  dat <- data.frame(ratio=cl_ratio,
+                    x=factor(rep(se_sub$x,each=length(se_sub))),
+                    cts=cl_total)
+  nct<-nlevels(se$x)
+
   out <- list()
   obj <- sapply (1:length(threshold), function(j){
-    fit <- wilcox_int(data,p.adjust.method=p.adjust.method,threshold=threshold[j],...)
+    fit <- wilcoxInt(dat,p.adjust.method=p.adjust.method,threshold=threshold[j],...)
     label <- tibble(type=factor(seq_along(1:nct)),par=fit)
-    data2 <- data %>%
+    dat2 <- dat %>%
       left_join(label,by=c("x"="type"))
-    data2 <- data2 %>%
+    dat2 <- dat2 %>%
       group_by(par) %>%
       mutate(grpmean=mean(ratio,na.rm = T))
   # loss function
-    loss1 <- nrow(data) * log(sum((data2$ratio-data2$grpmean)^2,na.rm = T) /
-                              nrow(data2))+length(unique(fit))*log(nrow(data2))
+    loss1 <- nrow(dat) * log(sum((dat2$ratio-dat2$grpmean)^2,na.rm = T) /
+                              nrow(dat2))+length(unique(fit))*log(nrow(dat2))
     out[["cl"]] <- fit
     out[["loss1"]] <- loss1
   return(out)
@@ -33,11 +44,12 @@ wilcox_adj <- function(data,threshold,p.adjust.method="none",...) {
 
   cl <- do.call(rbind, obj[seq(1,length(obj), by = 2)])
   loss1 <- do.call(rbind, obj[seq(2,length(obj), by = 2)])
-  partition <- data.frame(part=cl[which.min(loss1),], row.names =levels(dat$x))
-  return(partition)
+  partition <- data.frame(part=cl[which.min(loss1),], x =levels(se_sub$x))
+  colData(se_sub)<-DataFrame(merge(colData(se_sub),partition,by="x"))
+  return(se_sub)
 }
 
-wilcox_int <- function(data,threshold=0.05,p.adjust.method="none",...) {
+wilcoxInt <- function(data,threshold=0.05,p.adjust.method="none",...) {
   nct <- length(levels(data$x))
   res  <-  pairwise.wilcox.test(data$ratio,data$x,p.adjust.method=p.adjust.method,...)
 

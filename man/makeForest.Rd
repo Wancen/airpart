@@ -2,11 +2,12 @@
 % Please edit documentation in R/makeForest.R
 \name{makeForest}
 \alias{makeForest}
-\title{Extension on Pairwise Mann Whitney Wilcoxon Test for partitioning}
+\title{Plot allelic ratio result as forest}
 \usage{
 makeForest(
-  ar,
+  se,
   xticks,
+  boxsize = 0.1,
   xlab = "Allelic Ratio",
   col = fpColors(),
   grid = structure(c(0.1, 0.5, 0.9), gp = gpar(lty = 2, col = "#CCCCFF")),
@@ -14,10 +15,12 @@ makeForest(
 )
 }
 \arguments{
-\item{ar}{A data frame containing: the allelic ratio estimator ("estimator"),
+\item{se}{A SummarizedExpeirment containing colData allelic ratio estimator in the third column
 and last two column is the confidence interval.}
 
 \item{xticks}{argument as described in \code{\link[forestplot]{forestplot}}}
+
+\item{boxsize}{Override the default box size based on precision}
 
 \item{xlab}{x-axis label. Default is "Allelic Ratio"}
 
@@ -28,11 +31,9 @@ you can set this parameter to TRUE.
 If you set the parameter to a vector of values lines will be drawn at the corresponding positions.
 If you want to specify the \code{\link[grid]{gpar}} of the lines then either directly pass a \code{\link[grid]{gpar}} object
 or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}(lty=2, col = "red")}
-
-\item{boxsize}{Override the default box size based on precision}
 }
 \description{
-Draw a forest plot to visualized cell type specific allelic ratio estimator. It is based on the \pkg{rmeta}-package`s
+Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval. It is based on the \pkg{rmeta}-package`s
 \code{forestplot} function.
 }
 \examples{

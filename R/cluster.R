@@ -1,9 +1,9 @@
 #' Gene clustering based on allelic ratio matrix with pseudo-count
 #'
-#' @param ratio an allelic ratio matrix with pseudo-count added
-#' @param nct number of cell types or states
+#' @param se SummarizedExpeirment containing assays \code{"ratio_pseudo"} and
+#' colData \code{"x"}
 #' @param method either \code{"GMM"} or \code{"hierarchical"}
-#' @param plot logical, whether to make a plot
+#' @param plot logical, whether to make a PCA plot
 #'
 #' @references
 #'
@@ -17,24 +17,31 @@
 #'
 #' @seealso \code{\link[mclust]{Mclust}}
 #'
-#' @return a vector of the gene cluster IDs
+#' @return gene cluster IDs are stored in the rowData column \code{cluster}
 #'
 #' @importFrom mclust Mclust hc hcEII mclustBIC
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_manual theme_minimal labs
 #' @importFrom dynamicTreeCut cutreeDynamic
 #'
 #' @export
-genecluster <- function(ratio, nct, G=c(4,8,12,16,20),
+geneCluster <- function(se, G=c(8,12,16,20,24),
                         method="GMM", plot=TRUE,...) {
+  if (! "x" %in% names(colData(se))) {
+    stop('require a vector of annotated cell types "x" in colData')
+  }
+  if (! "ratio_pseudo" %in% assayNames(se)) {
+    stop('require an assay "ratio_pseudo"')
+  }
+  nct<-nlevels(se$x)
   # PCA first
-  pca <- prcomp(ratio, rank. = 2*nct) # use 2*nct
+  pca <- prcomp(assays(se)[["ratio_pseudo"]], rank. = 2*nct) # use 2*nct
   ratio_pca <- as.matrix(pca$x)
   if (method=="GMM") {
     init <- list(hcPairs=mclust::hc(ratio_pca, modelName="EII", use="VARS"))
     d_clust <- mclust::Mclust(ratio_pca, G=G, modelNames="EII",
                               initialization=init, ...)
     nclust <- dim(d_clust$z)[2]
-    my.clusters <- d_clust$classification
+    my.clusters <- unname(d_clust$classification)
     cat("model-based optimal number of clusters:", nclust, "\n")
   }
   if (method=="hierarchical") {
@@ -55,5 +62,7 @@ genecluster <- function(ratio, nct, G=c(4,8,12,16,20),
       theme_minimal()
     print(p)
   }
-  return(my.clusters)
+  rowdata<-cbind(rowData(se),cluster=my.clusters)
+  rowData(se)<-rowdata
+  return(se)
 }

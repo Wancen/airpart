@@ -4,7 +4,7 @@
 #'
 #' @importFrom pheatmap pheatmap
 #' @export
-plotRatioHeatmap <- function(se) {
+makeRatioHeatmap <- function(se) {
   anno_df <- data.frame(x=factor(se$x), row.names=colnames(se))
   pheatmap(assays(se)[["ratio_pseudo"]],
            color=colorRampPalette(c("blue","white","red"))(101),
