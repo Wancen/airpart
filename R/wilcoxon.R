@@ -44,8 +44,9 @@ wilcoxExt <- function(se, genecluster, threshold, p.adjust.method="none",...) {
 
   cl <- do.call(rbind, obj[seq(1,length(obj), by = 2)])
   loss1 <- do.call(rbind, obj[seq(2,length(obj), by = 2)])
-  partition <- data.frame(part=cl[which.min(loss1),], x =levels(se_sub$x))
-  colData(se_sub)<-DataFrame(merge(colData(se_sub),partition,by="x"))
+  partition <- data.frame(part=factor(cl[which.min(loss1),]), x =levels(se_sub$x))
+  colData(se_sub)<-merge(colData(se_sub),partition,by="x") %>% DataFrame() %>% `row.names<-`(colnames(se_sub))
+  metadata(se_sub)$partition<-partition
   return(se_sub)
 }
 

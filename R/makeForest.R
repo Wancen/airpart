@@ -37,7 +37,7 @@ makeForest <- function(se,xticks,boxsize=0.1,
     attr(xticks, "labels") <- xtlab
   }
 
-  ar<-apply(unique(colData(se_sub)), 2, as.character)
+  ar<-apply(metadata(se)$estimator, 2, as.character)
   forest_text<-rbind(colnames(ar),ar)
   forest_plot<-data.frame(mean=c(NA,ar[,3]),lower=c(NA,ar[,4]),upper=c(NA,ar[,5]))
 

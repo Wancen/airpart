@@ -57,7 +57,7 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
 
   ase.pat<-cts-ase.mat # paternal allelic expression matrix
 
-  x <- factor(rep(1:nct,each=n)) # cell type vector
+  x <- factor(rep(paste0("ct", 1:nct),each=n)) # cell type vector
 
   true.ratio <- matrix(c(rep(p.vec[1:nct], ngenecl),
                          rep(p.vec[(nct+1):(2*nct)], ngenecl),
@@ -65,7 +65,7 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
                        ncol=nct,
                        byrow=TRUE)
   colnames(true.ratio) <- paste0("ct", 1:nct) # cell type names
-  
+
   coldata <- data.frame(x=x)
   rowdata <- data.frame(true.ratio)
   assay.list <- list(ase.mat=ase.mat, ase.pat=ase.pat)

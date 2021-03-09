@@ -14,5 +14,6 @@ preprocess <- function(se, pc=2) {
   assays(se)[["ratio"]] <- assays(se)[["ase.mat"]] / assays(se)[["total"]]
   assays(se)[["ratio_pseudo"]] <- (assays(se)[["ase.mat"]] + pc) /
     (assays(se)[["total"]] + 2*pc)
+  metadata(se) <- list(airpartVersion=packageVersion("airpart"))
   se
 }

@@ -113,15 +113,13 @@ fusedLasso <- function(formula, model="binomial", se, genecluster, niter=1,
   })
   if (niter == 1) {
     part <- match(coef[,1], unique(coef[,1]))
-    cl <- data.frame(part,x =levels(se_sub$x))
-    colData(se_sub)<-DataFrame(merge(colData(se_sub),cl,by="x"))
-
   } else {
     # multiple partitions
     part <- apply(coef, 2, function(z) match(z, unique(z)))
     colnames(part) <- paste0("part",seq_len(niter))
-    cl <- data.frame(part,x =levels(se_sub$x))
-    colData(se_sub)<-DataFrame(merge(colData(se_sub),cl,by="x"))
   }
+  cl <- data.frame(part,x =levels(se_sub$x))
+  colData(se_sub)<-merge(colData(se_sub),cl,by="x")%>% DataFrame() %>% `row.names<-`(colnames(se_sub))
+  metadata(se_sub)$partition<-cl
   return(se_sub)
 }

@@ -4,11 +4,13 @@
 \alias{betaBinom}
 \title{Fit betabinomial on each cell type groups}
 \usage{
-betaBinom(se, ...)
+betaBinom(se, level = 0.95, ...)
 }
 \arguments{
 \item{se}{A SummarizedExpeirment containing assays (\code{"ratio"},
 \code{"total"}) and colData (\code{"x"}, \code{"part"})}
+
+\item{level}{the confidence interval required}
 }
 \description{
 Fit betabinomial on each cell type groups

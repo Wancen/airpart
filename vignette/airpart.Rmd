@@ -67,7 +67,7 @@ Here we add the pseudo count for gene clustering and visualization.
 
 ```{r}
 se <- preprocess(se)
-plotRatioHeatmap(se)
+makeRatioHeatmap(se)
 ```
 
 The true partition in the simulation is given by these underlying ratios:
@@ -133,7 +133,7 @@ se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster = 1,ncores=2,nite
 ```
 
 ```{r, results="asis"}
-knitr::kable(unique(colData(se_sub)),row.names = F) # rownames are cell types
+knitr::kable(metadata(se_sub)$partition,row.names = F) # rownames are cell types
 ```
 
 Here `ncores` is the number of CPU used for parallelization. One can
@@ -148,7 +148,7 @@ final partition.
 
 ```{r,results='asis',collapse=TRUE}
 se_sub<-consensusPart(se_sub)
-knitr::kable(unique(colData(se_sub)),row.names = F)
+knitr::kable(metadata(se_sub)$partition,row.names = F)
 ```
 
 ## Modeling using pairwise Mann Whitney Wilcoxon extension
@@ -156,14 +156,14 @@ knitr::kable(unique(colData(se_sub)),row.names = F)
 
 ```{r}
 se_sub <- wilcoxExt(se, genecluster=1, threshold =10^seq(from=-2,to=-0.4,by=0.1))
-knitr::kable(unique(colData(se_sub)),row.names = F)
+knitr::kable(metadata(se_sub)$partition,row.names = F)
 ```
 
 ## Calculating allelic Ratio estimator by betabinomial 
 
 ```{r,warning=FALSE, results="asis"}
 se_sub<-betaBinom(se_sub)
-knitr::kable(unique(colData(se_sub)),row.names = F)
+knitr::kable(metadata(se_sub)$estimator,row.names = F)
 ```
 
 # Displaying results on heatmap
@@ -181,8 +181,9 @@ The basic steps are:
 ```{r}
 se <- makeSimulatedData(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
 se <- preprocess(se)
+makeRatioHeatmap(se)
 se <- geneCluster(se, G=c(1:8))
-summary<-summaryAllelicRatio(se) # identify interesting gene cluster
+se<-summaryAllelicRatio(se) # identify interesting gene cluster
 
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster = 1,ncores=2,niter=2) 
@@ -192,53 +193,9 @@ se_sub <- wilcoxExt(se, genecluster=1, threshold =10^seq(from=-2,to=-0.4,by=0.1)
 se_sub<-betaBinom(se_sub)
 makeForest(se_sub)
 makeBoxplot(se_sub)
+makeRatioHeatmap(se_sub)
 ```
 
 
-# Heatmap
-```{r}
-library(ComplexHeatmap)
-m<-ratio_pseudo[feat,]
-rg = range(ratio_pseudo[feat,])
-panel_fun = function(index, nm) {
-    pushViewport(viewport(xscale = rg, yscale = c(0, 1)))
-    grid.rect()
-    grid.xaxis(gp = gpar(fontsize = 8))
-    grid.boxplot(m[,index], pos = 1,direction = "horizontal")
-    popViewport()
-}
-subgroup = anno_df$part
-anno = anno_link(align_to = subgroup, which = "column", panel_fun = panel_fun, 
-    size = unit(2, "cm"), gap = unit(1, "cm"), width = unit(4, "cm"))
-ha = HeatmapAnnotation(foo=anno,
-                      empty = anno_empty(border = FALSE, height = unit(8, "mm")),
-                       part = anno_block(gp = gpar(fill = 2:11), 
-                                         labels =paste0("ct",seq_len(10)),labels_gp = gpar(col = "white", fontsize = 10)))
-split = anno_df$x
-Heatmap(m, name = "Allelic Ratio", column_split = split, top_annotation = ha, 
-    column_title = NULL,cluster_columns = F,cluster_rows = F,show_column_names = F)
 
-library(GetoptLong)  # for the function qq()
-group_block_anno = function(group, empty_anno, gp = gpar(), label = NULL, labels_gp = gpar()) {
-
-    seekViewport(qq("annotation_@{empty_anno}_@{min(group)}"))
-    loc1 = deviceLoc(x = unit(0, "npc"), y = unit(0, "npc"))
-    seekViewport(qq("annotation_@{empty_anno}_@{max(group)}"))
-    loc2 = deviceLoc(x = unit(1, "npc"), y = unit(1, "npc"))
-
-    seekViewport("global")
-    grid.rect(loc1$x, loc1$y, width = loc2$x - loc1$x, height = loc2$y - loc1$y, 
-        just = c("left", "bottom"), gp = gp)
-    if(!is.null(label)) {
-        grid.text(label, x = (loc1$x + loc2$x)*0.5, y = (loc1$y + loc2$y)*0.5, gp = labels_gp)
-    }
-}
-
-group_block_anno(1:2, "empty", gp = gpar(fill = 1), label = "group 1",labels_gp = gpar(col = "white", fontsize = 12))
-group_block_anno(3:4, "empty", gp = gpar(fill = 2), label = "group 2",labels_gp = gpar(col = "white", fontsize = 10))
-group_block_anno(5:6, "empty", gp = gpar(fill = 3), label = "group 3",labels_gp = gpar(col = "white", fontsize = 10))
-group_block_anno(7:8, "empty", gp = gpar(fill = 4), label = "group 4",labels_gp = gpar(col = "white", fontsize = 10))
-group_block_anno(9:10, "empty", gp = gpar(fill = 5), label = "group 5",labels_gp = gpar(col = "white", fontsize = 10))
-
-```
 

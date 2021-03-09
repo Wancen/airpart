@@ -4,11 +4,12 @@
 #'
 #' @param se A SummarizedExpeirment containing assays (\code{"ratio"},
 #' \code{"total"}) and colData (\code{"x"}, \code{"part"})
+#' @param level the confidence interval required
 #'
 #' @importFrom  VGAM vglm betabinomial Coef confintvglm
 #'
 #' @export
-betaBinom<-function(se,...){
+betaBinom<-function(se,level=0.95,...){
   cl_ratio <- as.vector(unlist(assays(se)[["ratio"]]))
   cl_total <- as.vector(unlist(assays(se)[["total"]]))
   dat <- data.frame(ratio=cl_ratio,
@@ -17,11 +18,11 @@ betaBinom<-function(se,...){
                     part=rep(se$part,each=length(se)))
   # Modeling each group separately because they may have different scale of over-dispersion
   estimator<-sapply (1:max(se$part), function(m){
-    bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, VGAM::betabinomial, data = dat[which(dat$part==m),],
-                   trace = F)
+    suppressWarnings(bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, VGAM::betabinomial, data = dat[which(dat$part==m),],
+                   trace = F))
     coef_bb<-VGAM::Coef(bb)[-2] # betabinomial estimator
     rho<-VGAM::Coef(bb)[2]
-    confint_bb<-VGAM::confintvglm(bb,matrix=T)[-2,] #ci
+    suppressWarnings(confint_bb<-VGAM::confintvglm(bb,matrix=T,level = level)[-2,]) #ci
     confint_wilcoxon<-1/(1+exp(-confint_bb))
     return(list(coef_bb,confint_wilcoxon))
   })
@@ -33,7 +34,8 @@ betaBinom<-function(se,...){
     setNames(names(estimator[[2]]))
   ci <- cbind(part=factor(seq_len(length(coef))),round(confint,3))
   coldata<-Reduce(function(x,y) merge(x = x, y = y, by = "part"),
-         list(colData(se), est0, ci))
-  colData(se) <-coldata %>% DataFrame() %>% setNames(colnames(coldata)) # combine with partition label
+         list(metadata(se)$partition, est0, ci))
+  # colData(se) <-coldata %>% DataFrame() %>% setNames(colnames(coldata)) # combine with partition label
+  metadata(se)$estimator<-coldata
   return(se)
 }
