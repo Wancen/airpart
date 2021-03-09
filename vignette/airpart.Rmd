@@ -111,12 +111,13 @@ table(rowData(se)$cluster)
 Quickly look at the weighted mean of allelic ratio for each gene cluster. Identify the interested gene cluster. 
 
 ```{r, results = "asis"}
-summary<-summaryAllelicRatio(se)
-summary
+se<-summaryAllelicRatio(se)
+metadata(se)$summary
 ```
 
 Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference > 0.05 for speed concerns. We find that the allelic ratio of most of the gene clusters in such cases (small absolute allelic ratio differences) won't provide enough evidence to detect differential allelic imbalance.
 ```{r}
+summary<-metadata(se)$summary
 sapply(1:length(summary), function(i){
   inst<-summary[[i]]
   inst_order <- inst[order(inst$weighted.mean),]
@@ -128,7 +129,6 @@ sapply(1:length(summary), function(i){
 
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-print(paste(length(feat),"genes may exhibit allelic ratio imbalance"))
 se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster = 1,ncores=2,niter=2)
 ```
 

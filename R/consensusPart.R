@@ -6,6 +6,7 @@
 #'
 #'
 #' @importFrom clue cl_consensus cl_ensemble as.cl_hard_partition
+#' @importFrom dplyr select
 #' @export
 consensusPart <- function(se) {
   cl<-data.frame(metadata(se)$partition) %>% select(-x)

@@ -14,6 +14,8 @@
 #'
 #' @return A vector grouping factor partition is returned
 #'
+#' @importFrom dplyr left_join mutate group_by
+#'
 #' @export
 wilcoxExt <- function(se, genecluster, threshold, p.adjust.method="none",...) {
   # construct data frame
@@ -28,7 +30,7 @@ wilcoxExt <- function(se, genecluster, threshold, p.adjust.method="none",...) {
   out <- list()
   obj <- sapply (1:length(threshold), function(j){
     fit <- wilcoxInt(dat,p.adjust.method=p.adjust.method,threshold=threshold[j],...)
-    label <- tibble(type=factor(seq_along(1:nct)),par=fit)
+    label <- data.frame(type=factor(seq_along(1:nct)),par=fit)
     dat2 <- dat %>%
       left_join(label,by=c("x"="type"))
     dat2 <- dat2 %>%

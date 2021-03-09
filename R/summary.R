@@ -15,7 +15,8 @@
 #'
 #' @examples summaryAllelicRatio(se,genecluster = c(1,3))
 #'
-#' @import tidyverse
+#' @import magrittr
+#' @importFrom dplyr summarise group_by
 #' @export
 summaryAllelicRatio <- function(se,genecluster) {
   if (missing(genecluster)) {

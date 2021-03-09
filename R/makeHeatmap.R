@@ -1,10 +1,12 @@
 #' Plot allelic ratio as heatmap
 #'
 #' @param se SummarizedExpeirment
+#' @param show_row_names show row names or not
 #'
-#' @importFrom ComplexHeatmap Heatmap
+#' @importFrom ComplexHeatmap Heatmap HeatmapAnnotation anno_block
+#' @importFrom RColorBrewer brewer.pal
 #' @export
-makeRatioHeatmap <- function(se,show_row_names = F) {
+makeRatioHeatmap <- function(se,show_row_names = F,...) {
   m<-assays(se)[["ratio_pseudo"]]
   if(is.null(se$part)){
     ha=HeatmapAnnotation(`cell type`=se$x,border = F,col = list(`cell type` = structure(brewer.pal(nlevels(se$x), "Set3"),names = levels(se$x))))
@@ -16,7 +18,7 @@ makeRatioHeatmap <- function(se,show_row_names = F) {
                                               labels = paste0("group",1:nlevels(split))),
                            `cell type`=se$x,border = F,
                            col = list(`cell type` = structure(brewer.pal(nlevels(se$x), "Set3"),names = levels(se$x))))
-    Heatmap(m, name = "Allelic Ratio", column_split = split,cluster_columns = F,cluster_rows = F,show_column_names = F,show_row_names = show_row_names,top_annotation=ha)
+    Heatmap(m, name = "Allelic Ratio", column_split = split,cluster_columns = F,cluster_rows = F,show_column_names = F,show_row_names = show_row_names,top_annotation=ha,...)
   }
 }
 

@@ -4,10 +4,12 @@
 \alias{makeRatioHeatmap}
 \title{Plot allelic ratio as heatmap}
 \usage{
-makeRatioHeatmap(se, show_row_names = F)
+makeRatioHeatmap(se, show_row_names = F, ...)
 }
 \arguments{
 \item{se}{SummarizedExpeirment}
+
+\item{show_row_names}{show row names or not}
 }
 \description{
 Plot allelic ratio as heatmap
