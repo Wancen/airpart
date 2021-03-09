@@ -14,7 +14,8 @@
 #'
 #' @return A vector grouping factor partition is returned
 #'
-#' @importFrom dplyr left_join mutate group_by
+#' @importFrom dplyr left_join
+#' @importFrom plyr mutate
 #'
 #' @export
 wilcoxExt <- function(se, genecluster, threshold, p.adjust.method="none",...) {

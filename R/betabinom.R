@@ -17,7 +17,7 @@ betaBinom<-function(se,level=0.95,...){
                     cts=cl_total,
                     part=rep(se$part,each=length(se)))
   # Modeling each group separately because they may have different scale of over-dispersion
-  estimator<-sapply (1:max(se$part), function(m){
+  estimator<-sapply (1:nlevels(se$part), function(m){
     suppressWarnings(bb<-VGAM::vglm(cbind(ratio*cts, cts-ratio*cts) ~1, VGAM::betabinomial, data = dat[which(dat$part==m),],
                    trace = F))
     coef_bb<-VGAM::Coef(bb)[-2] # betabinomial estimator
