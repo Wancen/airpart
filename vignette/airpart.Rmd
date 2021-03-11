@@ -58,7 +58,7 @@ se <- makeSimulatedData(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
 ```{r}
 rowData(se)[c(1,26,51),]
 table(colData(se))
-assays(se)[["ase.mat"]][1:5,1:5]
+assays(se)[["ase"]][1:5,1:5]
 ```
 
 # Create allelic ratio matrix
@@ -186,6 +186,7 @@ The basic steps are:
 ```{r}
 se <- makeSimulatedData(mu1=3,mu2=20,nct=8,n=10,ngenecl=25,theta=20)
 se <- preprocess(se)
+estDisp(se)
 makeRatioHeatmap(se)
 se <- geneCluster(se, G=c(1:8))
 se<-summaryAllelicRatio(se) # identify interesting gene cluster
@@ -201,6 +202,9 @@ makeBoxplot(se_sub)
 makeRatioHeatmap(se_sub)
 ```
 
-
+# Session Info
+```{r}
+sessionInfo()
+```
 
 

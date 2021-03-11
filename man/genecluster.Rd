@@ -8,7 +8,7 @@ geneCluster(se, G = c(8, 12, 16, 20, 24), method = "GMM", plot = TRUE, ...)
 }
 \arguments{
 \item{se}{SummarizedExpeirment containing assays \code{"ratio_pseudo"} and
-colData \code{"x"}}
+colData factor \code{"x"}}
 
 \item{method}{either \code{"GMM"} or \code{"hierarchical"}}
 

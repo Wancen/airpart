@@ -1,7 +1,7 @@
 #' Gene clustering based on allelic ratio matrix with pseudo-count
 #'
 #' @param se SummarizedExpeirment containing assays \code{"ratio_pseudo"} and
-#' colData \code{"x"}
+#' colData factor \code{"x"}
 #' @param method either \code{"GMM"} or \code{"hierarchical"}
 #' @param plot logical, whether to make a PCA plot
 #'
@@ -31,6 +31,9 @@ geneCluster <- function(se, G=c(8,12,16,20,24),
   }
   if (! "ratio_pseudo" %in% assayNames(se)) {
     stop('require an assay "ratio_pseudo"')
+  }
+  if (!is.factor(se$x) ) {
+    se$x<-as.factor(se$x)
   }
   nct<-nlevels(se$x)
   # PCA first

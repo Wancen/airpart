@@ -18,30 +18,24 @@ output:
 
 ```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(apeglm)
-library(tidyverse)
-library(pheatmap)
-library(boot)
-library(smurf)
-library(mclust)
-library(pbapply)
-library(clue)
-library(fastmatch)
-library(gplots) #bluered
-library(VGAM)
-library(igraph)
-library(airpart)
 ```
 
 # Load data
 
 First, we load the preprocessed [Larsson 2019](https://www.nature.com/articles/s41586-018-0836-1) data. It includes one allelic counts(`c57_fil`) and total counts(`total_fil`) which was derived after QC step. `cell_meta_unique` is a character vector of unique cell types names. `celltype` is a character vector of all cell types.
+
 ```{r}
 load("../data/larsson_postprocess.rda")
-nct<-length(cell_meta_unique) # number of cell types
-a<-order(rowSums(total_fil),decreasing = T)
-knitr::kable(total_fil[a[1:10],sample(ncol(total_fil),5)])
+assay.list<-list(ase=c57_fil,total=total_fil)
+coldata=celltypeQC %>% setNames("x")
+se<-SummarizedExperiment(assays=assay.list, colData=coldata)
 ```
+
+Take a look at highest expressed genes
+```{r}
+assays(se)[["total"]][order(rowSums(assays(se)[["total"]]),decreasing = T)[1:10],sample(dim(se)[2],5)]
+```
+
 Note that we require genes expressed in at least **25%** cells within each cell types. And the code for gene QC after cell QC could be 
 ```{r, eval=FALSE}
 library(scater)
@@ -56,9 +50,15 @@ total_fil<-total_CellQC[keep_feature,]
 
 Here we add the pseudo count for gene clustering and visualization.
 ```{r}
-ratio<-c57_fil/total_fil
-ratio_pseudo<-(c57_fil+2)/(total_fil+4)
+se <- preprocess(se)
 ```
+
+# Estimate overdispersion parameter
+```{r}
+estDisp(se)
+```
+
+
 # Gene clustering
 
 We provide two methods for gene clustering. 
@@ -67,130 +67,54 @@ We provide two methods for gene clustering.
 
 This is the default methods. The scatter plot is shown based on Top 2 PCs.
 ```{r}
-cluster<-genecluster(ratio_pseudo,nct,G=c(4,12,20,24,28,32))
-table(cluster)
+se<-geneCluster(se, G=c(12,20,24,28,32))
+table(rowData(se)$cluster)
 ```
 
 ## * Hierarchical clustering 
 ```{r,eval=FALSE}
-cluster<-genecluster(ratio_pseudo,nct,method="hierarchical")
-table(cluster)
+cluster<-geneCluster(se,method="hierarchical")
 ```
 
 # Running airpart
 
-Here we run `airpart`on cluster 26 for example.
+## Simple summary table of alleic ratio
 
-## Construct dataframe
-
-Wide format -> Long format
+Quickly look at the weighted mean of allelic ratio for each gene cluster. Identify the interested gene cluster. Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference > 0.05 for speed concerns. We find that the allelic ratio of most of the gene clusters in such cases (small absolute allelic ratio differences) won't provide enough evidence to detect differential allelic imbalance.
 ```{r}
-i=12
-set.seed(i)
-feat<-which(cluster==i) # choose genes location
-cl_ratio<-as.vector(unlist(ratio[feat,]))
-cl_total<-as.vector(unlist(total_fil[feat,]))
-dat<-tibble(ratio=cl_ratio,x=factor(rep(as.vector(celltypeQC[,1]),each=length(feat)),levels = cell_meta_unique),cts=cl_total)
-summary<-dat %>% group_by(x) %>% summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = T),mean=mean(ratio,na.rm = T),var=var(ratio,na.rm = T)) %>% data.frame()
-print(knitr::kable(summary)) #check summary table
-summary<-summary[order(summary$weighted.mean),]
-max(diff(summary$weighted.mean))>0.05
+se<-summaryAllelicRatio(se)
+summary<-metadata(se)$summary
+idx<-sapply(1:length(summary), function(i){
+  inst<-summary[[i]]
+  inst_order <- inst[order(inst$weighted.mean),]
+  max(diff(inst_order$weighted.mean)) > 0.05
+})
+metadata(se)$summary[idx]
 ```
-Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference>0.05 for speed up and accuracy. Because we find that the allelic ratio of most of the gene clusters here are consistent and won't detect any differential allelic imbalance.
+Here we use gene cluster 17 as an example
 
 ## Modeling using fused lasso with quasibinomial likelihood
 
 ```{r}
-f <- ratio ~ p(x, pen = "gflasso")
-print(paste(length(feat),"genes may exists allelic ratio imbalance"))
-t<-system.time(cl<-fusedlasso(formula=f,model="binomial",data=dat,ncores=4,niter = 1))[[3]]
-cl
+f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
+t<-system.time(se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster = 17,ncores=4,niter=1))
 ```
-Here `ncores` is the number of CPU used for parallelization. And it takes `r t`s with 4 CPU to test 24*367=8808 elements 5 times.
+Here `ncores` is the number of CPU used for parallelization. And it takes `r t`s with 4 CPU to test 55*367=20185 elements. Note, the computation time increases approximate linearly as number of genes increases. If you run `niter>1`, please use a `consensusPart` to derive the final partition.
 
+## Modeling using pairwise Mann Whitney Wilcoxon extension
 
-## Consensus partation
-```{r,results='asis',collapse=TRUE}
-print(knitr::kable(cl %>% data.frame()))
-consens_par<-cl_consensus(cl_ensemble(list = apply(cl,2,as.cl_hard_partition)),method = "SM")
-class <- max.col(consens_par$.Data)
-class <-fmatch(class,unique(class))
-
-label<-tibble(type=cell_meta_unique,par=factor(cl))
-celltypeQC2<-celltypeQC %>% left_join(label,by=c("cell_state"="type"))
-rownames(celltypeQC2)<-rownames(celltypeQC)
-
-
-pheatmap(ratio_pseudo[feat,],color=bluered(95), cluster_rows = FALSE, cluster_cols = FALSE,
-annotation_col = celltypeQC2,show_colnames = F,show_rownames = T)
-
-g4 <- graph( c("G1", "S", "G1", "S", "G1", "S", "G1", "S","G1", "S","G1","S","S","G2/M"), 
-
-             isolates=c("mESC"),directed = F )  
-
-# In named graphs we can specify isolates by providing a list of their names.
-E(g4)
-E(g4)$type <- c(rep("model",5),rep("origin",2))
-V(g4)
-V(g4)$celltype <- c("fib","fib","fib","stem")
-plot(g4, edge.arrow.size=.5, vertex.label.color="black", vertex.label.dist=1.5,
-     vertex.color=c( "pink", "skyblue")[1+(V(g4)$celltype=="fib")],
-     edge.color=c("dark red", "slategrey")[(E(g4)$type=="origin")+1], ) 
-```
-
-Output 5 times partition results. And `par` at the top of heatmap represents consensus partition result.
-
-```{r}
-# label<-majorityVote(sapply(coef %>% data.frame, paste, collapse=""))
-# co<-coef[,which(sapply(coef %>% data.frame, paste, collapse="")==label$majority)[1]]
-# co <-1/(1+exp(-co))
-```
-
-## Wilcoxon
-
-### Derive partation
 ```{r,results='asis',warning=FALSE}
-
-t2<-system.time(fit2<-wilcox_adj(dat,nct=nct,threshold =10^seq(from=-2,to=-0.4,by=0.1)))[[3]]
-label<-tibble(type=cell_meta_unique,par_fused=as.vector(cl),par_wilcoxon=factor(fit2))
-label
-dat2<-dat %>% left_join(label,by=c("x"="type"))
+t<-system.time(se_sub <- wilcoxExt(se, genecluster=17, threshold =10^seq(from=-2,to=-0.4,by=0.1)))
+knitr::kable(metadata(se_sub)$partition,row.names = F)
 ```
 
 It takes `r t2`s to run Wilcoxon.
 
-### Beta-binomial estimator for Wilcoxon
-```{r,warning=FALSE}
-estimator<-sapply (1:max(cl), function(m){
-  bb<-vglm(cbind(ratio*cts, cts-ratio*cts) ~1, betabinomial, data = dat2[which(dat2$par_wilcoxon==m),], trace = F)
-  coef_bb<-Coef(bb)[-2] # betabinomial estimator
-  rho<-Coef(bb)[2]
-  confint_bb<-confintvglm(bb,matrix=T)[-2,]
-  confint_wilcoxon<-1/(1+exp(-confint_bb))
-  return(list(coef_bb,confint_wilcoxon,rho))
-  })
-  
-  # allelic ratio estimator
-  coef<-as.vector(do.call(rbind, estimator[seq(1,length(estimator), by = 3)]))
-  est<-tibble(par_wilcoxon=factor(seq_len(length(coef))),estimator=coef)
-  est2<-merge(label, est, by="par_wilcoxon", all = T) #combine with partation label
-  print(knitr::kable(est2))
-  
-  # Normal approximation
-  confint<-matrix(do.call(rbind, estimator[seq(2,length(estimator), by = 3)]),ncol=2) %>%as_tibble() %>% setNames(names(estimator[[2]]))
-  normal<-round(confint[as.numeric(cl),],3)
-  row.names(normal)<-label$type
-  print(knitr::kable(normal))
-```
-
-### Normal approximation confidence interval
-```{r,results='asis',warning=FALSE}
-confint_bb<-matrix(confintvglm(bb)[-2,],ncol=2)
-confint_bb <- confint_bb + matrix(c(0,0,rep(confint_bb[1,],nrow(confint_bb)-1)),ncol=2,byrow = T)
-confint_wilcoxon<-matrix(1/(1+exp(-confint_bb)),ncol=2)
-confint_wilcoxon<-confint_wilcoxon[rep(seq_len(nrow(confint_wilcoxon)), table(factor(fit2))),]
-row.names(confint_wilcoxon)<-cell_meta_unique
-print(knitr::kable(confint_wilcoxon))
+## Calculating allelic Ratio estimator by betabinomial 
+### Confidence interval with normal approximation
+```{r,warning=FALSE, results="asis"}
+se_sub<-allelicRatio(se_sub)
+knitr::kable(metadata(se_sub)$estimator,row.names = F)
 ```
 
 ## Graph-Guided Fused Lasso
@@ -208,6 +132,7 @@ co2 <- co2 + c(0,rep(co2[1],nct-1))
 co2<-1/(1+exp(-co2))
 print(co2)
 ```
+
 # Session Info
 ```{r}
 sessionInfo()

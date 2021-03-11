@@ -68,6 +68,6 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
 
   coldata <- data.frame(x=x)
   rowdata <- data.frame(true.ratio)
-  assay.list <- list(ase.mat=ase.mat, ase.pat=ase.pat)
+  assay.list <- list(ase=ase.mat, total=cts)
   SummarizedExperiment(assays=assay.list, colData=coldata, rowData=rowdata)
 }

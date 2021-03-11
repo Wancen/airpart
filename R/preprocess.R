@@ -1,6 +1,6 @@
 #' Preprocess the SummarizedExperiment
 #'
-#' @param se SummarizedExperiment with \code{ase.mat} and \code{ase.pat}
+#' @param se SummarizedExperiment with \code{ase} and \code{total}
 #' @param pc pseudocount for calculating the
 #' smoothed ratio
 #'
@@ -10,9 +10,9 @@
 #'
 #' @export
 preprocess <- function(se, pc=2) {
-  assays(se)[["total"]] <- assays(se)[["ase.mat"]] + assays(se)[["ase.pat"]]
-  assays(se)[["ratio"]] <- assays(se)[["ase.mat"]] / assays(se)[["total"]]
-  assays(se)[["ratio_pseudo"]] <- (assays(se)[["ase.mat"]] + pc) /
+  # assays(se)[["total"]] <- assays(se)[["ase.mat"]] + assays(se)[["ase.pat"]]
+  assays(se)[["ratio"]] <- assays(se)[["ase"]] / assays(se)[["total"]]
+  assays(se)[["ratio_pseudo"]] <- (assays(se)[["ase"]] + pc) /
     (assays(se)[["total"]] + 2*pc)
   metadata(se) <- list(airpartVersion=packageVersion("airpart"))
   se
