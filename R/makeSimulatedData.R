@@ -7,6 +7,8 @@
 #' @param n number of cells per cell type
 #' @param ngenecl number of genes per cluster
 #' @param theta overdispersion parameter (higher is closer to binomial)
+#' @param ncl number of gene cluster
+#' @param p.vec the allelic ratio vector which follows gene cluster order. (length is nct * ncl)
 #'
 #' @return SummarizedExperiment with the following elements as assays
 #' \itemize{
@@ -22,7 +24,7 @@
 #' @importFrom SummarizedExperiment SummarizedExperiment
 #'
 #' @export
-makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
+makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){
 
   if ((nct %% 2) == 1) {
     stop("require even number of cell types for simulation setup")
@@ -35,22 +37,13 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
   cts <- matrix(rpois(n * nct * ngene, mean_total_count), # total count matrix
                 nrow = ngene, byrow = TRUE)
 
-  # sets up the three gene clusters:
-  # first cluster has pairs of cell types with same allelic ratio spanning from 1/10 to 9/10
-  # second cluster has balanced allelic ratio
-  # third cluster has pairs of cell types with same allelic ratio spanning from 7/10 to 9/10
-  p.vec <- ( rep(c(
-    seq(from=-4,to=4,length.out=nct/2),
-    rep(0,nct/2),
-    seq(from=2,to=4,length.out=nct/2)
-  ), each=2) + 5 ) / 10
   p <- rep(p.vec, each=n*nct*ngene/length(p.vec))
 
   # maternal allelic expression matrix
   ase.mat <- lapply(1:ncl,function(m) {
     matrix(emdbook::rbetabinom(nclcell, prob=p[(nclcell*m-nclcell+1):(nclcell*m)],
-                      size=cts[(m*ngenecl-ngenecl+1):(m*ngenecl),],
-                      theta=theta),ncol = nct*n)})
+                               size=cts[(m*ngenecl-ngenecl+1):(m*ngenecl),],
+                               theta=theta),ncol = nct*n)})
   ase.mat <- do.call(rbind,ase.mat)
   colnames(ase.mat) <- paste0("cell",1:(nct*n))
   rownames(ase.mat) <- paste0("gene",1:ngene)
@@ -59,11 +52,11 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta){
 
   x <- factor(rep(paste0("ct", 1:nct),each=n)) # cell type vector
 
-  true.ratio <- matrix(c(rep(p.vec[1:nct], ngenecl),
-                         rep(p.vec[(nct+1):(2*nct)], ngenecl),
-                         rep(p.vec[(2*nct+1):(3*nct)], ngenecl)),
-                       ncol=nct,
-                       byrow=TRUE)
+  true.ratio<-matrix(sapply(1:ncl, function(m){
+    rep(p.vec[((m-1)*nct+1):(m*nct)], ngenecl)
+  }),
+  ncol=nct,byrow=TRUE)
+
   colnames(true.ratio) <- paste0("ct", 1:nct) # cell type names
 
   coldata <- data.frame(x=x)

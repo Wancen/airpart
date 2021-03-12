@@ -4,7 +4,7 @@
 \alias{makeSimulatedData}
 \title{Make simulated data for airpart}
 \usage{
-makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
+makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec)
 }
 \arguments{
 \item{mu1}{low count (typical of "noisy" ratio estimates)}
@@ -18,6 +18,10 @@ makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta)
 \item{ngenecl}{number of genes per cluster}
 
 \item{theta}{overdispersion parameter (higher is closer to binomial)}
+
+\item{ncl}{number of gene cluster}
+
+\item{p.vec}{the allelic ratio vector which follows gene cluster order. (length is nct * ncl)}
 }
 \value{
 SummarizedExperiment with the following elements as assays

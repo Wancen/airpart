@@ -37,13 +37,14 @@ within the *airpart* package.
 
 ### Simulation set-up
 
-The default simulated example dataset has 3 gene clusters: one with
-differential allelic imbalance (DAI) with larger allelic ratio (AR)
-difference, one with balanced allelic expression, and the third one
-wsith DAI with smaller AR difference than the first cluster. Below we
-specify:
+Set up simulated example dataset has 3 gene clusters with differential allelic imbalance (DAI): 
+* first cluster has pairs of cell types with same allelic ratio spanning from 1/10 to 9/10 (larger DAI)
+* second cluster has balanced allelic ratio
+* third cluster has pairs of cell types with same allelic ratio spanning from 7/10 to 9/10 (smaller DAI)
 
-* the "noisy" cell count is 3
+Below we specify:
+
+* the "noisy" cell count is 1
 * the normal cell count is 20
 * 4 cell types
 * 10 cells within each cell types
@@ -52,7 +53,8 @@ specify:
 
 ```{r}
 suppressPackageStartupMessages(library(SummarizedExperiment))
-se <- makeSimulatedData(mu1=3,mu2=20,nct=4,n=10,ngenecl=25,theta=20)
+p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
+se <- makeSimulatedData(mu1=1,mu2=5,nct=4,n=10,ngenecl=25,theta=20,ncl=3,p.vec=p.vec)
 ```
 
 ```{r}
@@ -184,7 +186,13 @@ The basic steps are:
 * add partition information to cell level information to make plots
 
 ```{r}
-se <- makeSimulatedData(mu1=3,mu2=20,nct=8,n=10,ngenecl=25,theta=20)
+nct=8
+p.vec <- ( rep(c(
+    seq(from=-4,to=4,length.out=nct/2),
+    rep(0,nct/2),
+    seq(from=2,to=4,length.out=nct/2)
+  ), each=2) + 5 ) / 10
+se <- makeSimulatedData(mu1=3,mu2=20,nct=nct,n=10,ngenecl=25,theta=20,ncl = 3,p.vec = p.vec)
 se <- preprocess(se)
 estDisp(se)
 makeRatioHeatmap(se)
