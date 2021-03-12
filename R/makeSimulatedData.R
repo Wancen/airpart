@@ -26,11 +26,10 @@
 #' @export
 makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){
 
-  if ((nct %% 2) == 1) {
-    stop("require even number of cell types for simulation setup")
+  if ((length(p.vec) / ncl) != nct) {
+    stop("allelic ratio number is not matched with the product of number of cell types and number of gene cluster")
   }
 
-  ncl <- 3 # number of gene clusters
   ngene <- ncl * ngenecl # total number of genes
   nclcell <- nct * n * ngenecl # number elements within each gene cluster
   mean_total_count <- rep(rep(c(mu1, mu2),each=n/2), times=nct * ngene) # mean total count
