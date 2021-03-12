@@ -76,8 +76,8 @@ The true partition in the simulation is given by these underlying ratios:
 
 ```{r}
 library(pheatmap)
-anno_df <- data.frame(x=factor(1:4),row.names=paste0("ct",1:4))
-pheatmap(rowData(se)[c(1,26,51),],
+anno_df <- data.frame(x=factor(1:length(p.vec)),row.names=paste0("ct",1:length(p.vec)))
+pheatmap(unique(rowData(se)),
          color=colorRampPalette(c("blue","white","red"))(101),
          breaks=0:100/100,
          annotation_col=anno_df,
