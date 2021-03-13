@@ -19,31 +19,33 @@
 #' \code{\link[forestplot]{fpShapesGp}}, \code{\link[forestplot]{fpLegend}}
 #'
 #' @examples
-#' xticks=seq(from = 0, to = 1, by = 0.05)
+#' xticks <- seq(from = 0, to = 1, by = 0.05)
 #' xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
 #' attr(xticks, "labels") <- xtlab
-#' makeForest(ar,xticks,col=fpColors(box = "royalblue"))
-#'
+#' makeForest(ar, xticks, col = fpColors(box = "royalblue"))
 #' @import grid
 #' @import forestplot
 #'
 #' @export
-makeForest <- function(se,xticks,boxsize=0.1,
-                       xlab ="Allelic Ratio",col = fpColors(),grid = structure(c(0.1, 0.5, 0.9),
-                                                                               gp = gpar(lty = 2, col = "#CCCCFF")),...) {
+makeForest <- function(se, xticks, boxsize = 0.1,
+                       xlab = "Allelic Ratio", col = fpColors(), grid = structure(c(0.1, 0.5, 0.9),
+                         gp = gpar(lty = 2, col = "#CCCCFF")
+                       ), ...) {
   if (missing(xticks)) {
-    xticks=seq(from = 0, to = 1, by = 0.05)
+    xticks <- seq(from = 0, to = 1, by = 0.05)
     xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
     attr(xticks, "labels") <- xtlab
   }
 
-  ar<-apply(metadata(se)$estimator, 2, as.character)
-  forest_text<-rbind(colnames(ar),ar)
-  forest_plot<-data.frame(mean=c(NA,ar[,3]),lower=c(NA,ar[,4]),upper=c(NA,ar[,5]))
+  ar <- apply(metadata(se)$estimator, 2, as.character)
+  forest_text <- rbind(colnames(ar), ar)
+  forest_plot <- data.frame(mean = c(NA, ar[, 3]), lower = c(NA, ar[, 4]), upper = c(NA, ar[, 5]))
 
   forestplot::forestplot(forest_text,
-           forest_plot,new_page = TRUE, boxsize=boxsize,
-           hrzl_lines = list("2" = gpar(lty = 2)), lwd.ci = 2,
-           clip = c(0,1.1),xticks = xticks, grid = grid,
-           col = col,xlab =xlab ,...)
+    forest_plot,
+    new_page = TRUE, boxsize = boxsize,
+    hrzl_lines = list("2" = gpar(lty = 2)), lwd.ci = 2,
+    clip = c(0, 1.1), xticks = xticks, grid = grid,
+    col = col, xlab = xlab, ...
+  )
 }

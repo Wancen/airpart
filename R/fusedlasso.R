@@ -47,79 +47,90 @@
 #' @importFrom matrixStats rowSds
 #'
 #' @export
-fusedLasso <- function(formula, model="binomial", se, genecluster, niter=1,
-                       pen.weights, lambda="cv1se.dev", k=5,
-                       adj.matrix, lambda.length=25L,
-                       se.rule.nct=8,
-                       se.rule.mult=0.5,
+fusedLasso <- function(formula, model = "binomial", se, genecluster, niter = 1,
+                       pen.weights, lambda = "cv1se.dev", k = 5,
+                       adj.matrix, lambda.length = 25L,
+                       se.rule.nct = 8,
+                       se.rule.mult = 0.5,
                        ...) {
   if (missing(genecluster)) {
     stop("No gene cluster number")
   }
-  stopifnot(c("ratio","total") %in% assayNames(se))
+  stopifnot(c("ratio", "total") %in% assayNames(se))
 
   # default is empty list
   if (missing(adj.matrix)) {
     adj.matrix <- list()
   }
-  if (model=="binomial") {
+  if (model == "binomial") {
     fam <- binomial(link = "logit")
     msg <- "Failed determining max of lambda, try other weights or gaussian model"
   } else {
     fam <- gaussian()
     msg <- "Failed determining max of lambda, try other weights"
   }
-  se_sub<-se[rowData(se)$cluster == genecluster, ]
+  se_sub <- se[rowData(se)$cluster == genecluster, ]
   cl_ratio <- as.vector(unlist(assays(se_sub)[["ratio"]]))
   cl_total <- as.vector(unlist(assays(se_sub)[["total"]]))
-  dat <- data.frame(ratio=cl_ratio,
-                    x=factor(rep(se_sub$x,each=length(se_sub))),
-                    cts=cl_total)
-  dat <- dat[!is.nan(dat$ratio),]
-  nct<-nlevels(se$x)
+  dat <- data.frame(
+    ratio = cl_ratio,
+    x = factor(rep(se_sub$x, each = length(se_sub))),
+    cts = cl_total
+  )
+  dat <- dat[!is.nan(dat$ratio), ]
+  nct <- nlevels(se$x)
   # need to use tryCatch to avoid lambda.max errors
-  try <- tryCatch({
-    coef <- sapply(1:niter, function(t) {
-      fit <- smurf::glmsmurf(formula=formula, family=fam,
-                             data=dat, adj.matrix=adj.matrix,
-                             weights=dat$cts,
-                             pen.weights="glm.stand", lambda=lambda,
-                             control=list(lambda.length=lambda.length, k=k, ...))
-      co <- coef_reest(fit)
-      co <- co + c(0,rep(co[1],nct-1))
-      # if number of cell types is 'se.rule.nct' or less:
-      if (nct <= se.rule.nct) {
-        # choose lambda by the lowest deviance within 'se.rule.mult' standard error of the min
-        mean.dev <- rowMeans(fit$lambda.measures$dev)
-        min.dev <- min(mean.dev)
-        sd.dev <- matrixStats::rowSds(fit$lambda.measures$dev)
-        se.dev <- mean(sd.dev)/sqrt(k)
-        idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
-        # this is faster, running the GFL for a single lambda value
-        fit2 <- smurf::glmsmurf(formula=formula, family=fam,
-                                data=dat, adj.matrix=adj.matrix,
-                                weights=dat$cts, pen.weights="glm.stand",
-                                lambda=fit$lambda.vector[idx],
-                                control = list(...))
-        # rearrange coefficients so not comparing to reference cell type
-        co <- coef_reest(fit2)
-        co <- co + c(0,rep(co[1],nct-1))
-      }
-      return(co)
-    })
-    TRUE
-  }, error=function(e) {
-    message(msg)
-  })
+  try <- tryCatch(
+    {
+      coef <- sapply(1:niter, function(t) {
+        fit <- smurf::glmsmurf(
+          formula = formula, family = fam,
+          data = dat, adj.matrix = adj.matrix,
+          weights = dat$cts,
+          pen.weights = "glm.stand", lambda = lambda,
+          control = list(lambda.length = lambda.length, k = k, ...)
+        )
+        co <- coef_reest(fit)
+        co <- co + c(0, rep(co[1], nct - 1))
+        # if number of cell types is 'se.rule.nct' or less:
+        if (nct <= se.rule.nct) {
+          # choose lambda by the lowest deviance within 'se.rule.mult' standard error of the min
+          mean.dev <- rowMeans(fit$lambda.measures$dev)
+          min.dev <- min(mean.dev)
+          sd.dev <- matrixStats::rowSds(fit$lambda.measures$dev)
+          se.dev <- mean(sd.dev) / sqrt(k)
+          idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
+          # this is faster, running the GFL for a single lambda value
+          fit2 <- smurf::glmsmurf(
+            formula = formula, family = fam,
+            data = dat, adj.matrix = adj.matrix,
+            weights = dat$cts, pen.weights = "glm.stand",
+            lambda = fit$lambda.vector[idx],
+            control = list(...)
+          )
+          # rearrange coefficients so not comparing to reference cell type
+          co <- coef_reest(fit2)
+          co <- co + c(0, rep(co[1], nct - 1))
+        }
+        return(co)
+      })
+      TRUE
+    },
+    error = function(e) {
+      message(msg)
+    }
+  )
   if (niter == 1) {
-    part <- match(coef[,1], unique(coef[,1]))
+    part <- match(coef[, 1], unique(coef[, 1]))
   } else {
     # multiple partitions
     part <- apply(coef, 2, function(z) match(z, unique(z)))
-    colnames(part) <- paste0("part",seq_len(niter))
+    colnames(part) <- paste0("part", seq_len(niter))
   }
-  cl <- data.frame(part,x =levels(se_sub$x))
-  colData(se_sub)<-merge(colData(se_sub),cl,by="x")%>% DataFrame() %>% `row.names<-`(colnames(se_sub))
-  metadata(se_sub)$partition<-cl
+  cl <- data.frame(part, x = levels(se_sub$x))
+  colData(se_sub) <- merge(colData(se_sub), cl, by = "x") %>%
+    DataFrame() %>%
+    `row.names<-`(colnames(se_sub))
+  metadata(se_sub)$partition <- cl
   return(se_sub)
 }

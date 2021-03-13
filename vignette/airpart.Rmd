@@ -101,9 +101,9 @@ table(rowData(se)$cluster)
 
 * Hierarchical clustering 
 
-```{r,eval=FALSE}
-se <- geneCluster(se,method="hierarchical")
-table(rowData(se)$cluster)
+```{r}
+se.hc <- geneCluster(se, method="hierarchical")
+table(rowData(se.hc)$cluster)
 ```
 
 # Running airpart
@@ -113,15 +113,15 @@ table(rowData(se)$cluster)
 Quickly look at the weighted mean of allelic ratio for each gene cluster. Identify the interested gene cluster. 
 
 ```{r, results = "asis"}
-se<-summaryAllelicRatio(se)
+se <- summaryAllelicRatio(se)
 metadata(se)$summary
 ```
 
 Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference > 0.05 for speed concerns. We find that the allelic ratio of most of the gene clusters in such cases (small absolute allelic ratio differences) won't provide enough evidence to detect differential allelic imbalance.
 ```{r}
-summary<-metadata(se)$summary
+summary <- metadata(se)$summary
 sapply(1:length(summary), function(i){
-  inst<-summary[[i]]
+  inst <- summary[[i]]
   inst_order <- inst[order(inst$weighted.mean),]
   max(diff(inst_order$weighted.mean)) > 0.05
 })
@@ -131,11 +131,11 @@ sapply(1:length(summary), function(i){
 
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster = 1,ncores=2,niter=2)
+se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster=1,ncores=2,niter=2)
 ```
 
 ```{r, results="asis"}
-knitr::kable(metadata(se_sub)$partition,row.names = F) # rownames are cell types
+knitr::kable(metadata(se_sub)$partition, row.names=FALSE)
 ```
 
 Here `ncores` is the number of CPU used for parallelization. One can
@@ -145,32 +145,36 @@ robustness.
 
 ### Consensus partition
 
-If you run `niter>1`, please use a consensus partition to derive the
+If you run `niter` > 1, please use a consensus partition to derive the
 final partition.
 
-```{r,results='asis',collapse=TRUE}
-se_sub<-consensusPart(se_sub)
-knitr::kable(metadata(se_sub)$partition,row.names = F)
+```{r, results='asis', collapse=TRUE}
+se_sub <- consensusPart(se_sub)
+knitr::kable(metadata(se_sub)$partition, row.names=FALSE)
 ```
 
 ## Modeling using pairwise Mann Whitney Wilcoxon extension
 
-
 ```{r}
-se_sub <- wilcoxExt(se, genecluster=1, threshold =10^seq(from=-2,to=-0.4,by=0.1))
-knitr::kable(metadata(se_sub)$partition,row.names = F)
+thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
+se_sub <- wilcoxExt(se, genecluster=1, threshold=thrs)
+knitr::kable(metadata(se_sub)$partition, row.names=FALSE)
 ```
 
 ## Calculating allelic Ratio estimator by betabinomial 
+
 ### Confidence interval with normal approximation
-```{r,warning=FALSE, results="asis"}
-se_sub<-allelicRatio(se_sub)
-knitr::kable(metadata(se_sub)$estimator,row.names = F)
+
+```{r, warning=FALSE, results="asis"}
+# TODO gives error, see line 72 in betabinom.R
+se_sub <- allelicRatio(se_sub)
+knitr::kable(metadata(se_sub)$estimator, row.names=FALSE)
 ```
 
 ### Confidence interval with bootstrap
-```{r,warning=FALSE, results="asis"}
-se_sub<-allelicRatio(se_sub, method = "bootstrap", R=200, ncores = 4)
+
+```{r, warning=FALSE, results="asis"}
+se_sub <- allelicRatio(se_sub, method="bootstrap", R=200, ncores=4)
 ```
 
 # Displaying results on heatmap
@@ -186,33 +190,34 @@ The basic steps are:
 * add partition information to cell level information to make plots
 
 ```{r}
-nct=8
+nct <- 8
 p.vec <- ( rep(c(
     seq(from=-4,to=4,length.out=nct/2),
     rep(0,nct/2),
     seq(from=2,to=4,length.out=nct/2)
   ), each=2) + 5 ) / 10
-se <- makeSimulatedData(mu1=3,mu2=20,nct=nct,n=10,ngenecl=25,theta=20,ncl = 3,p.vec = p.vec)
+se <- makeSimulatedData(mu1=3,mu2=20,nct=nct,n=10,ngenecl=25,theta=20,ncl=3,p.vec=p.vec)
 se <- preprocess(se)
 estDisp(se)
 makeRatioHeatmap(se)
 se <- geneCluster(se, G=c(1:8))
-se<-summaryAllelicRatio(se) # identify interesting gene cluster
+se <- summaryAllelicRatio(se) # identify interesting gene cluster
 
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster = 1,ncores=2,niter=2) 
-se_sub<-consensusPart(se_sub)
-se_sub <- wilcoxExt(se, genecluster=1, threshold =10^seq(from=-2,to=-0.4,by=0.1)) # Alternative
+se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster=1,ncores=2,niter=2) 
+se_sub <- consensusPart(se_sub)
+thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
+se_sub <- wilcoxExt(se,genecluster=1,threshold=thrs) # alternative
 
-se_sub<-allelicRatio(se_sub)
+# TODO gives error
+se_sub <- allelicRatio(se_sub)
 makeForest(se_sub)
 makeBoxplot(se_sub)
 makeRatioHeatmap(se_sub)
 ```
 
 # Session Info
+
 ```{r}
 sessionInfo()
 ```
-
-

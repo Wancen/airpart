@@ -17,13 +17,14 @@
 #'
 #' @import magrittr
 #' @importFrom dplyr summarise group_by
+#' 
 #' @export
-summaryAllelicRatio <- function(se,genecluster) {
+summaryAllelicRatio <- function(se, genecluster) {
   if (missing(genecluster)) {
     genecluster <- unique(rowData(se)$cluster)
   }
-  res<-lapply(genecluster, function(i){
-    se_sub<-se[rowData(se)$cluster == i, ]
+  res <- lapply(genecluster, function(i){
+    se_sub <- se[rowData(se)$cluster == i, ]
     cl_ratio <- as.vector(unlist(assays(se_sub)[["ratio"]]))
     cl_total <- as.vector(unlist(assays(se_sub)[["total"]]))
     dat <- data.frame(ratio=cl_ratio,
@@ -31,16 +32,13 @@ summaryAllelicRatio <- function(se,genecluster) {
                       cts=cl_total)
     summary <- dat %>%
       group_by(x) %>%
-      summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = T),
-                mean=mean(ratio,na.rm = T),
-                var=var(ratio,na.rm = T)) %>%
+      summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = TRUE),
+                mean=mean(ratio,na.rm = TRUE),
+                var=var(ratio,na.rm = TRUE)) %>%
       as.data.frame()
     summary
   })
   names(res) <- paste("gene cluster",genecluster)
-  metadata(se)$summary<-res
+  metadata(se)$summary <- res
   return(se)
 }
-
-
-

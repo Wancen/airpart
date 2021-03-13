@@ -34,6 +34,5 @@ Fit betabinomial on each cell type groups
 \examples{
 # Use normal approximation to calculate Wald-type confidence intervals
 allelicRatio(se)
-allelicRatio(se,method="bootstrap",R=200,ncores=4)
-
+allelicRatio(se, method = "bootstrap", R = 200, ncores = 4)
 }
