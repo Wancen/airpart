@@ -96,14 +96,14 @@ This is the default method. The scatter plot is shown based on Top 2 PCs. And `p
 
 ```{r}
 se <- geneCluster(se, G=c(1:8))
-table(rowData(se)$cluster)
+metadata(se)$geneCluster
 ```
 
 * Hierarchical clustering 
 
 ```{r}
 se.hc <- geneCluster(se, method="hierarchical")
-table(rowData(se.hc)$cluster)
+metadata(se)$geneCluster
 ```
 
 # Running airpart
@@ -208,8 +208,6 @@ se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster=1,ncores=2,niter=
 se_sub <- consensusPart(se_sub)
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
 se_sub <- wilcoxExt(se,genecluster=1,threshold=thrs) # alternative
-
-# TODO gives error
 se_sub <- allelicRatio(se_sub)
 makeForest(se_sub)
 makeBoxplot(se_sub)

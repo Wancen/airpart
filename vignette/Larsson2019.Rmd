@@ -25,16 +25,29 @@ knitr::opts_chunk$set(echo = TRUE)
 First, we load the preprocessed [Larsson 2019](https://www.nature.com/articles/s41586-018-0836-1) data. It includes one allelic counts(`c57_fil`) and total counts(`total_fil`) which was derived after QC step. `cell_meta_unique` is a character vector of unique cell types names. `celltype` is a character vector of all cell types.
 
 ```{r}
-load("../data/larsson_postprocess.rda")
-assay.list<-list(ase=c57_fil,total=total_fil)
-coldata=celltypeQC %>% setNames("x")
+load("../data/larsson.rda")
+assay.list<-list(ase.mat=c57,ase.pat=cast)
+coldata<-data.frame(x=factor(celltype$x,levels=c("mESC","G1","S","G2M")))
 se<-SummarizedExperiment(assays=assay.list, colData=coldata)
 ```
+
+# Create Ratio matrix
+
+Here we add the pseudo count for gene clustering and visualization.
+```{r}
+se <- preprocess(se)
+```
+
 
 Take a look at highest expressed genes
 ```{r}
 assays(se)[["total"]][order(rowSums(assays(se)[["total"]]),decreasing = T)[1:10],sample(dim(se)[2],5)]
 ```
+# Quality control step
+```{r}
+
+```
+
 
 Note that we require genes expressed in at least **25%** cells within each cell types. And the code for gene QC after cell QC could be 
 ```{r, eval=FALSE}
@@ -46,12 +59,6 @@ keep_feature<-rowSums(celltype_check)==nct
 total_fil<-total_CellQC[keep_feature,]
 ```
 
-# Create Ratio matrix
-
-Here we add the pseudo count for gene clustering and visualization.
-```{r}
-se <- preprocess(se)
-```
 
 # Estimate overdispersion parameter
 ```{r}

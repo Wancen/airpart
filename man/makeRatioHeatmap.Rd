@@ -4,7 +4,7 @@
 \alias{makeRatioHeatmap}
 \title{Plot allelic ratio as heatmap}
 \usage{
-makeRatioHeatmap(se, show_row_names = F, ...)
+makeRatioHeatmap(se, show_row_names = FALSE, ...)
 }
 \arguments{
 \item{se}{SummarizedExpeirment}

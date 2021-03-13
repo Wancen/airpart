@@ -69,5 +69,6 @@ geneCluster <- function(se, G = c(8, 12, 16, 20, 24),
   }
   rowdata <- cbind(rowData(se), cluster = my.clusters)
   rowData(se) <- rowdata
+  metadata(se)$geneCluster <- table(my.clusters)
   return(se)
 }

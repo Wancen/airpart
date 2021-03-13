@@ -37,11 +37,10 @@ Draw a forest plot to visualized cell type specific allelic ratio estimator and 
 \code{forestplot} function.
 }
 \examples{
-xticks=seq(from = 0, to = 1, by = 0.05)
+xticks <- seq(from = 0, to = 1, by = 0.05)
 xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
 attr(xticks, "labels") <- xtlab
-makeForest(ar,xticks,col=fpColors(box = "royalblue"))
-
+makeForest(ar, xticks, col = fpColors(box = "royalblue"))
 }
 \seealso{
 \code{\link[forestplot]{forestplot}}, \code{\link[forestplot]{fpColors}},

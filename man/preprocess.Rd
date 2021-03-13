@@ -7,7 +7,7 @@
 preprocess(se, pc = 2)
 }
 \arguments{
-\item{se}{SummarizedExperiment with \code{ase} and \code{total}}
+\item{se}{SummarizedExperiment with \code{ase.mat} and \code{ase.pat}}
 
 \item{pc}{pseudocount for calculating the
 smoothed ratio}

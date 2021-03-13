@@ -20,9 +20,9 @@ estDisp <- function(se, ct) {
   param <- cbind(theta.hat, assays(se_sub)[["total"]])
   maxDisp <- 5000
   for (i in 1:5) {
-    fit.mle <- apeglm(Y = assays(se_sub)[["ase"]], x = x, log.lik = NULL,
+    fit.mle <- apeglm(Y = assays(se_sub)[["ase.mat"]], x = x, log.lik = NULL,
                       param = param, no.shrink = TRUE, log.link = FALSE, method = "betabinC")
-    theta.hat <- bbEstDisp(success = assays(se_sub)[["ase"]],
+    theta.hat <- bbEstDisp(success = assays(se_sub)[["ase.mat"]],
                            size = assays(se_sub)[["total"]], x = x,
                            beta = fit.mle$map, minDisp = .01, maxDisp = maxDisp)
   }

@@ -32,7 +32,7 @@ allelicRatio <- function(se, level = 0.95, method = c("Normal", "bootstrap"),
     part = rep(se$part, each = length(se))
   )
   if (method == "bootstrap") {
-    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, parallel = "multicore", ncpus = ncores)
+    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level=level, parallel = "multicore", ncpus = ncores)
     confint <- sapply(1:nlevels(dat$part), function(m) {
       boot_ci <- boot.ci(boot, type = "perc", index = m, conf = level)
       ci <- boot_ci[[length(boot_ci)]]
@@ -43,7 +43,7 @@ allelicRatio <- function(se, level = 0.95, method = c("Normal", "bootstrap"),
       as.data.frame() %>%
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   } else {
-    estimator <- betaBinom(dat)
+    estimator <- betaBinom(dat, level=level)
     coef <- as.vector(do.call(rbind, estimator[seq(1, length(estimator), by = 2)]))
     confint <- matrix(do.call(rbind, estimator[seq(2, length(estimator), by = 2)]), ncol = 2) %>%
       as.data.frame() %>%
@@ -60,7 +60,7 @@ allelicRatio <- function(se, level = 0.95, method = c("Normal", "bootstrap"),
   return(se)
 }
 
-betaBinom <- function(data, ci = TRUE) {
+betaBinom <- function(data, ci = TRUE, level) {
   # Modeling each group separately because they may have different scale of over-dispersion
   res <- sapply(1:nlevels(data$part), function(m) {
     suppressWarnings(bb <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ 1, VGAM::betabinomial,
@@ -80,8 +80,8 @@ betaBinom <- function(data, ci = TRUE) {
   return(res)
 }
 
-boot_ci <- function(data, indices, ...) {
+boot_ci <- function(data, indices, level=level,...) {
   data_b <- data[indices, ]
-  coef <- betaBinom(data_b, ci = FALSE)
+  coef <- betaBinom(data_b, ci = FALSE, level)
   return(coef)
 }
