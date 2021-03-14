@@ -18,6 +18,7 @@
 #' allelicRatio(sce, method = "bootstrap", R = 200, ncores = 4)
 #' @importFrom VGAM vglm betabinomial Coef confintvglm
 #' @importFrom boot boot boot.ci
+#' @importFrom stats setNames
 #'
 #' @export
 allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),

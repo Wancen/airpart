@@ -41,24 +41,25 @@ A DataFrame of QC statistics includes
   \item{filter_detected} {indicate whether features detected by this cell
    exceed \code{mad_detected} median absolute deviations from the median detected features for the dataset}
   \item{filter_spike} {indicate whether percentage expressed by spike genes
-   exceed \code{mad_spikegenes} median absolute deviations from the median spike genes expression percentage for the dataset}
+   exceed \code{mad_spikegenes} median absolute deviations from the median
+   spike genes expression percentage for the dataset}
   }
 }
 \description{
 Quality control on cells
 }
 \examples{
-cellQCmetrics<-cellQC(sce,spike="Ercc",mad_detected=4,mad_spikegenes=4)
+cellQCmetrics <- cellQC(sce, spike = "Ercc", mad_detected = 4, mad_spikegenes = 4)
 remove_cell <- (cellQCmetrics$filter_sum | # sufficient features (genes)
- cellQCmetrics$filter_detected | # sufficient molecules counted
- cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
+  cellQCmetrics$filter_detected | # sufficient molecules counted
+  cellQCmetrics$filter_spike # sufficient features expressed compared to spike genes, high quality cells
 )
 
 # or manully
 remove_cell <- (cellQCmetrics$sum < 4000 | # sufficient features (genes)
- cellQCmetrics$detected < 3000 | # sufficient molecules counted
- cellQCmetrics$spikePercent > 0.15  # sufficient features expressed compared to spike genes, high quality cells
+  cellQCmetrics$detected < 3000 | # sufficient molecules counted
+  cellQCmetrics$spikePercent > 0.15 # sufficient features expressed compared to spike genes, high quality cells
 )
-sce<-sce[,!remove_cell]
+sce <- sce[, !remove_cell]
 
 }

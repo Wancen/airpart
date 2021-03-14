@@ -12,7 +12,7 @@ featureQC(sce, spike, threshold = 0.25, lowsd = 0.04, pc = 2)
 \item{spike}{the character name of spike genes. The default is \code{Ercc}}
 
 \item{threshold}{A numeric scalar specifying the threshold above which
-percentage of cells expressed within each cell type. Default is 25%}
+percentage of cells expressed within each cell type. Default is 0.25}
 
 \item{lowsd}{A numeric scalar specifying the cell type weighted allelic ratio mean standard deviation threshold
 above which are interested features with highly variation. Default is 0.04}
@@ -32,10 +32,9 @@ A DataFrame of QC statistics includes
 Quality control on features
 }
 \examples{
-featureQCmetric<-featureQC(sce)
-keep_feature<-(featureQCmetric$filter_celltype &
-                featureQCmetric$filter_sd &
-                featureQCmetric$filter_spike)
-sce<-sce[keep_feature,]
-
+featureQCmetric <- featureQC(sce)
+keep_feature <- (featureQCmetric$filter_celltype &
+  featureQCmetric$filter_sd &
+  featureQCmetric$filter_spike)
+sce <- sce[keep_feature, ]
 }

@@ -4,12 +4,12 @@
 #' or gaussian likelihood, leveraging functions from the
 #' \code{smurf} package.
 #'
+#' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
+#' \code{"counts"}) and colData \code{"x"}
 #' @param formula A \code{\link[stats]{formula}} object which will typically be:
 #' \code{ratio ~ p(x, pen="gflasso")}.
 #' See \code{\link[smurf]{glmsmurf}} for more details
 #' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso
-#' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
-#' \code{"counts"}) and colData \code{"x"}
 #' @param genecluster which gene cluster result want to be returned.
 #' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
 #' @param niter number of iteration to run; recommended to run 5 times
@@ -45,9 +45,10 @@
 #'
 #' @import smurf
 #' @importFrom matrixStats rowSds
+#' @importFrom stats binomial gaussian
 #'
 #' @export
-fusedLasso <- function(formula, model = "binomial", sce, genecluster, niter = 1,
+fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
                        pen.weights, lambda = "cv1se.dev", k = 5,
                        adj.matrix, lambda.length = 25L,
                        se.rule.nct = 8,
@@ -127,12 +128,13 @@ fusedLasso <- function(formula, model = "binomial", sce, genecluster, niter = 1,
     part <- apply(coef, 2, function(z) match(z, unique(z)))
     colnames(part) <- paste0("part", seq_len(niter))
   }
-  cl <- data.frame(part, x = levels(sce_sub$x))
-  coldata<-DataFrame(rowname=colnames(sce_sub), colData(sce_sub))
-  coldata <- merge(coldata, partition, by = "x",sort=F) %>%
+  cl <- data.frame(part, x=levels(sce_sub$x))
+  coldata <- DataFrame(rowname=colnames(sce_sub), colData(sce_sub))
+  # TODO: check, I replaced 'partition' with 'cl'. is this correct?
+  coldata <- merge(coldata, cl, by="x", sort=FALSE) %>%
     DataFrame()
-  rownames(coldata)<-coldata$rowname
-  colData(sce_sub)<-coldata
+  rownames(coldata) <- coldata$rowname
+  colData(sce_sub) <- coldata
   metadata(sce_sub)$partition <- cl
   return(sce_sub)
 }

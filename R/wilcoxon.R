@@ -16,6 +16,7 @@
 #'
 #' @importFrom dplyr left_join
 #' @importFrom plyr mutate
+#' @importFrom stats pairwise.wilcox.test
 #'
 #' @export
 wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", ...) {

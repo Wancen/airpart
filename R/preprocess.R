@@ -1,15 +1,14 @@
 #' Preprocess the SingleCellExperiment
 #'
 #' @param sce SingleCellExperiment with \code{ase.mat} and \code{ase.pat}
-#' @param pc pseudocount for calculating the
-#' smoothed ratio
-#'
-#' @importFrom SummarizedExperiment assays
+#' @param pc pseudocount for calculating the smoothed ratio
 #'
 #' @return SingleCellExperiment with total count,
 #' ratio and pseudocount-smoothed ratio, where the
 #' ratio provides the maternal allele count over total
 #'
+#' @importFrom utils packageVersion
+#' 
 #' @export
 preprocess <- function(sce, pc=2) {
   assays(sce)[["counts"]] <- assays(sce)[["ase.mat"]] + assays(sce)[["ase.pat"]]

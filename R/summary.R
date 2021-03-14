@@ -17,6 +17,7 @@
 #'
 #' @import magrittr
 #' @importFrom dplyr summarise group_by
+#' @importFrom stats var weighted.mean
 #'
 #' @export
 summaryAllelicRatio <- function(sce, genecluster) {

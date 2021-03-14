@@ -37,7 +37,9 @@ within the *airpart* package.
 
 ### Simulation set-up
 
-Set up simulated example dataset has 3 gene clusters with differential allelic imbalance (DAI): 
+Set up simulated example dataset has 3 gene clusters with differential
+allelic imbalance (DAI): 
+
 * first cluster has pairs of cell types with same allelic ratio spanning from 1/10 to 9/10 (larger DAI)
 * second cluster has balanced allelic ratio
 * third cluster has pairs of cell types with same allelic ratio spanning from 7/10 to 9/10 (smaller DAI)
@@ -54,7 +56,9 @@ Below we specify:
 ```{r}
 suppressPackageStartupMessages(library(SingleCellExperiment))
 p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
-sce <- makeSimulatedData(mu1=1,mu2=10,nct=4,n=20,ngenecl=25,theta=20,ncl=3,p.vec=p.vec)
+sce <- makeSimulatedData(mu1=1,mu2=10,nct=4,n=20,
+                         ngenecl=25,theta=20,ncl=3,
+                         p.vec=p.vec)
 ```
 
 ```{r}
@@ -84,49 +88,64 @@ pheatmap(unique(rowData(sce)),
          cluster_rows=FALSE, cluster_cols=FALSE,
          show_colnames=FALSE, show_rownames=FALSE)
 ```
+
 # Quality control step
+
 ## QC on cells
+
 ```{r}
-cellQCmetrics<-cellQC(sce,mad_detected=4)
+cellQCmetrics <- cellQC(sce,mad_detected=4)
 cellQCmetrics
 ```
 
-Now define cell filtering automatically or users can manually filter out based on `sum`,`detected` and `spikePercent`. 
+Now define cell filtering automatically or users can manually filter
+out based on `sum`,`detected` and `spikePercent`.
+
 ```{r}
+# TODO I'd recommend to use the 'keep' style of filtering
+# instead of the 'remove' logic.
+# you already have 'keep' logic in the feature QC below.
+# Defining 'keep' is widely used paradigm: e.g. DESeq2, edgeR/limma, apeglm, swish, etc.
 remove_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
   cellQCmetrics$filter_detected | # sufficient molecules counted
   cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
 ) 
-sce<-sce[,!remove_cell]
+sce <- sce[,!remove_cell]
 ```
 
 ## QC on genes
+
 Note that we require genes expressed in at least **25%** cells within each cell types. 
+
 ```{r, eval=FALSE}
-featureQCmetric<-featureQC(sce)
-keep_feature<-(featureQCmetric$filter_celltype &
+featureQCmetric <- featureQC(sce)
+keep_feature <- (featureQCmetric$filter_celltype &
                  featureQCmetric$filter_sd &
                  featureQCmetric$filter_spike)
-sce<-sce[keep_feature,]
+sce <- sce[keep_feature,]
 ```
+
 # Gene clustering
 
 We provide two methods for gene clustering. 
 
 * Gaussian Mixture modeling
 
-This is the default method. The scatter plot is shown based on Top 2 PCs. And `plot=FALSE` can be used to avoid showing the plot. 
+This is the default method. The scatter plot is shown based on Top 2
+PCs. And `plot=FALSE` can be used to avoid showing the plot.
 
 
 ```{r}
-sce <- geneCluster(sce, G=c(1:8))
+sce <- geneCluster(sce, G=1:8)
 metadata(sce)$geneCluster
 ```
 
 * Hierarchical clustering 
 
 ```{r}
+# TODO note: if you do feature filtering, hc misses the third cluster!
+# interesting...
 sce.hc <- geneCluster(sce, method="hierarchical")
 metadata(sce.hc)$geneCluster
 ```
@@ -135,14 +154,20 @@ metadata(sce.hc)$geneCluster
 
 ## Simple summary table of alleic ratio
 
-Quickly look at the weighted mean of allelic ratio for each gene cluster. Identify the interested gene cluster. 
+Quickly look at the weighted mean of allelic ratio for each gene
+cluster. Identify the interested gene cluster.
 
 ```{r, results = "asis"}
 sce <- summaryAllelicRatio(sce)
 metadata(sce)$summary
 ```
 
-Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference > 0.05 for speed concerns. We find that the allelic ratio of most of the gene clusters in such cases (small absolute allelic ratio differences) won't provide enough evidence to detect differential allelic imbalance.
+Note that we recommend users only run `airpart` when the largest
+ordered allelic ratio difference > 0.05 for speed concerns. We find
+that the allelic ratio of most of the gene clusters in such cases
+(small absolute allelic ratio differences) won't provide enough
+evidence to detect differential allelic imbalance. 
+
 ```{r}
 summary <- metadata(sce)$summary
 sapply(1:length(summary), function(i){
@@ -156,7 +181,9 @@ sapply(1:length(summary), function(i){
 
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-sce_sub <- fusedLasso(formula=f,model="binomial",sce,genecluster=1,ncores=2,niter=2)
+# TODO check line 133
+sce_sub <- fusedLasso(sce, formula=f, model="binomial",
+                      genecluster=1, ncores=2, niter=2)
 ```
 
 ```{r, results="asis"}
@@ -186,7 +213,7 @@ sce_sub <- wilcoxExt(sce, genecluster=1, threshold=thrs)
 knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 ```
 
-## Calculating allelic Ratio estimator by betabinomial 
+## Calculating allelic Ratio estimator by beta-binomial 
 
 ### Confidence interval with normal approximation
 
@@ -198,6 +225,8 @@ knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ### Confidence interval with bootstrap
 
 ```{r, warning=FALSE, results="asis"}
+# TODO let's scale this back so vignette compiles faster
+# less R?
 sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=200, ncores=4)
 ```
 
@@ -222,32 +251,34 @@ p.vec <- ( rep(c(
   ), each=2) + 5 ) / 10
 sce <- makeSimulatedData(mu1=1,mu2=10,nct=nct,n=30,ngenecl=50,theta=20,ncl=3,p.vec=p.vec)
 sce <- preprocess(sce)
-estDisp(sce)
+estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
 
-cellQCmetrics<-cellQC(sce,mad_detected=4)
+cellQCmetrics <- cellQC(sce,mad_detected=4)
 remove_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
   cellQCmetrics$filter_detected | # sufficient molecules counted
   cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
 ) 
-sce<-sce[,!remove_cell]
+sce <- sce[,!remove_cell]
 
-featureQCmetric<-featureQC(sce)
-keep_feature<-(featureQCmetric$filter_celltype &
+featureQCmetric <- featureQC(sce)
+keep_feature <- (featureQCmetric$filter_celltype &
                  featureQCmetric$filter_sd &
                  featureQCmetric$filter_spike)
-sce<-sce[keep_feature,]
+sce <- sce[keep_feature,]
 
 makeRatioHeatmap(sce)
-sce <- geneCluster(sce, G=c(1:8))
+sce <- geneCluster(sce, G=1:8)
 sce <- summaryAllelicRatio(sce) # identify interesting gene cluster
 
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-sce_sub <- fusedLasso(formula=f,model="binomial",sce,genecluster=1,ncores=4,niter=2) 
+sce_sub <- fusedLasso(sce,formula=f,model="binomial",
+                      genecluster=1,ncores=4,niter=2) 
 sce_sub <- consensusPart(sce_sub)
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
 sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs) # alternative
 sce_sub <- allelicRatio(sce_sub)
+# TODO these are GREAT!
 makeForest(sce_sub)
 makeBoxplot(sce_sub)
 makeRatioHeatmap(sce_sub)

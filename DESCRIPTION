@@ -1,6 +1,6 @@
 Package: airpart
 Title: Differential cell-type-specific allelic imbalance with airpart
-Version: 0.0.11
+Version: 0.0.12
 Authors@R: 
     c(person(given = "Wancen",
            family = "Mu",
@@ -15,22 +15,30 @@ Description: Identifies subsets of genes displaying differential
     cell-type-specific allelic imbalance across all cell types
     or states.
 License: GPL (>=2)
-Imports: 
-    tidyverse,
-    stats,
-    mclust,
-    smurf,
-    dynamicTreeCut,
-    ggplot2,
-    emdbook,
-    matrixStats,
-    VGAM,
+Depends: R (>= 3.5.0)
+Imports:
     SingleCellExperiment,
-    ComplexHeatmap,
+    SummarizedExperiment,
+    S4Vectors,
+    scater,
+    stats,
+    smurf,
     apeglm,
+    emdbook,
+    boot,
+    mclust,
     clue,
+    dynamicTreeCut,
+    VGAM,
+    matrixStats,
+    dplyr,
+    plyr,
+    magrittr,
+    pbapply,
+    ggplot2,
+    ComplexHeatmap,
     forestplot,
-    lpSolve
+    RColorBrewer
 Suggests: 
     knitr,
     rmarkdown,
@@ -38,7 +46,6 @@ Suggests:
     testthat,
     pheatmap,
     gplots,
-    ComplexHeatmap
 VignetteBuilder: knitr, rmarkdown
 Encoding: UTF-8
 LazyData: true

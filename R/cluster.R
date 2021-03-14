@@ -22,6 +22,9 @@
 #' @importFrom mclust Mclust hc hcEII mclustBIC
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_manual theme_minimal labs
 #' @importFrom dynamicTreeCut cutreeDynamic
+#' @importFrom stats prcomp hclust cutree dist as.dist median mad
+#' @importFrom grDevices rainbow
+#' @importFrom graphics par
 #'
 #' @export
 geneCluster <- function(sce, G = c(8, 12, 16, 20, 24),

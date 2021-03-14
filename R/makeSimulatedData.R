@@ -22,6 +22,7 @@
 #'
 #' @importFrom emdbook rbetabinom
 #' @importFrom SingleCellExperiment SingleCellExperiment
+#' @importFrom stats rnbinom
 #'
 #' @export
 makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){

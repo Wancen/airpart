@@ -9,8 +9,7 @@ preprocess(sce, pc = 2)
 \arguments{
 \item{sce}{SingleCellExperiment with \code{ase.mat} and \code{ase.pat}}
 
-\item{pc}{pseudocount for calculating the
-smoothed ratio}
+\item{pc}{pseudocount for calculating the smoothed ratio}
 }
 \value{
 SingleCellExperiment with total count,
