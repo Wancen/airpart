@@ -4,10 +4,10 @@
 \alias{makeRatioHeatmap}
 \title{Plot allelic ratio as heatmap}
 \usage{
-makeRatioHeatmap(se, show_row_names = FALSE, ...)
+makeRatioHeatmap(sce, show_row_names = FALSE, ...)
 }
 \arguments{
-\item{se}{SummarizedExpeirment}
+\item{sce}{SingleCellExperiment}
 
 \item{show_row_names}{show row names or not}
 }

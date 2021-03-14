@@ -2,21 +2,21 @@
 % Please edit documentation in R/preprocess.R
 \name{preprocess}
 \alias{preprocess}
-\title{Preprocess the SummarizedExperiment}
+\title{Preprocess the SingleCellExperiment}
 \usage{
-preprocess(se, pc = 2)
+preprocess(sce, pc = 2)
 }
 \arguments{
-\item{se}{SummarizedExperiment with \code{ase.mat} and \code{ase.pat}}
+\item{sce}{SingleCellExperiment with \code{ase.mat} and \code{ase.pat}}
 
 \item{pc}{pseudocount for calculating the
 smoothed ratio}
 }
 \value{
-SummarizedExperiment with total count,
+SingleCellExperiment with total count,
 ratio and pseudocount-smoothed ratio, where the
 ratio provides the maternal allele count over total
 }
 \description{
-Preprocess the SummarizedExperiment
+Preprocess the SingleCellExperiment
 }

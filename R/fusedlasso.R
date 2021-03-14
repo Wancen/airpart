@@ -8,8 +8,8 @@
 #' \code{ratio ~ p(x, pen="gflasso")}.
 #' See \code{\link[smurf]{glmsmurf}} for more details
 #' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso
-#' @param se A SummarizedExpeirment containing assays (\code{"ratio"},
-#' \code{"total"}) and colData \code{"x"}
+#' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
+#' \code{"counts"}) and colData \code{"x"}
 #' @param genecluster which gene cluster result want to be returned.
 #' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
 #' @param niter number of iteration to run; recommended to run 5 times
@@ -47,7 +47,7 @@
 #' @importFrom matrixStats rowSds
 #'
 #' @export
-fusedLasso <- function(formula, model = "binomial", se, genecluster, niter = 1,
+fusedLasso <- function(formula, model = "binomial", sce, genecluster, niter = 1,
                        pen.weights, lambda = "cv1se.dev", k = 5,
                        adj.matrix, lambda.length = 25L,
                        se.rule.nct = 8,
@@ -56,7 +56,7 @@ fusedLasso <- function(formula, model = "binomial", se, genecluster, niter = 1,
   if (missing(genecluster)) {
     stop("No gene cluster number")
   }
-  stopifnot(c("ratio", "total") %in% assayNames(se))
+  stopifnot(c("ratio", "counts") %in% assayNames(sce))
 
   # default is empty list
   if (missing(adj.matrix)) {
@@ -69,16 +69,16 @@ fusedLasso <- function(formula, model = "binomial", se, genecluster, niter = 1,
     fam <- gaussian()
     msg <- "Failed determining max of lambda, try other weights"
   }
-  se_sub <- se[rowData(se)$cluster == genecluster, ]
-  cl_ratio <- as.vector(unlist(assays(se_sub)[["ratio"]]))
-  cl_total <- as.vector(unlist(assays(se_sub)[["total"]]))
+  sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
+  cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
+  cl_total <- as.vector(unlist(counts(sce_sub)))
   dat <- data.frame(
     ratio = cl_ratio,
-    x = factor(rep(se_sub$x, each = length(se_sub))),
+    x = factor(rep(sce_sub$x, each = length(sce_sub))),
     cts = cl_total
   )
   dat <- dat[!is.nan(dat$ratio), ]
-  nct <- nlevels(se$x)
+  nct <- nlevels(sce$x)
   # need to use tryCatch to avoid lambda.max errors
   try <- tryCatch(
     {
@@ -127,10 +127,12 @@ fusedLasso <- function(formula, model = "binomial", se, genecluster, niter = 1,
     part <- apply(coef, 2, function(z) match(z, unique(z)))
     colnames(part) <- paste0("part", seq_len(niter))
   }
-  cl <- data.frame(part, x = levels(se_sub$x))
-  colData(se_sub) <- merge(colData(se_sub), cl, by = "x") %>%
-    DataFrame() %>%
-    `row.names<-`(colnames(se_sub))
-  metadata(se_sub)$partition <- cl
-  return(se_sub)
+  cl <- data.frame(part, x = levels(sce_sub$x))
+  coldata<-DataFrame(rowname=colnames(sce_sub), colData(sce_sub))
+  coldata <- merge(coldata, partition, by = "x",sort=F) %>%
+    DataFrame()
+  rownames(coldata)<-coldata$rowname
+  colData(sce_sub)<-coldata
+  metadata(sce_sub)$partition <- cl
+  return(sce_sub)
 }

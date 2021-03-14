@@ -25,47 +25,56 @@ knitr::opts_chunk$set(echo = TRUE)
 First, we load the preprocessed [Larsson 2019](https://www.nature.com/articles/s41586-018-0836-1) data. It includes one allelic counts(`c57_fil`) and total counts(`total_fil`) which was derived after QC step. `cell_meta_unique` is a character vector of unique cell types names. `celltype` is a character vector of all cell types.
 
 ```{r}
+suppressPackageStartupMessages(library(SingleCellExperiment))
 load("../data/larsson.rda")
 assay.list<-list(ase.mat=c57,ase.pat=cast)
 coldata<-data.frame(x=factor(celltype$x,levels=c("mESC","G1","S","G2M")))
-se<-SummarizedExperiment(assays=assay.list, colData=coldata)
+sce<-SingleCellExperiment(assays=assay.list, colData=coldata)
 ```
 
 # Create Ratio matrix
 
 Here we add the pseudo count for gene clustering and visualization.
 ```{r}
-se <- preprocess(se)
+sce <- preprocess(sce)
 ```
 
+# Estimate overdispersion parameter
+
+```{r}
+estDisp(sce)
+```
 
 Take a look at highest expressed genes
 ```{r}
-assays(se)[["total"]][order(rowSums(assays(se)[["total"]]),decreasing = T)[1:10],sample(dim(se)[2],5)]
+counts(sce)[order(rowSums(counts(sce)),decreasing = T)[1:10],sample(dim(sce)[2],5)]
 ```
 # Quality control step
+## QC on cells
 ```{r}
-
+cellQCmetrics<-cellQC(sce,mad_detected=4)
+cellQCmetrics
 ```
 
+Now define cell filtering automatically or users can manually filter out based on `sum`,`detected` and `spikePercent`. 
+```{r}
+remove_cell <- (
+  cellQCmetrics$filter_sum | # sufficient features (genes)
+  cellQCmetrics$filter_detected | # sufficient molecules counted
+  cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
+) 
+sce<-sce[,!remove_cell]
+```
 
-Note that we require genes expressed in at least **25%** cells within each cell types. And the code for gene QC after cell QC could be 
+## QC on genes
+Note that we require genes expressed in at least **25%** cells within each cell types. 
 ```{r, eval=FALSE}
-library(scater)
-celltype_check<-pbsapply(unique(celltype[cellQC]),function(c){
-  nexprs(as.matrix(total_CellQC), byrow=TRUE,  detection_limit=1,subset_col=which(celltypeQC$cell_state==c))>= length(which(celltypeQC$cell_state==c))*0.25
-})
-keep_feature<-rowSums(celltype_check)==nct
-total_fil<-total_CellQC[keep_feature,]
+featureQCmetric<-featureQC(sce)
+keep_feature<-(featureQCmetric$filter_celltype &
+                 featureQCmetric$filter_sd &
+                 featureQCmetric$filter_spike)
+sce<-sce[keep_feature,]
 ```
-
-
-# Estimate overdispersion parameter
-```{r}
-estDisp(se)
-```
-
-
 # Gene clustering
 
 We provide two methods for gene clustering. 
@@ -74,13 +83,14 @@ We provide two methods for gene clustering.
 
 This is the default methods. The scatter plot is shown based on Top 2 PCs.
 ```{r}
-se<-geneCluster(se, G=c(12,20,24,28,32))
-table(rowData(se)$cluster)
+sce<-geneCluster(sce, G=c(8,12,16,20,24,28))
+metadata(sce)$geneCluster
 ```
 
 ## * Hierarchical clustering 
 ```{r,eval=FALSE}
-cluster<-geneCluster(se,method="hierarchical")
+sce.hc<-geneCluster(sce,method="hierarchical")
+metadata(sce.hc)$geneCluster
 ```
 
 # Running airpart
@@ -89,14 +99,14 @@ cluster<-geneCluster(se,method="hierarchical")
 
 Quickly look at the weighted mean of allelic ratio for each gene cluster. Identify the interested gene cluster. Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference > 0.05 for speed concerns. We find that the allelic ratio of most of the gene clusters in such cases (small absolute allelic ratio differences) won't provide enough evidence to detect differential allelic imbalance.
 ```{r}
-se<-summaryAllelicRatio(se)
-summary<-metadata(se)$summary
-idx<-sapply(1:length(summary), function(i){
+sce<-summaryAllelicRatio(sce)
+summary<-metadata(sce)$summary
+for(i in 1:length(summary)) {
   inst<-summary[[i]]
   inst_order <- inst[order(inst$weighted.mean),]
-  max(diff(inst_order$weighted.mean)) > 0.05
-})
-metadata(se)$summary[idx]
+  idx[i]<-(max(diff(inst_order$weighted.mean)) > 0.05)
+}
+metadata(sce)$summary[idx]
 ```
 Here we use gene cluster 17 as an example
 
@@ -104,15 +114,16 @@ Here we use gene cluster 17 as an example
 
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-t<-system.time(se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster = 17,ncores=4,niter=1))
+t<-system.time(sce_sub <- fusedLasso(formula=f,model="binomial",sce,genecluster = 4,ncores=4,niter=1))
+knitr::kable(metadata(sce_sub)$partition,row.names = F)
 ```
 Here `ncores` is the number of CPU used for parallelization. And it takes `r t`s with 4 CPU to test 55*367=20185 elements. Note, the computation time increases approximate linearly as number of genes increases. If you run `niter>1`, please use a `consensusPart` to derive the final partition.
 
 ## Modeling using pairwise Mann Whitney Wilcoxon extension
 
 ```{r,results='asis',warning=FALSE}
-t<-system.time(se_sub <- wilcoxExt(se, genecluster=17, threshold =10^seq(from=-2,to=-0.4,by=0.1)))
-knitr::kable(metadata(se_sub)$partition,row.names = F)
+t<-system.time(sce_sub <- wilcoxExt(sce, genecluster=4, threshold =10^seq(from=-2,to=-0.4,by=0.1)))
+knitr::kable(metadata(sce_sub)$partition,row.names = F)
 ```
 
 It takes `r t2`s to run Wilcoxon.
@@ -120,8 +131,13 @@ It takes `r t2`s to run Wilcoxon.
 ## Calculating allelic Ratio estimator by betabinomial 
 ### Confidence interval with normal approximation
 ```{r,warning=FALSE, results="asis"}
-se_sub<-allelicRatio(se_sub)
-knitr::kable(metadata(se_sub)$estimator,row.names = F)
+sce_sub<-allelicRatio(sce_sub)
+knitr::kable(metadata(sce_sub)$estimator,row.names = F)
+```
+```{r}
+makeForest(sce_sub)
+makeBoxplot(sce_sub)
+makeRatioHeatmap(sce_sub)
 ```
 
 ## Graph-Guided Fused Lasso

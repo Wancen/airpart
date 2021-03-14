@@ -5,7 +5,7 @@
 \title{Fit betabinomial on each cell type groups}
 \usage{
 allelicRatio(
-  se,
+  sce,
   level = 0.95,
   method = c("Normal", "bootstrap"),
   R,
@@ -14,8 +14,8 @@ allelicRatio(
 )
 }
 \arguments{
-\item{se}{A SummarizedExpeirment containing assays (\code{"ratio"},
-\code{"total"}) and colData (\code{"x"}, \code{"part"})}
+\item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
+\code{"counts"}) and colData (\code{"x"}, \code{"part"})}
 
 \item{level}{the confidence interval required}
 
@@ -33,6 +33,6 @@ Fit betabinomial on each cell type groups
 }
 \examples{
 # Use normal approximation to calculate Wald-type confidence intervals
-allelicRatio(se)
-allelicRatio(se, method = "bootstrap", R = 200, ncores = 4)
+allelicRatio(sce)
+allelicRatio(sce, method = "bootstrap", R = 200, ncores = 4)
 }

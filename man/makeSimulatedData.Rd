@@ -24,7 +24,7 @@ makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec)
 \item{p.vec}{the allelic ratio vector which follows gene cluster order. (length is nct * ncl)}
 }
 \value{
-SummarizedExperiment with the following elements as assays
+SingleCellExperiment with the following elements as assays
 \itemize{
   \item{ase.mat} {maternal allelic expression matrix}
   \item{ase.pat} {paternal allelic expression matrix}

@@ -4,10 +4,10 @@
 \alias{makeBoxplot}
 \title{Plot allelic ratio as heatmap}
 \usage{
-makeBoxplot(se)
+makeBoxplot(sce)
 }
 \arguments{
-\item{se}{SummarizedExpeirment}
+\item{sce}{SingleCellExperiment}
 }
 \description{
 Plot allelic ratio as heatmap

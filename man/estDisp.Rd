@@ -4,10 +4,10 @@
 \alias{estDisp}
 \title{Estimate overdispersion parameter of a betabinomial}
 \usage{
-estDisp(se, ct)
+estDisp(sce, ct, pc = 2)
 }
 \arguments{
-\item{se}{SummarizedExperiment with \code{ase} and \code{total}}
+\item{sce}{SingleCellExperiment with \code{ase.mat} and \code{counts}}
 
 \item{ct}{the name of the cell type to be estimated. Default is the highest one.}
 }

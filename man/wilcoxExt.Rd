@@ -4,11 +4,11 @@
 \alias{wilcoxExt}
 \title{Extension on Pairwise Mann Whitney Wilcoxon Test for partitioning}
 \usage{
-wilcoxExt(se, genecluster, threshold, p.adjust.method = "none", ...)
+wilcoxExt(sce, genecluster, threshold, p.adjust.method = "none", ...)
 }
 \arguments{
-\item{se}{A SummarizedExpeirment containing assays (\code{"ratio"},
-\code{"total"}) and colData \code{"x"}}
+\item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
+\code{"counts"}) and colData \code{"x"}}
 
 \item{genecluster}{which gene cluster result want to be returned.
 Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}}

@@ -10,7 +10,7 @@
 #' @param ncl number of gene cluster
 #' @param p.vec the allelic ratio vector which follows gene cluster order. (length is nct * ncl)
 #'
-#' @return SummarizedExperiment with the following elements as assays
+#' @return SingleCellExperiment with the following elements as assays
 #' \itemize{
 #'   \item{ase.mat} {maternal allelic expression matrix}
 #'   \item{ase.pat} {paternal allelic expression matrix}
@@ -21,7 +21,7 @@
 #' cell types in the same order as cells in count matrix
 #'
 #' @importFrom emdbook rbetabinom
-#' @importFrom SummarizedExperiment SummarizedExperiment
+#' @importFrom SingleCellExperiment SingleCellExperiment
 #'
 #' @export
 makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){
@@ -61,5 +61,5 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){
   coldata <- data.frame(x=factor(x,levels = unique(x)))
   rowdata <- data.frame(true.ratio)
   assay.list <- list(ase.mat=ase.mat, ase.pat=ase.pat)
-  SummarizedExperiment(assays=assay.list, colData=coldata, rowData=rowdata)
+  SingleCellExperiment(assays=assay.list, colData=coldata, rowData=rowdata)
 }

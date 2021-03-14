@@ -1,6 +1,6 @@
 #' Gene clustering based on allelic ratio matrix with pseudo-count
 #'
-#' @param se SummarizedExpeirment containing assays \code{"ratio_pseudo"} and
+#' @param sce SingleCellExperiment containing assays \code{"ratio_pseudo"} and
 #' colData factor \code{"x"}
 #' @param method either \code{"GMM"} or \code{"hierarchical"}
 #' @param plot logical, whether to make a PCA plot
@@ -24,20 +24,20 @@
 #' @importFrom dynamicTreeCut cutreeDynamic
 #'
 #' @export
-geneCluster <- function(se, G = c(8, 12, 16, 20, 24),
+geneCluster <- function(sce, G = c(8, 12, 16, 20, 24),
                         method = "GMM", plot = TRUE, ...) {
-  if (!"x" %in% names(colData(se))) {
+  if (!"x" %in% names(colData(sce))) {
     stop('require a vector of annotated cell types "x" in colData')
   }
-  if (!"ratio_pseudo" %in% assayNames(se)) {
+  if (!"ratio_pseudo" %in% assayNames(sce)) {
     stop('require an assay "ratio_pseudo"')
   }
-  if (!is.factor(se$x)) {
-    se$x <- as.factor(se$x)
+  if (!is.factor(sce$x)) {
+    sce$x <- as.factor(sce$x)
   }
-  nct <- nlevels(se$x)
+  nct <- nlevels(sce$x)
   # PCA first
-  pca <- prcomp(assays(se)[["ratio_pseudo"]], rank. = 2 * nct) # use 2*nct
+  pca <- prcomp(assays(sce)[["ratio_pseudo"]], rank. = 2 * nct) # use 2*nct
   ratio_pca <- as.matrix(pca$x)
   if (method == "GMM") {
     init <- list(hcPairs = mclust::hc(ratio_pca, modelName = "EII", use = "VARS"))
@@ -67,8 +67,8 @@ geneCluster <- function(se, G = c(8, 12, 16, 20, 24),
       theme_minimal()
     print(p)
   }
-  rowdata <- cbind(rowData(se), cluster = my.clusters)
-  rowData(se) <- rowdata
-  metadata(se)$geneCluster <- table(my.clusters)
-  return(se)
+  rowdata <- cbind(rowData(sce), cluster = my.clusters)
+  rowData(sce) <- rowdata
+  metadata(sce)$geneCluster <- table(my.clusters)
+  return(sce)
 }

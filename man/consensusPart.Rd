@@ -4,10 +4,10 @@
 \alias{consensusPart}
 \title{Consensus Partitions}
 \usage{
-consensusPart(se)
+consensusPart(sce)
 }
 \arguments{
-\item{se}{SummarizedExpeirment}
+\item{sce}{SingleCellExperiment}
 }
 \description{
 Derive consensus partitions of an ensemble fused lasso partitions.

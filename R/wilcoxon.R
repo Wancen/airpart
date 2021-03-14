@@ -3,8 +3,8 @@
 #' Extends the Pairwise Mann Whitney Wilcoxon Test by combining
 #' hierarchical clustering for partition.
 #'
-#' @param se A SummarizedExpeirment containing assays (\code{"ratio"},
-#' \code{"total"}) and colData \code{"x"}
+#' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
+#' \code{"counts"}) and colData \code{"x"}
 #' @param genecluster which gene cluster result want to be returned.
 #' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
 #' @param threshold a vector with candidate thresholds for raw p-value
@@ -18,21 +18,21 @@
 #' @importFrom plyr mutate
 #'
 #' @export
-wilcoxExt <- function(se, genecluster, threshold, p.adjust.method = "none", ...) {
+wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", ...) {
   # construct data frame
-  se_sub <- se[rowData(se)$cluster == genecluster, ]
-  cl_ratio <- as.vector(unlist(assays(se_sub)[["ratio"]]))
-  cl_total <- as.vector(unlist(assays(se_sub)[["total"]]))
+  sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
+  cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
+  cl_total <- as.vector(unlist(counts(sce_sub)))
   dat <- data.frame(
     ratio = cl_ratio,
-    x = factor(rep(se_sub$x, each = length(se_sub))),
+    x = factor(rep(sce_sub$x, each = length(sce_sub))),
     cts = cl_total
   )
-  nct <- nlevels(se$x)
+  nct <- nlevels(sce$x)
 
   out <- list()
   obj <- sapply(1:length(threshold), function(j) {
-    fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method, threshold = threshold[j], ...)
+    fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method, threshold = threshold[j],...)
     label <- data.frame(type = factor(seq_along(1:nct)), par = fit)
     dat2 <- dat %>%
       left_join(label, by = c("x" = "type"))
@@ -49,12 +49,14 @@ wilcoxExt <- function(se, genecluster, threshold, p.adjust.method = "none", ...)
 
   cl <- do.call(rbind, obj[seq(1, length(obj), by = 2)])
   loss1 <- do.call(rbind, obj[seq(2, length(obj), by = 2)])
-  partition <- data.frame(part = factor(cl[which.min(loss1), ]), x = levels(se_sub$x))
-  colData(se_sub) <- merge(colData(se_sub), partition, by = "x") %>%
-    DataFrame() %>%
-    `row.names<-`(colnames(se_sub))
-  metadata(se_sub)$partition <- partition
-  return(se_sub)
+  partition <- data.frame(part = factor(cl[which.min(loss1), ]), x = levels(sce_sub$x))
+  coldata<-DataFrame(rowname=colnames(sce_sub), colData(sce_sub))
+  coldata <- merge(coldata, partition, by = "x",sort=F) %>%
+    DataFrame()
+  rownames(coldata)<-coldata$rowname
+  colData(sce_sub)<-coldata
+  metadata(sce_sub)$partition <- partition
+  return(sce_sub)
 }
 
 wilcoxInt <- function(data, threshold = 0.05, p.adjust.method = "none", ...) {

@@ -4,10 +4,10 @@
 \alias{summaryAllelicRatio}
 \title{Allelic ratio summary}
 \usage{
-summaryAllelicRatio(se, genecluster)
+summaryAllelicRatio(sce, genecluster)
 }
 \arguments{
-\item{se}{SummarizedExpeirment}
+\item{sce}{SingleCellExperiment}
 
 \item{genecluster}{an optional vector of gene cluster IDs.
 if nothing is given, all clusters' summary will be displayed}

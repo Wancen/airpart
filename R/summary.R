@@ -2,7 +2,7 @@
 #'
 #' produce allelic ratio summary for each gene cluster
 #'
-#' @param se SummarizedExpeirment
+#' @param sce SingleCellExperiment
 #' @param genecluster an optional vector of gene cluster IDs.
 #' if nothing is given, all clusters' summary will be displayed
 #'
@@ -17,18 +17,18 @@
 #'
 #' @import magrittr
 #' @importFrom dplyr summarise group_by
-#' 
+#'
 #' @export
-summaryAllelicRatio <- function(se, genecluster) {
+summaryAllelicRatio <- function(sce, genecluster) {
   if (missing(genecluster)) {
-    genecluster <- unique(rowData(se)$cluster)
+    genecluster <- seq_len(max(rowData(sce)$cluster))
   }
   res <- lapply(genecluster, function(i){
-    se_sub <- se[rowData(se)$cluster == i, ]
-    cl_ratio <- as.vector(unlist(assays(se_sub)[["ratio"]]))
-    cl_total <- as.vector(unlist(assays(se_sub)[["total"]]))
+    sce_sub <- sce[rowData(sce)$cluster == i, ]
+    cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
+    cl_total <- as.vector(unlist(assays(sce_sub)[["counts"]]))
     dat <- data.frame(ratio=cl_ratio,
-                      x=factor(rep(colData(se_sub)$x,each=length(se_sub))),
+                      x=factor(rep(sce_sub$x,each=length(sce_sub))),
                       cts=cl_total)
     summary <- dat %>%
       group_by(x) %>%
@@ -38,7 +38,7 @@ summaryAllelicRatio <- function(se, genecluster) {
       as.data.frame()
     summary
   })
-  names(res) <- paste("gene cluster",genecluster)
-  metadata(se)$summary <- res
-  return(se)
+  names(res) <- paste("gene cluster",genecluster,"with",metadata(sce)$geneCluster,"genes")
+  metadata(sce)$summary <- res
+  return(sce)
 }

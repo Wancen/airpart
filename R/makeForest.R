@@ -3,7 +3,7 @@
 #' Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval. It is based on the \pkg{rmeta}-package`s
 #' \code{forestplot} function.
 #'
-#' @param se A SummarizedExpeirment containing colData allelic ratio estimator in the third column
+#' @param sce A SingleCellExperiment containing colData allelic ratio estimator in the third column
 #' and last two column is the confidence interval.
 #' @param xticks argument as described in \code{\link[forestplot]{forestplot}}
 #' @param boxsize Override the default box size based on precision
@@ -27,7 +27,7 @@
 #' @import forestplot
 #'
 #' @export
-makeForest <- function(se, xticks, boxsize = 0.1,
+makeForest <- function(sce, xticks, boxsize = 0.1,
                        xlab = "Allelic Ratio", col = fpColors(), grid = structure(c(0.1, 0.5, 0.9),
                          gp = gpar(lty = 2, col = "#CCCCFF")
                        ), ...) {
@@ -37,7 +37,7 @@ makeForest <- function(se, xticks, boxsize = 0.1,
     attr(xticks, "labels") <- xtlab
   }
 
-  ar <- apply(metadata(se)$estimator, 2, as.character)
+  ar <- apply(metadata(sce)$estimator, 2, as.character)
   forest_text <- rbind(colnames(ar), ar)
   forest_plot <- data.frame(mean = c(NA, ar[, 3]), lower = c(NA, ar[, 4]), upper = c(NA, ar[, 5]))
 

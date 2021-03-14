@@ -2,8 +2,8 @@
 #'
 #' @description Fit betabinomial on each cell type groups
 #'
-#' @param se A SummarizedExpeirment containing assays (\code{"ratio"},
-#' \code{"total"}) and colData (\code{"x"}, \code{"part"})
+#' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
+#' \code{"counts"}) and colData (\code{"x"}, \code{"part"})
 #' @param level the confidence interval required
 #' @param method the method to used for construct confidence interval. The default is the first method.
 #' "bootstrap" is likely to be more accurate especially when the data is highly overdispersed,
@@ -14,22 +14,22 @@
 #'
 #' @examples
 #' # Use normal approximation to calculate Wald-type confidence intervals
-#' allelicRatio(se)
-#' allelicRatio(se, method = "bootstrap", R = 200, ncores = 4)
+#' allelicRatio(sce)
+#' allelicRatio(sce, method = "bootstrap", R = 200, ncores = 4)
 #' @importFrom VGAM vglm betabinomial Coef confintvglm
 #' @importFrom boot boot boot.ci
 #'
 #' @export
-allelicRatio <- function(se, level = 0.95, method = c("Normal", "bootstrap"),
+allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
                          R, ncores, ...) {
   method <- match.arg(method, c("Normal", "bootstrap"))[1]
-  cl_ratio <- as.vector(unlist(assays(se)[["ratio"]]))
-  cl_total <- as.vector(unlist(assays(se)[["total"]]))
+  cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
+  cl_total <- as.vector(unlist(counts(sce)))
   dat <- data.frame(
     ratio = cl_ratio,
-    x = factor(rep(se$x, each = length(se))),
+    x = factor(rep(sce$x, each = length(sce))),
     cts = cl_total,
-    part = rep(se$part, each = length(se))
+    part = rep(sce$part, each = length(sce))
   )
   if (method == "bootstrap") {
     boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level=level, parallel = "multicore", ncpus = ncores)
@@ -53,11 +53,11 @@ allelicRatio <- function(se, level = 0.95, method = c("Normal", "bootstrap"),
   ci <- cbind(part = factor(seq_len(length(coef))), round(confint, 3))
   coldata <- Reduce(
     function(x, y) merge(x = x, y = y, by = "part"),
-    list(metadata(se)$partition, est, ci)
+    list(metadata(sce)$partition, est, ci)
   )
-  # colData(se) <-coldata %>% DataFrame() %>% setNames(colnames(coldata)) # combine with partition label
-  metadata(se)$estimator <- coldata
-  return(se)
+  # colData(sce) <-coldata %>% DataFrame() %>% setNames(colnames(coldata)) # combine with partition label
+  metadata(sce)$estimator <- coldata
+  return(sce)
 }
 
 betaBinom <- function(data, ci = TRUE, level) {

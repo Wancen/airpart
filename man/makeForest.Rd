@@ -5,7 +5,7 @@
 \title{Plot allelic ratio result as forest}
 \usage{
 makeForest(
-  se,
+  sce,
   xticks,
   boxsize = 0.1,
   xlab = "Allelic Ratio",
@@ -15,7 +15,7 @@ makeForest(
 )
 }
 \arguments{
-\item{se}{A SummarizedExpeirment containing colData allelic ratio estimator in the third column
+\item{sce}{A SingleCellExperiment containing colData allelic ratio estimator in the third column
 and last two column is the confidence interval.}
 
 \item{xticks}{argument as described in \code{\link[forestplot]{forestplot}}}

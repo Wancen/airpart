@@ -52,15 +52,15 @@ Below we specify:
 * overdispersion parameter in `rbetabinom` is 20
 
 ```{r}
-suppressPackageStartupMessages(library(SummarizedExperiment))
+suppressPackageStartupMessages(library(SingleCellExperiment))
 p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
-se <- makeSimulatedData(mu1=1,mu2=5,nct=4,n=10,ngenecl=25,theta=20,ncl=3,p.vec=p.vec)
+sce <- makeSimulatedData(mu1=1,mu2=10,nct=4,n=20,ngenecl=25,theta=20,ncl=3,p.vec=p.vec)
 ```
 
 ```{r}
-rowData(se)[c(1,26,51),]
-table(colData(se))
-assays(se)[["ase"]][1:5,1:5]
+unique(rowData(sce))
+table(colData(sce))
+assays(sce)[["ase.mat"]][1:5,1:5]
 ```
 
 # Create allelic ratio matrix
@@ -68,8 +68,8 @@ assays(se)[["ase"]][1:5,1:5]
 Here we add the pseudo count for gene clustering and visualization.
 
 ```{r}
-se <- preprocess(se)
-makeRatioHeatmap(se)
+sce <- preprocess(sce)
+makeRatioHeatmap(sce)
 ```
 
 The true partition in the simulation is given by these underlying ratios:
@@ -77,14 +77,39 @@ The true partition in the simulation is given by these underlying ratios:
 ```{r}
 library(pheatmap)
 anno_df <- data.frame(x=factor(1:length(p.vec)),row.names=paste0("ct",1:length(p.vec)))
-pheatmap(unique(rowData(se)),
+pheatmap(unique(rowData(sce)),
          color=colorRampPalette(c("blue","white","red"))(101),
          breaks=0:100/100,
          annotation_col=anno_df,
          cluster_rows=FALSE, cluster_cols=FALSE,
          show_colnames=FALSE, show_rownames=FALSE)
 ```
+# Quality control step
+## QC on cells
+```{r}
+cellQCmetrics<-cellQC(sce,mad_detected=4)
+cellQCmetrics
+```
 
+Now define cell filtering automatically or users can manually filter out based on `sum`,`detected` and `spikePercent`. 
+```{r}
+remove_cell <- (
+  cellQCmetrics$filter_sum | # sufficient features (genes)
+  cellQCmetrics$filter_detected | # sufficient molecules counted
+  cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
+) 
+sce<-sce[,!remove_cell]
+```
+
+## QC on genes
+Note that we require genes expressed in at least **25%** cells within each cell types. 
+```{r, eval=FALSE}
+featureQCmetric<-featureQC(sce)
+keep_feature<-(featureQCmetric$filter_celltype &
+                 featureQCmetric$filter_sd &
+                 featureQCmetric$filter_spike)
+sce<-sce[keep_feature,]
+```
 # Gene clustering
 
 We provide two methods for gene clustering. 
@@ -95,15 +120,15 @@ This is the default method. The scatter plot is shown based on Top 2 PCs. And `p
 
 
 ```{r}
-se <- geneCluster(se, G=c(1:8))
-metadata(se)$geneCluster
+sce <- geneCluster(sce, G=c(1:8))
+metadata(sce)$geneCluster
 ```
 
 * Hierarchical clustering 
 
 ```{r}
-se.hc <- geneCluster(se, method="hierarchical")
-metadata(se)$geneCluster
+sce.hc <- geneCluster(sce, method="hierarchical")
+metadata(sce.hc)$geneCluster
 ```
 
 # Running airpart
@@ -113,13 +138,13 @@ metadata(se)$geneCluster
 Quickly look at the weighted mean of allelic ratio for each gene cluster. Identify the interested gene cluster. 
 
 ```{r, results = "asis"}
-se <- summaryAllelicRatio(se)
-metadata(se)$summary
+sce <- summaryAllelicRatio(sce)
+metadata(sce)$summary
 ```
 
 Note that we recommend users only run `airpart` when the largest ordered allelic ratio difference > 0.05 for speed concerns. We find that the allelic ratio of most of the gene clusters in such cases (small absolute allelic ratio differences) won't provide enough evidence to detect differential allelic imbalance.
 ```{r}
-summary <- metadata(se)$summary
+summary <- metadata(sce)$summary
 sapply(1:length(summary), function(i){
   inst <- summary[[i]]
   inst_order <- inst[order(inst$weighted.mean),]
@@ -131,11 +156,11 @@ sapply(1:length(summary), function(i){
 
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster=1,ncores=2,niter=2)
+sce_sub <- fusedLasso(formula=f,model="binomial",sce,genecluster=1,ncores=2,niter=2)
 ```
 
 ```{r, results="asis"}
-knitr::kable(metadata(se_sub)$partition, row.names=FALSE)
+knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 ```
 
 Here `ncores` is the number of CPU used for parallelization. One can
@@ -149,16 +174,16 @@ If you run `niter` > 1, please use a consensus partition to derive the
 final partition.
 
 ```{r, results='asis', collapse=TRUE}
-se_sub <- consensusPart(se_sub)
-knitr::kable(metadata(se_sub)$partition, row.names=FALSE)
+sce_sub <- consensusPart(sce_sub)
+knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 ```
 
 ## Modeling using pairwise Mann Whitney Wilcoxon extension
 
 ```{r}
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
-se_sub <- wilcoxExt(se, genecluster=1, threshold=thrs)
-knitr::kable(metadata(se_sub)$partition, row.names=FALSE)
+sce_sub <- wilcoxExt(sce, genecluster=1, threshold=thrs)
+knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 ```
 
 ## Calculating allelic Ratio estimator by betabinomial 
@@ -166,15 +191,14 @@ knitr::kable(metadata(se_sub)$partition, row.names=FALSE)
 ### Confidence interval with normal approximation
 
 ```{r, warning=FALSE, results="asis"}
-# TODO gives error, see line 72 in betabinom.R
-se_sub <- allelicRatio(se_sub)
-knitr::kable(metadata(se_sub)$estimator, row.names=FALSE)
+sce_sub <- allelicRatio(sce_sub)
+knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 
 ### Confidence interval with bootstrap
 
 ```{r, warning=FALSE, results="asis"}
-se_sub <- allelicRatio(se_sub, method="bootstrap", R=200, ncores=4)
+sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=200, ncores=4)
 ```
 
 # Displaying results on heatmap
@@ -196,22 +220,37 @@ p.vec <- ( rep(c(
     rep(0,nct/2),
     seq(from=2,to=4,length.out=nct/2)
   ), each=2) + 5 ) / 10
-se <- makeSimulatedData(mu1=3,mu2=20,nct=nct,n=10,ngenecl=25,theta=20,ncl=3,p.vec=p.vec)
-se <- preprocess(se)
-estDisp(se)
-makeRatioHeatmap(se)
-se <- geneCluster(se, G=c(1:8))
-se <- summaryAllelicRatio(se) # identify interesting gene cluster
+sce <- makeSimulatedData(mu1=1,mu2=10,nct=nct,n=30,ngenecl=50,theta=20,ncl=3,p.vec=p.vec)
+sce <- preprocess(sce)
+estDisp(sce)
+
+cellQCmetrics<-cellQC(sce,mad_detected=4)
+remove_cell <- (
+  cellQCmetrics$filter_sum | # sufficient features (genes)
+  cellQCmetrics$filter_detected | # sufficient molecules counted
+  cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
+) 
+sce<-sce[,!remove_cell]
+
+featureQCmetric<-featureQC(sce)
+keep_feature<-(featureQCmetric$filter_celltype &
+                 featureQCmetric$filter_sd &
+                 featureQCmetric$filter_spike)
+sce<-sce[keep_feature,]
+
+makeRatioHeatmap(sce)
+sce <- geneCluster(sce, G=c(1:8))
+sce <- summaryAllelicRatio(sce) # identify interesting gene cluster
 
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-se_sub <- fusedLasso(formula=f,model="binomial",se,genecluster=1,ncores=2,niter=2) 
-se_sub <- consensusPart(se_sub)
+sce_sub <- fusedLasso(formula=f,model="binomial",sce,genecluster=1,ncores=4,niter=2) 
+sce_sub <- consensusPart(sce_sub)
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
-se_sub <- wilcoxExt(se,genecluster=1,threshold=thrs) # alternative
-se_sub <- allelicRatio(se_sub)
-makeForest(se_sub)
-makeBoxplot(se_sub)
-makeRatioHeatmap(se_sub)
+sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs) # alternative
+sce_sub <- allelicRatio(sce_sub)
+makeForest(sce_sub)
+makeBoxplot(sce_sub)
+makeRatioHeatmap(sce_sub)
 ```
 
 # Session Info

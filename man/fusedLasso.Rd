@@ -7,7 +7,7 @@
 fusedLasso(
   formula,
   model = "binomial",
-  se,
+  sce,
   genecluster,
   niter = 1,
   pen.weights,
@@ -27,8 +27,8 @@ See \code{\link[smurf]{glmsmurf}} for more details}
 
 \item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso}
 
-\item{se}{A SummarizedExpeirment containing assays (\code{"ratio"},
-\code{"total"}) and colData \code{"x"}}
+\item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
+\code{"counts"}) and colData \code{"x"}}
 
 \item{genecluster}{which gene cluster result want to be returned.
 Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}}

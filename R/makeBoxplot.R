@@ -1,17 +1,17 @@
 #' Plot allelic ratio as heatmap
 #'
-#' @param se SummarizedExpeirment
+#' @param sce SingleCellExperiment
 #'
 #' @importFrom ggplot2 ggplot aes geom_boxplot scale_fill_brewer theme labs
 #'
 #' @export
-makeBoxplot <- function(se) {
-  cl_ratio <- as.vector(unlist(assays(se)[["ratio"]]))
-  cl_total <- as.vector(unlist(assays(se)[["total"]]))
+makeBoxplot <- function(sce) {
+  cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
+  cl_total <- as.vector(unlist(counts(sce)))
   dat <- data.frame(ratio=cl_ratio,
-                    x=factor(rep(se$x,each=length(se))),
+                    x=factor(rep(sce$x,each=length(sce))),
                     cts=cl_total,
-                    part=factor(rep(se$part,each=length(se))))
+                    part=factor(rep(sce$part,each=length(sce))))
   dat <- dat[!is.nan(dat$ratio),]
   p <- ggplot(dat, aes(x=x, y=ratio, fill=part)) +
     geom_boxplot(alpha=0.5) +
