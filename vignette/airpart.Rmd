@@ -46,8 +46,8 @@ allelic imbalance (DAI):
 
 Below we specify:
 
-* the "noisy" cell count is 1
-* the normal cell count is 20
+* the "noisy" cell count is 2
+* the normal cell count is 10
 * 4 cell types
 * 10 cells within each cell types
 * 25 genes within each gene cluster
@@ -56,9 +56,9 @@ Below we specify:
 ```{r}
 suppressPackageStartupMessages(library(SingleCellExperiment))
 p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
-sce <- makeSimulatedData(mu1=1,mu2=10,nct=4,n=20,
-                         ngenecl=25,theta=20,ncl=3,
-                         p.vec=p.vec)
+sce <- makeSimulatedData( mu1 = 2, mu2 = 10, nct = 4,n = 20,
+                         ngenecl = 25, theta = 20, ncl = 3,
+                         p.vec = p.vec)
 ```
 
 ```{r}
@@ -102,21 +102,17 @@ Now define cell filtering automatically or users can manually filter
 out based on `sum`,`detected` and `spikePercent`.
 
 ```{r}
-# TODO I'd recommend to use the 'keep' style of filtering
-# instead of the 'remove' logic.
-# you already have 'keep' logic in the feature QC below.
-# Defining 'keep' is widely used paradigm: e.g. DESeq2, edgeR/limma, apeglm, swish, etc.
-remove_cell <- (
+keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
   cellQCmetrics$filter_detected | # sufficient molecules counted
   cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
 ) 
-sce <- sce[,!remove_cell]
+sce <- sce[,keep_cell]
 ```
 
 ## QC on genes
 
-Note that we require genes expressed in at least **25%** cells within each cell types. 
+Note that we require genes expressed in at least **25%** cells within each cell types and the genes has high allelic imbalance variation among cell types. 
 
 ```{r, eval=FALSE}
 featureQCmetric <- featureQC(sce)
@@ -177,11 +173,16 @@ sapply(1:length(summary), function(i){
 })
 ```
 
+## check for experiment-wide beta-binomial over-dispersion
+```{r}
+estDisp(sce)
+```
+
+
 ## Modeling using fused lasso with binomial likelihood
 
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-# TODO check line 133
 sce_sub <- fusedLasso(sce, formula=f, model="binomial",
                       genecluster=1, ncores=2, niter=2)
 ```
@@ -222,12 +223,10 @@ sce_sub <- allelicRatio(sce_sub)
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 
-### Confidence interval with bootstrap
+### Confidence interval with bootstrap as alternative
 
 ```{r, warning=FALSE, results="asis"}
-# TODO let's scale this back so vignette compiles faster
-# less R?
-sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=200, ncores=4)
+sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=20, ncpus=4, parallel="multicore")
 ```
 
 # Displaying results on heatmap
@@ -249,17 +248,16 @@ p.vec <- ( rep(c(
     rep(0,nct/2),
     seq(from=2,to=4,length.out=nct/2)
   ), each=2) + 5 ) / 10
-sce <- makeSimulatedData(mu1=1,mu2=10,nct=nct,n=30,ngenecl=50,theta=20,ncl=3,p.vec=p.vec)
+sce <- makeSimulatedData(mu1=2,mu2=10,nct=nct,n=30,ngenecl=50,theta=20,ncl=3,p.vec=p.vec)
 sce <- preprocess(sce)
-estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
 
 cellQCmetrics <- cellQC(sce,mad_detected=4)
-remove_cell <- (
+keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
   cellQCmetrics$filter_detected | # sufficient molecules counted
   cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
 ) 
-sce <- sce[,!remove_cell]
+sce <- sce[,keep_cell]
 
 featureQCmetric <- featureQC(sce)
 keep_feature <- (featureQCmetric$filter_celltype &
@@ -270,6 +268,7 @@ sce <- sce[keep_feature,]
 makeRatioHeatmap(sce)
 sce <- geneCluster(sce, G=1:8)
 sce <- summaryAllelicRatio(sce) # identify interesting gene cluster
+estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
 
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce,formula=f,model="binomial",

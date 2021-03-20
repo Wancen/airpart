@@ -2,6 +2,7 @@
 #'
 #' @param sce SingleCellExperiment
 #' @param show_row_names show row names or not
+#' @param ... Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.
 #'
 #' @importFrom ComplexHeatmap Heatmap HeatmapAnnotation anno_block
 #' @importFrom RColorBrewer brewer.pal

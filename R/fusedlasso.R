@@ -130,7 +130,6 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   }
   cl <- data.frame(part, x=levels(sce_sub$x))
   coldata <- DataFrame(rowname=colnames(sce_sub), colData(sce_sub))
-  # TODO: check, I replaced 'partition' with 'cl'. is this correct?
   coldata <- merge(coldata, cl, by="x", sort=FALSE) %>%
     DataFrame()
   rownames(coldata) <- coldata$rowname

@@ -14,6 +14,8 @@
 #' If you set the parameter to a vector of values lines will be drawn at the corresponding positions.
 #' If you want to specify the \code{\link[grid]{gpar}} of the lines then either directly pass a \code{\link[grid]{gpar}} object
 #' or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}(lty=2, col = "red")
+#' @param ... Passsed on the other argument in \code{\link[forestplot]{forestplot}}.
+#'
 #'
 #' @seealso \code{\link[forestplot]{forestplot}}, \code{\link[forestplot]{fpColors}},
 #' \code{\link[forestplot]{fpShapesGp}}, \code{\link[forestplot]{fpLegend}}

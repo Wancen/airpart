@@ -4,6 +4,10 @@
 #' colData factor \code{"x"}
 #' @param method either \code{"GMM"} or \code{"hierarchical"}
 #' @param plot logical, whether to make a PCA plot
+#' @param G An integer vector specifying the numbers of clusters for which the BIC is to be calculated.
+#'  The default is G=c(8, 12, 16, 20, 24).
+#' @param ... Catches unused arguments in indirect or list calls via do.call
+#' as described in \code{\link[mclust]{Mclust}}
 #'
 #' @references
 #'
@@ -27,8 +31,10 @@
 #' @importFrom graphics par
 #'
 #' @export
-geneCluster <- function(sce, G = c(8, 12, 16, 20, 24),
-                        method = "GMM", plot = TRUE, ...) {
+geneCluster <- function(sce, G, method = "GMM", plot = TRUE, ...) {
+  if (missing(G)) {
+    G = c(8, 12, 16, 20, 24)
+  }
   if (!"x" %in% names(colData(sce))) {
     stop('require a vector of annotated cell types "x" in colData')
   }

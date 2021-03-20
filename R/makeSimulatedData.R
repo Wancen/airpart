@@ -34,7 +34,7 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){
   ngene <- ncl * ngenecl # total number of genes
   nclcell <- nct * n * ngenecl # number elements within each gene cluster
   mean_total_count <- rep(rep(c(mu1, mu2),each=n/2), times=nct * ngene) # mean total count
-  cts <- matrix(rnbinom(n * nct * ngene, mu=mean_total_count,size=3), # total count matrix
+  cts <- matrix(rnbinom(n * nct * ngene, mu=mean_total_count,size=2), # total count matrix
                 nrow = ngene, byrow = TRUE)
 
   p <- rep(p.vec, each=n*nct*ngene/length(p.vec))
@@ -58,7 +58,6 @@ makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){
   ncol=nct,byrow=TRUE)
 
   colnames(true.ratio) <- paste0("ct", 1:nct) # cell type names
-
   coldata <- data.frame(x=factor(x,levels = unique(x)))
   rowdata <- data.frame(true.ratio)
   assay.list <- list(ase.mat=ase.mat, ase.pat=ase.pat)

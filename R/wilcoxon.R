@@ -11,6 +11,7 @@
 #' cut-off. For details please see vignette
 #' @param p.adjust.method method for adjusting p-values
 #' (see \code{\link[stats]{p.adjust}}). Can be abbreviated
+#' @param ... additional arguments to pass to \code{\link[stats]{wilcox.test}}.
 #'
 #' @return A vector grouping factor partition is returned
 #'

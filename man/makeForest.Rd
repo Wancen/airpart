@@ -31,6 +31,8 @@ you can set this parameter to TRUE.
 If you set the parameter to a vector of values lines will be drawn at the corresponding positions.
 If you want to specify the \code{\link[grid]{gpar}} of the lines then either directly pass a \code{\link[grid]{gpar}} object
 or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}(lty=2, col = "red")}
+
+\item{...}{Passsed on the other argument in \code{\link[forestplot]{forestplot}}.}
 }
 \description{
 Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval. It is based on the \pkg{rmeta}-package`s

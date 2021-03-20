@@ -9,7 +9,7 @@ cellQC(
   spike,
   threshold = 0,
   mad_sum = 5,
-  mad_detected = 5,
+  mad_detected = 3,
   mad_spikegenes = 5
 )
 }
@@ -27,7 +27,7 @@ from the median log10-counts a cell is considered to be filtered out. Default is
 \item{mad_detected}{A numeric scalar specifying exceed how many median absolute deviations
 from the median detected features a cell is considered to be filtered out. Default is 5.}
 
-\item{mad_spike}{A numeric scalar specifying exceed how many median absolute deviations
+\item{mad_spikegenes}{A numeric scalar specifying exceed how many median absolute deviations
 from the median spike genes expression percentage a cell is considered to be filtered out. Default is 5.}
 }
 \value{
@@ -37,11 +37,11 @@ A DataFrame of QC statistics includes
   \item{detected} {the number of features above \code{threshold}}
   \item{spikePercent} {the percentage of counts assignes to spike genes}
   \item{filter_sum} {indicate whether log10-counts
-   exceed \code{mad_sum} median absolute deviations from the median log10-counts for the dataset}
+   within \code{mad_sum} median absolute deviations from the median log10-counts for the dataset}
   \item{filter_detected} {indicate whether features detected by this cell
-   exceed \code{mad_detected} median absolute deviations from the median detected features for the dataset}
+   within \code{mad_detected} median absolute deviations from the median detected features for the dataset}
   \item{filter_spike} {indicate whether percentage expressed by spike genes
-   exceed \code{mad_spikegenes} median absolute deviations from the median
+   within \code{mad_spikegenes} median absolute deviations from the median
    spike genes expression percentage for the dataset}
   }
 }
@@ -50,16 +50,19 @@ Quality control on cells
 }
 \examples{
 cellQCmetrics <- cellQC(sce, spike = "Ercc", mad_detected = 4, mad_spikegenes = 4)
-remove_cell <- (cellQCmetrics$filter_sum | # sufficient features (genes)
-  cellQCmetrics$filter_detected | # sufficient molecules counted
-  cellQCmetrics$filter_spike # sufficient features expressed compared to spike genes, high quality cells
-)
+keep_cell <- (
+  cellQCmetrics$filter_sum | # sufficient features (genes)
+  # sufficient molecules counted
+  cellQCmetrics$filter_detected |
+  # sufficient features expressed compared to spike genes
+  cellQCmetrics$filter_spike
+  )
 
 # or manully
-remove_cell <- (cellQCmetrics$sum < 4000 | # sufficient features (genes)
-  cellQCmetrics$detected < 3000 | # sufficient molecules counted
-  cellQCmetrics$spikePercent > 0.15 # sufficient features expressed compared to spike genes, high quality cells
+keep_cell <- (cellQCmetrics$sum > 4000 |
+  cellQCmetrics$detected > 3000 |
+  cellQCmetrics$spikePercent < 0.15
 )
-sce <- sce[, !remove_cell]
+sce <- sce[, keep_cell]
 
 }

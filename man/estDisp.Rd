@@ -4,12 +4,17 @@
 \alias{estDisp}
 \title{Estimate overdispersion parameter of a betabinomial}
 \usage{
-estDisp(sce, ct, pc = 2)
+estDisp(sce, ct, pc = 2, genecluster)
 }
 \arguments{
 \item{sce}{SingleCellExperiment with \code{ase.mat} and \code{counts}}
 
 \item{ct}{the name of the cell type to be estimated. Default is the highest one.}
+
+\item{pc}{pseudocount for calculating the smoothed ratio in the preprocess step.}
+
+\item{genecluster}{which gene cluster dispersion parameter want to be estimated.
+Default is the cluster with the most cells}
 }
 \description{
 Estimate overdispersion parameter of a betabinomial

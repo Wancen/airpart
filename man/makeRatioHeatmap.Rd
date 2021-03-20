@@ -10,6 +10,8 @@ makeRatioHeatmap(sce, show_row_names = FALSE, ...)
 \item{sce}{SingleCellExperiment}
 
 \item{show_row_names}{show row names or not}
+
+\item{...}{Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.}
 }
 \description{
 Plot allelic ratio as heatmap

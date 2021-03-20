@@ -4,7 +4,7 @@
 \alias{featureQC}
 \title{Quality control on features}
 \usage{
-featureQC(sce, spike, threshold = 0.25, lowsd = 0.04, pc = 2)
+featureQC(sce, spike, threshold = 0.25, lowsd = 0.03, pc = 2)
 }
 \arguments{
 \item{sce}{SingleCellExperiment with \code{counts} and \code{ratio}}
@@ -15,7 +15,7 @@ featureQC(sce, spike, threshold = 0.25, lowsd = 0.04, pc = 2)
 percentage of cells expressed within each cell type. Default is 0.25}
 
 \item{lowsd}{A numeric scalar specifying the cell type weighted allelic ratio mean standard deviation threshold
-above which are interested features with highly variation. Default is 0.04}
+above which are interested features with highly variation. Default is 0.03}
 
 \item{pc}{pseudocount in the \code{preprocess} step}
 }

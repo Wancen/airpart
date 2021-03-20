@@ -18,6 +18,8 @@ cut-off. For details please see vignette}
 
 \item{p.adjust.method}{method for adjusting p-values
 (see \code{\link[stats]{p.adjust}}). Can be abbreviated}
+
+\item{...}{additional arguments to pass to \code{\link[stats]{wilcox.test}}.}
 }
 \value{
 A vector grouping factor partition is returned

@@ -4,14 +4,7 @@
 \alias{allelicRatio}
 \title{Fit betabinomial on each cell type groups}
 \usage{
-allelicRatio(
-  sce,
-  level = 0.95,
-  method = c("Normal", "bootstrap"),
-  R,
-  ncores,
-  ...
-)
+allelicRatio(sce, level = 0.95, method = c("Normal", "bootstrap"), R, ...)
 }
 \arguments{
 \item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
@@ -25,8 +18,7 @@ however it is computationally intensive.}
 
 \item{R}{The number of bootstrap replicates.}
 
-\item{ncores}{integer: number of processes to be used in parallel operation.
-Typically one would chose this to the number of available CPUs.}
+\item{...}{Argument for the \code{\link[boot]{boot}} functions.}
 }
 \description{
 Fit betabinomial on each cell type groups
@@ -34,5 +26,5 @@ Fit betabinomial on each cell type groups
 \examples{
 # Use normal approximation to calculate Wald-type confidence intervals
 allelicRatio(sce)
-allelicRatio(sce, method = "bootstrap", R = 200, ncores = 4)
+allelicRatio(sce, method = "bootstrap", R = 200, parallel="multicore", ncpus = 4)
 }

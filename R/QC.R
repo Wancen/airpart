@@ -8,7 +8,7 @@
 #' from the median log10-counts a cell is considered to be filtered out. Default is 5.
 #' @param mad_detected A numeric scalar specifying exceed how many median absolute deviations
 #' from the median detected features a cell is considered to be filtered out. Default is 5.
-#' @param mad_spike A numeric scalar specifying exceed how many median absolute deviations
+#' @param mad_spikegenes A numeric scalar specifying exceed how many median absolute deviations
 #' from the median spike genes expression percentage a cell is considered to be filtered out. Default is 5.
 #'
 #' @return A DataFrame of QC statistics includes
@@ -17,53 +17,54 @@
 #'   \item{detected} {the number of features above \code{threshold}}
 #'   \item{spikePercent} {the percentage of counts assignes to spike genes}
 #'   \item{filter_sum} {indicate whether log10-counts
-#'    exceed \code{mad_sum} median absolute deviations from the median log10-counts for the dataset}
+#'    within \code{mad_sum} median absolute deviations from the median log10-counts for the dataset}
 #'   \item{filter_detected} {indicate whether features detected by this cell
-#'    exceed \code{mad_detected} median absolute deviations from the median detected features for the dataset}
+#'    within \code{mad_detected} median absolute deviations from the median detected features for the dataset}
 #'   \item{filter_spike} {indicate whether percentage expressed by spike genes
-#'    exceed \code{mad_spikegenes} median absolute deviations from the median
+#'    within \code{mad_spikegenes} median absolute deviations from the median
 #'    spike genes expression percentage for the dataset}
 #'   }
 #'
 #' @examples
 #' cellQCmetrics <- cellQC(sce, spike = "Ercc", mad_detected = 4, mad_spikegenes = 4)
-#' remove_cell <- (cellQCmetrics$filter_sum | # sufficient features (genes)
-#'   cellQCmetrics$filter_detected | # sufficient molecules counted
-#'   cellQCmetrics$filter_spike # sufficient features expressed compared to spike genes, high quality cells
-#' )
+#' keep_cell <- (
+#'   cellQCmetrics$filter_sum | # sufficient features (genes)
+#'   # sufficient molecules counted
+#'   cellQCmetrics$filter_detected |
+#'   # sufficient features expressed compared to spike genes
+#'   cellQCmetrics$filter_spike
+#'   )
 #'
 #' # or manully
-#' remove_cell <- (cellQCmetrics$sum < 4000 | # sufficient features (genes)
-#'   cellQCmetrics$detected < 3000 | # sufficient molecules counted
-#'   cellQCmetrics$spikePercent > 0.15 # sufficient features expressed compared to spike genes, high quality cells
+#' keep_cell <- (cellQCmetrics$sum > 4000 |
+#'   cellQCmetrics$detected > 3000 |
+#'   cellQCmetrics$spikePercent < 0.15
 #' )
-#' sce <- sce[, !remove_cell]
+#' sce <- sce[, keep_cell]
 #'
 #' @importFrom SingleCellExperiment counts
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<- assayNames assays assays<-
 #' @importFrom S4Vectors DataFrame metadata metadata<-
-#' 
+#'
 #' @export
 cellQC <- function(sce, spike, threshold = 0,
-                   mad_sum = 5, mad_detected = 5, mad_spikegenes = 5) {
+                   mad_sum = 5, mad_detected = 3, mad_spikegenes = 5) {
   keep_feature <- rowSums(counts(sce)) > 0
   sce <- sce[keep_feature, ]
   sum <- log10(colSums(counts(sce)))
-  filter_sum <- (sum < (median(sum) - mad_sum * mad(sum)) |
-    sum > (median(sum) + mad_sum * mad(sum)))
+  filter_sum <- (sum > (median(sum) - mad_sum * mad(sum)))
 
   detected <- colSums(counts(sce) > threshold)
-  filter_detected <- (detected < (median(detected) - mad_detected * mad(detected)) |
-    detected > (median(detected) + mad_detected * mad(detected)))
+  filter_detected <- (detected > (median(detected) - mad_detected * mad(detected)))
   if (missing(spike)) {
     spikePercent <- rep(0, ncol(sce))
-    filter_spike <- rep(FALSE, ncol(sce))
+    filter_spike <- rep(TRUE, ncol(sce))
   } else {
     spike_gene <- grep(paste0("^", spike), row.names(sce))
     spikePercent <- colSums(counts(sce)[spike_gene, ], na.rm = TRUE) * 100 /
       colSums(counts(sce)[-spike_gene, ], na.rm = TRUE)
-    filter_spike <- (spikePercent < (median(spikePercent) - mad_spikegenes * mad(spikePercent)) |
-      spikePercent > (median(spikePercent) + mad_spikegenes * mad(spikePercent)))
+    filter_spike <- (spikePercent > (median(spikePercent) - mad_spikegenes * mad(spikePercent)) &
+      spikePercent < (median(spikePercent) + mad_spikegenes * mad(spikePercent)))
   }
 
   coldata <- cbind(colData(sce), sum, detected, spikePercent,
@@ -78,7 +79,7 @@ cellQC <- function(sce, spike, threshold = 0,
 #' @param threshold A numeric scalar specifying the threshold above which
 #' percentage of cells expressed within each cell type. Default is 0.25
 #' @param lowsd A numeric scalar specifying the cell type weighted allelic ratio mean standard deviation threshold
-#' above which are interested features with highly variation. Default is 0.04
+#' above which are interested features with highly variation. Default is 0.03
 #' @param pc pseudocount in the \code{preprocess} step
 #'
 #' @return A DataFrame of QC statistics includes
@@ -99,7 +100,7 @@ cellQC <- function(sce, spike, threshold = 0,
 #' @importFrom scater nexprs
 #'
 #' @export
-featureQC <- function(sce, spike, threshold = 0.25, lowsd = 0.04, pc = 2) {
+featureQC <- function(sce, spike, threshold = 0.25, lowsd = 0.03, pc = 2) {
   check <- pbsapply(levels(sce$x), function(c) {
     poi <- which(sce$x == c)
     ct_threshold <- nexprs(counts(sce), byrow = TRUE, detection_limit = 1, subset_col = poi) >=
@@ -113,7 +114,7 @@ featureQC <- function(sce, spike, threshold = 0.25, lowsd = 0.04, pc = 2) {
 
   weighted_mean <- do.call(cbind, check[seq(2, length(check), 2)])
   sd <- rowSds(weighted_mean)
-  filter_sd <- rowSds(weighted_mean) > lowsd
+  filter_sd <- sd > lowsd
 
   filter_spike <- rep(TRUE, nrow(sce))
   if (!missing(spike)) {

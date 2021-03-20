@@ -9,20 +9,19 @@
 #' "bootstrap" is likely to be more accurate especially when the data is highly overdispersed,
 #' however it is computationally intensive.
 #' @param R The number of bootstrap replicates.
-#' @param ncores integer: number of processes to be used in parallel operation.
-#' Typically one would chose this to the number of available CPUs.
+#' @param ... Argument for the \code{\link[boot]{boot}} functions.
 #'
 #' @examples
 #' # Use normal approximation to calculate Wald-type confidence intervals
 #' allelicRatio(sce)
-#' allelicRatio(sce, method = "bootstrap", R = 200, ncores = 4)
+#' allelicRatio(sce, method = "bootstrap", R = 200, parallel="multicore", ncpus = 4)
 #' @importFrom VGAM vglm betabinomial Coef confintvglm
 #' @importFrom boot boot boot.ci
 #' @importFrom stats setNames
 #'
 #' @export
 allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
-                         R, ncores, ...) {
+                         R,  ...) {
   method <- match.arg(method, c("Normal", "bootstrap"))[1]
   cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce)))
@@ -33,7 +32,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
     part = rep(sce$part, each = length(sce))
   )
   if (method == "bootstrap") {
-    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level=level, parallel = "multicore", ncpus = ncores)
+    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level=level, ...)
     confint <- sapply(1:nlevels(dat$part), function(m) {
       boot_ci <- boot.ci(boot, type = "perc", index = m, conf = level)
       ci <- boot_ci[[length(boot_ci)]]
@@ -70,7 +69,6 @@ betaBinom <- function(data, ci = TRUE, level) {
     ))
     coef_bb <- VGAM::Coef(bb)[-2] # betabinomial estimator
     if (ci) {
-      # TODO -> gives error, 'level' is not defined
       suppressWarnings(confint_bb <- VGAM::confintvglm(bb, matrix = T, level = level)[-2, ]) # ci
       confint_wilcoxon <- 1 / (1 + exp(-confint_bb))
       return(list(coef_bb, confint_wilcoxon))
@@ -81,7 +79,7 @@ betaBinom <- function(data, ci = TRUE, level) {
   return(res)
 }
 
-boot_ci <- function(data, indices, level=level,...) {
+boot_ci <- function(data, indices, level=level) {
   data_b <- data[indices, ]
   coef <- betaBinom(data_b, ci = FALSE, level)
   return(coef)

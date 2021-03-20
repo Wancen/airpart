@@ -2,19 +2,27 @@
 #'
 #' @param sce SingleCellExperiment with \code{ase.mat} and \code{counts}
 #' @param ct the name of the cell type to be estimated. Default is the highest one.
+#' @param pc pseudocount for calculating the smoothed ratio in the preprocess step.
+#' @param genecluster which gene cluster dispersion parameter want to be estimated.
+#' Default is the cluster with the most cells
 #'
 #' @importFrom apeglm apeglm bbEstDisp
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth theme_minimal labs coord_cartesian
 #'
 #' @export
-estDisp <- function(sce, ct,pc=2) {
+estDisp <- function(sce, ct, pc = 2, genecluster) {
 
   if (missing(ct)) {
     cell_sum <- colSums(counts(sce)) %>% by(sce$x, FUN = mean)
     ct <- names(which.max(cell_sum))
   }
 
-  sce_sub <- sce[, sce$x == ct]
+  if (missing(genecluster)) {
+    cl<-metadata(sce)$geneCluster
+    genecluster<-names(cl[which.max(cl)])
+  }
+
+  sce_sub <- sce[rowData(sce)$cluster == genecluster, sce$x == ct]
   x <- matrix(1, ncol = 1, nrow = dim(sce_sub)[2])
   theta.hat <- 100
   param <- cbind(theta.hat, counts(sce_sub))
@@ -26,7 +34,7 @@ estDisp <- function(sce, ct,pc=2) {
                            size = counts(sce_sub), x = x,
                            beta = fit.mle$map, minDisp = .01, maxDisp = maxDisp)
   }
-  gene_mean <- rowMeans(counts(sce))
+  gene_mean <- rowMeans(counts(sce_sub))
   est <- data.frame(mean = gene_mean, theta = theta.hat)
   est <- est[est$mean > 2 & est$theta < 100,] # focus on genes with evidence of over-dispersion
   p <- ggplot(est, aes(mean, theta)) +
