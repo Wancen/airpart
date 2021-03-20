@@ -32,10 +32,10 @@ summaryAllelicRatio <- function(sce, genecluster) {
                       x=factor(rep(sce_sub$x,each=length(sce_sub))),
                       cts=cl_total)
     summary <- dat %>%
-      group_by(x) %>%
-      summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = TRUE),
-                mean=mean(ratio,na.rm = TRUE),
-                var=var(ratio,na.rm = TRUE)) %>%
+      group_by(.data$x) %>%
+      summarise(weighted.mean=weighted.mean(.data$ratio,.data$cts,na.rm = TRUE),
+                mean=mean(.data$ratio,na.rm = TRUE),
+                var=var(.data$ratio,na.rm = TRUE)) %>%
       as.data.frame()
     summary
   })

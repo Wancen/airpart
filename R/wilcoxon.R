@@ -40,7 +40,7 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", ...
       left_join(label, by = c("x" = "type"))
     dat2 <- dat2 %>%
       group_by(par) %>%
-      mutate(grpmean = mean(ratio, na.rm = TRUE))
+      mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
     # loss function
     loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
       nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))

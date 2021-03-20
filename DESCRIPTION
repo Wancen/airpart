@@ -38,7 +38,8 @@ Imports:
     ggplot2,
     ComplexHeatmap,
     forestplot,
-    RColorBrewer
+    RColorBrewer,
+    rlang
 Suggests: 
     knitr,
     rmarkdown,

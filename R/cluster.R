@@ -29,6 +29,7 @@
 #' @importFrom stats prcomp hclust cutree dist as.dist median mad
 #' @importFrom grDevices rainbow
 #' @importFrom graphics par
+#' @importFrom rlang .data
 #'
 #' @export
 geneCluster <- function(sce, G, method = "GMM", plot = TRUE, ...) {
@@ -70,7 +71,7 @@ geneCluster <- function(sce, G, method = "GMM", plot = TRUE, ...) {
     dat <- as.data.frame(ratio_pca)
     dat$GeneCluster <- factor(my.clusters)
     cols <- unname(rainbow(nclust + 1)[-1])
-    p <- ggplot(dat, aes(PC1, PC2, col = GeneCluster)) +
+    p <- ggplot(dat, aes(.data$PC1, .data$PC2, col = .data$GeneCluster)) +
       geom_point() +
       scale_color_manual(values = cols) +
       theme_minimal()

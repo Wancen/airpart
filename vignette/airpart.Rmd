@@ -275,7 +275,7 @@ sce_sub <- fusedLasso(sce,formula=f,model="binomial",
                       genecluster=1,ncores=4,niter=2) 
 sce_sub <- consensusPart(sce_sub)
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
-sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs) # alternative
+sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs) # faster alternative
 sce_sub <- allelicRatio(sce_sub)
 # TODO these are GREAT!
 makeForest(sce_sub)

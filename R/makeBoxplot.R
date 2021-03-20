@@ -13,7 +13,7 @@ makeBoxplot <- function(sce) {
                     cts=cl_total,
                     part=factor(rep(sce$part,each=length(sce))))
   dat <- dat[!is.nan(dat$ratio),]
-  p <- ggplot(dat, aes(x=x, y=ratio, fill=part)) +
+  p <- ggplot(dat, aes(x=.data$x, y=.data$ratio, fill=.data$part)) +
     geom_boxplot(alpha=0.5) +
     theme(legend.position="none") + scale_fill_brewer(palette="BuPu")+
     labs(x="cell type",y="allelic ratio")

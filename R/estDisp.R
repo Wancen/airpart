@@ -37,7 +37,7 @@ estDisp <- function(sce, ct, pc = 2, genecluster) {
   gene_mean <- rowMeans(counts(sce_sub))
   est <- data.frame(mean = gene_mean, theta = theta.hat)
   est <- est[est$mean > 2 & est$theta < 100,] # focus on genes with evidence of over-dispersion
-  p <- ggplot(est, aes(mean, theta)) +
+  p <- ggplot(est, aes(mean, .data$theta)) +
     geom_point() +
     geom_smooth() +
     coord_cartesian(ylim=c(0,100)) +
