@@ -25,8 +25,10 @@
 #' sce_sub <- allelicRatio(sce_sub)
 #'
 #' # Alternative with bootstrap
+#' \dontrun{
 #' sce_sub <- allelicRatio(sce_sub, method = "bootstrap", R = 200,
 #' parallel="multicore", ncpus = 4)
+#' }
 #'
 #' @importFrom VGAM vglm betabinomial Coef confintvglm
 #' @importFrom boot boot boot.ci

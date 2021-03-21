@@ -38,7 +38,9 @@ sce_sub <- wilcoxExt(sce,genecluster=1)
 sce_sub <- allelicRatio(sce_sub)
 
 # Alternative with bootstrap
+\dontrun{
 sce_sub <- allelicRatio(sce_sub, method = "bootstrap", R = 200,
 parallel="multicore", ncpus = 4)
+}
 
 }
