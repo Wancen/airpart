@@ -26,6 +26,9 @@
 #'   }
 #'
 #' @examples
+#'
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
 #' cellQCmetrics <- cellQC(sce, spike = "Ercc", mad_detected = 4, mad_spikegenes = 4)
 #' keep_cell <- (
 #'   cellQCmetrics$filter_sum | # sufficient features (genes)
@@ -91,11 +94,15 @@ cellQC <- function(sce, spike, threshold = 0,
 #'   }
 #'
 #' @examples
+#'
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
 #' featureQCmetric <- featureQC(sce)
 #' keep_feature <- (featureQCmetric$filter_celltype &
 #'   featureQCmetric$filter_sd &
 #'   featureQCmetric$filter_spike)
 #' sce <- sce[keep_feature, ]
+#'
 #' @importFrom pbapply pbsapply
 #' @importFrom scater nexprs
 #'

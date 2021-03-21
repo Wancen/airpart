@@ -7,8 +7,15 @@
 #' ratio and pseudocount-smoothed ratio, where the
 #' ratio provides the maternal allele count over total
 #'
+#' @examples
+#'
+#' library(SummarizedExperiment)
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
+#' assayNames(sce)
+#'
 #' @importFrom utils packageVersion
-#' 
+#'
 #' @export
 preprocess <- function(sce, pc=2) {
   assays(sce)[["counts"]] <- assays(sce)[["ase.mat"]] + assays(sce)[["ase.pat"]]

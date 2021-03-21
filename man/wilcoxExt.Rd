@@ -14,7 +14,8 @@ wilcoxExt(sce, genecluster, threshold, p.adjust.method = "none", ...)
 Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}}
 
 \item{threshold}{a vector with candidate thresholds for raw p-value
-cut-off. For details please see vignette}
+cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.1).
+For details please see vignette}
 
 \item{p.adjust.method}{method for adjusting p-values
 (see \code{\link[stats]{p.adjust}}). Can be abbreviated}
@@ -22,9 +23,26 @@ cut-off. For details please see vignette}
 \item{...}{additional arguments to pass to \code{\link[stats]{wilcox.test}}.}
 }
 \value{
-A vector grouping factor partition is returned
+A matrix grouping factor partition and used threshold value
+are returned in metadata \code{"partition"} and \code{"threshold"}.
+Partation also stored in colData\code{"part"}.
 }
 \description{
 Extends the Pairwise Mann Whitney Wilcoxon Test by combining
 hierarchical clustering for partition.
+}
+\examples{
+
+library(S4Vectors)
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
+sce <- geneCluster(sce, G=1:4)
+sce_sub <- wilcoxExt(sce,genecluster=1)
+metadata(sce_sub)$partition
+metadata(sce_sub)$threshold
+
+# manully set threshold
+thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
+sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs)
+
 }

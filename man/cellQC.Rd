@@ -49,6 +49,9 @@ A DataFrame of QC statistics includes
 Quality control on cells
 }
 \examples{
+
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
 cellQCmetrics <- cellQC(sce, spike = "Ercc", mad_detected = 4, mad_spikegenes = 4)
 keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)

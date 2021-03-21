@@ -11,10 +11,23 @@
 #' @param R The number of bootstrap replicates.
 #' @param ... Argument for the \code{\link[boot]{boot}} functions.
 #'
+#' @return A matrix allelic ratio estimator is returned in
+#' metadata \code{"estimator"}
+#'
 #' @examples
+#'
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
+#' sce <- geneCluster(sce, G=1:4)
+#' sce_sub <- wilcoxExt(sce,genecluster=1)
+#'
 #' # Use normal approximation to calculate Wald-type confidence intervals
-#' allelicRatio(sce)
-#' allelicRatio(sce, method = "bootstrap", R = 200, parallel="multicore", ncpus = 4)
+#' sce_sub <- allelicRatio(sce_sub)
+#'
+#' # Alternative with bootstrap
+#' sce_sub <- allelicRatio(sce_sub, method = "bootstrap", R = 200,
+#' parallel="multicore", ncpus = 4)
+#'
 #' @importFrom VGAM vglm betabinomial Coef confintvglm
 #' @importFrom boot boot boot.ci
 #' @importFrom stats setNames

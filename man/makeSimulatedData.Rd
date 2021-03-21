@@ -4,7 +4,16 @@
 \alias{makeSimulatedData}
 \title{Make simulated data for airpart}
 \usage{
-makeSimulatedData(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec)
+makeSimulatedData(
+  mu1 = 2,
+  mu2 = 10,
+  nct = 4,
+  n = 30,
+  ngenecl = 50,
+  theta = 20,
+  ncl = 3,
+  p.vec = rep(c(0.2, 0.8, 0.5, 0.5, 0.7, 0.9), each = 2)
+)
 }
 \arguments{
 \item{mu1}{low count (typical of "noisy" ratio estimates)}
@@ -36,4 +45,11 @@ cell types in the same order as cells in count matrix
 }
 \description{
 Make simulated data for airpart
+}
+\examples{
+
+library(SummarizedExperiment)
+sce <- makeSimulatedData()
+assayNames(sce)
+
 }

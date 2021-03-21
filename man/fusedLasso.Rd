@@ -57,7 +57,9 @@ deviance}
 \item{...}{additional arguments passed to \code{\link[smurf]{glmsmurf}}}
 }
 \value{
-An object of class 'glmsmurf' is returned.
+A matrix grouping factor partition and used lambda value
+are returned in metadata \code{"partition"} and \code{"lambda"}.
+Partation also stored in colData\code{"part"}.
 }
 \description{
 Fits generalized fused lasso with either binomial(link="logit")
@@ -67,13 +69,26 @@ or gaussian likelihood, leveraging functions from the
 \details{
 See the package vignette for more details and a complete description of a use case.
 }
+\examples{
+
+library(S4Vectors)
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
+sce <- geneCluster(sce, G=1:4)
+f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
+sce_sub <- fusedLasso(sce,formula=f,model="binomial",
+                      genecluster=1,ncores=4)
+metadata(sce_sub)$partition
+metadata(sce_sub)$lambda
+
+}
 \references{
 This function leverages the glmsmurf function from the smurf package.
 For more details see the following manuscript:
 
-Sander Devriendt, Katrien Antonio, Tom Reynkens, Roel Verbelen
-"Sparse Regression with Multi-type Regularized Feature Modeling"
-2018. arXiv:1810.03136 [stat.CO].
+Devriendt S, Antonio K, Reynkens T, et al.
+Sparse regression with multi-type regularized feature modeling[J].
+Insurance: Mathematics and Economics, 2021, 96: 248-261.
 }
 \seealso{
 \code{\link[smurf]{glmsmurf}}, \code{\link[smurf]{glmsmurf.control}},

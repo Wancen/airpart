@@ -133,7 +133,7 @@ PCs. And `plot=FALSE` can be used to avoid showing the plot.
 
 
 ```{r}
-sce <- geneCluster(sce, G=1:8)
+sce <- geneCluster(sce, G=1:4)
 metadata(sce)$geneCluster
 ```
 
@@ -204,6 +204,7 @@ final partition.
 ```{r, results='asis', collapse=TRUE}
 sce_sub <- consensusPart(sce_sub)
 knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
+metadata(sce_sub)$lambda
 ```
 
 ## Modeling using pairwise Mann Whitney Wilcoxon extension
@@ -212,6 +213,7 @@ knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
 sce_sub <- wilcoxExt(sce, genecluster=1, threshold=thrs)
 knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
+metadata(sce_sub)$threshold
 ```
 
 ## Calculating allelic Ratio estimator by beta-binomial 
@@ -227,6 +229,7 @@ knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 
 ```{r, warning=FALSE, results="asis"}
 sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=20, ncpus=4, parallel="multicore")
+knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 
 # Displaying results on heatmap
@@ -266,7 +269,7 @@ keep_feature <- (featureQCmetric$filter_celltype &
 sce <- sce[keep_feature,]
 
 makeRatioHeatmap(sce)
-sce <- geneCluster(sce, G=1:8)
+sce <- geneCluster(sce, G=1:4)
 sce <- summaryAllelicRatio(sce) # identify interesting gene cluster
 estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
 

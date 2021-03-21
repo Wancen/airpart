@@ -39,10 +39,18 @@ Draw a forest plot to visualized cell type specific allelic ratio estimator and 
 \code{forestplot} function.
 }
 \examples{
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
+sce <- geneCluster(sce, G=1:4)
+sce_sub <- wilcoxExt(sce,genecluster=1)
+sce_sub <- allelicRatio(sce_sub)
+
 xticks <- seq(from = 0, to = 1, by = 0.05)
 xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
 attr(xticks, "labels") <- xtlab
-makeForest(ar, xticks, col = fpColors(box = "royalblue"))
+
+makeForest(sce_sub, xticks, col = fpColors(box = "royalblue"))
+
 }
 \seealso{
 \code{\link[forestplot]{forestplot}}, \code{\link[forestplot]{fpColors}},

@@ -6,6 +6,13 @@
 #' @param genecluster which gene cluster dispersion parameter want to be estimated.
 #' Default is the cluster with the most cells
 #'
+#' @examples
+#'
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
+#' sce <- geneCluster(sce, G=1:4)
+#' estDisp(sce)
+#'
 #' @importFrom apeglm apeglm bbEstDisp
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth theme_minimal labs coord_cartesian
 #'

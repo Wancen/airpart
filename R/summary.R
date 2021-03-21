@@ -11,12 +11,18 @@
 #'   \item{weighted.mean} {weighted mean of allelic ratio for the cell types}
 #'   \item{mean} {mean allelic ratio for the cell types}
 #'   \item{var} {variance of allelic ratio for the cell types}
-#' }
+#' } is returned in metadata \code{summary}
 #'
-#' @examples summaryAllelicRatio(se,genecluster = c(1,3))
+#' @examples
 #'
-#' @import magrittr
-#' @importFrom dplyr summarise group_by
+#' library(S4Vectors)
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
+#' sce <- geneCluster(sce, G=1:4)
+#' sce <- summaryAllelicRatio(sce,genecluster = c(1,3))
+#' metadata(sce)$summary
+#'
+#' @importFrom dplyr summarise group_by %>%
 #' @importFrom stats var weighted.mean
 #'
 #' @export
@@ -39,7 +45,7 @@ summaryAllelicRatio <- function(sce, genecluster) {
       as.data.frame()
     summary
   })
-  names(res) <- paste("gene cluster",genecluster,"with",metadata(sce)$geneCluster,"genes")
+  names(res) <- paste("gene cluster",genecluster,"with",metadata(sce)$geneCluster[genecluster],"genes")
   metadata(sce)$summary <- res
   return(sce)
 }

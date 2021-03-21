@@ -2,6 +2,15 @@
 #'
 #' @param sce SingleCellExperiment
 #'
+#' @examples
+#'
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
+#' sce <- geneCluster(sce, G=1:4)
+#' sce_sub <- wilcoxExt(sce,genecluster=1)
+#' sce_sub <- allelicRatio(sce_sub)
+#' makeBoxplot(sce_sub)
+#'
 #' @importFrom ggplot2 ggplot aes geom_boxplot scale_fill_brewer theme labs
 #'
 #' @export

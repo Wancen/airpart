@@ -4,11 +4,12 @@
 \alias{geneCluster}
 \title{Gene clustering based on allelic ratio matrix with pseudo-count}
 \usage{
-geneCluster(sce, G, method = "GMM", plot = TRUE, ...)
+geneCluster(sce, G, method = c("GMM", "hierarchical"), plot = TRUE, ...)
 }
 \arguments{
 \item{sce}{SingleCellExperiment containing assays \code{"ratio_pseudo"} and
-colData factor \code{"x"}}
+colData factor \code{"x"}
+TO DO: do we mention "GMM" maybe more accurate?}
 
 \item{G}{An integer vector specifying the numbers of clusters for which the BIC is to be calculated.
 The default is G=c(8, 12, 16, 20, 24).}
@@ -22,9 +23,17 @@ as described in \code{\link[mclust]{Mclust}}}
 }
 \value{
 gene cluster IDs are stored in the rowData column \code{cluster}
+and a table of gene cluster is returned in metadata \code{geneCluster}
 }
 \description{
 Gene clustering based on allelic ratio matrix with pseudo-count
+}
+\examples{
+
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
+sce <- geneCluster(sce, G=1:4)
+
 }
 \references{
 This function leverages Mclust from the mclust package, or hclust.

@@ -4,6 +4,17 @@
 #' @param show_row_names show row names or not
 #' @param ... Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.
 #'
+#' @examples
+#'
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
+#' makeRatioHeatmap(sce) # display whole data allelic ratio pattern
+#'
+#' sce <- geneCluster(sce, G=1:4)
+#' sce_sub <- wilcoxExt(sce,genecluster=1)
+#' sce_sub <- allelicRatio(sce_sub)
+#' makeRatioHeatmap(sce_sub) # display specific gene cluster partition result
+#'
 #' @importFrom ComplexHeatmap Heatmap HeatmapAnnotation anno_block
 #' @importFrom RColorBrewer brewer.pal
 #'

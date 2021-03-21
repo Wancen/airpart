@@ -18,12 +18,18 @@ a list of gene cluster's summary table contains
   \item{weighted.mean} {weighted mean of allelic ratio for the cell types}
   \item{mean} {mean allelic ratio for the cell types}
   \item{var} {variance of allelic ratio for the cell types}
-}
+} is returned in metadata \code{summary}
 }
 \description{
 produce allelic ratio summary for each gene cluster
 }
 \examples{
-summaryAllelicRatio(se,genecluster = c(1,3))
+
+library(S4Vectors)
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
+sce <- geneCluster(sce, G=1:4)
+sce <- summaryAllelicRatio(sce,genecluster = c(1,3))
+metadata(sce)$summary
 
 }

@@ -20,12 +20,20 @@
 #' Also \code{x} in the colData is a vector of annotated
 #' cell types in the same order as cells in count matrix
 #'
+#' @examples
+#'
+#' library(SummarizedExperiment)
+#' sce <- makeSimulatedData()
+#' assayNames(sce)
+#'
 #' @importFrom emdbook rbetabinom
 #' @importFrom SingleCellExperiment SingleCellExperiment
 #' @importFrom stats rnbinom
 #'
 #' @export
-makeSimulatedData <- function(mu1, mu2, nct, n, ngenecl, theta, ncl, p.vec){
+makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
+                              ngenecl = 50, theta = 20, ncl = 3,
+                              p.vec = rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each = 2)){
 
   if ((length(p.vec) / ncl) != nct) {
     stop("allelic ratio number is not matched with the product of number of cell types and number of gene cluster")

@@ -32,9 +32,13 @@ A DataFrame of QC statistics includes
 Quality control on features
 }
 \examples{
+
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
 featureQCmetric <- featureQC(sce)
 keep_feature <- (featureQCmetric$filter_celltype &
   featureQCmetric$filter_sd &
   featureQCmetric$filter_spike)
 sce <- sce[keep_feature, ]
+
 }

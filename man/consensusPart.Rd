@@ -9,6 +9,21 @@ consensusPart(sce)
 \arguments{
 \item{sce}{SingleCellExperiment}
 }
+\value{
+A matrix grouping factor partition is replaced in metadata.
+Consensus Partation also stored in colData\code{"part"}.
+}
 \description{
 Derive consensus partitions of an ensemble fused lasso partitions.
+}
+\examples{
+
+sce <- makeSimulatedData()
+sce <- preprocess(sce)
+sce <- geneCluster(sce, G=1:4)
+f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
+sce_sub <- fusedLasso(sce,formula=f,model="binomial",
+                      genecluster=1,ncores=4, niter=2)
+sce_sub <- consensusPart(sce_sub)
+
 }

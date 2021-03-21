@@ -8,12 +8,29 @@
 #' @param genecluster which gene cluster result want to be returned.
 #' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
 #' @param threshold a vector with candidate thresholds for raw p-value
-#' cut-off. For details please see vignette
+#' cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.1).
+#' For details please see vignette
 #' @param p.adjust.method method for adjusting p-values
 #' (see \code{\link[stats]{p.adjust}}). Can be abbreviated
 #' @param ... additional arguments to pass to \code{\link[stats]{wilcox.test}}.
 #'
-#' @return A vector grouping factor partition is returned
+#' @return A matrix grouping factor partition and used threshold value
+#' are returned in metadata \code{"partition"} and \code{"threshold"}.
+#' Partation also stored in colData\code{"part"}.
+#'
+#' @examples
+#'
+#' library(S4Vectors)
+#' sce <- makeSimulatedData()
+#' sce <- preprocess(sce)
+#' sce <- geneCluster(sce, G=1:4)
+#' sce_sub <- wilcoxExt(sce,genecluster=1)
+#' metadata(sce_sub)$partition
+#' metadata(sce_sub)$threshold
+#'
+#' # manully set threshold
+#' thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
+#' sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs)
 #'
 #' @importFrom dplyr left_join
 #' @importFrom plyr mutate
@@ -21,6 +38,9 @@
 #'
 #' @export
 wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", ...) {
+  if (missing(threshold)) {
+    threshold <- 10^seq(from=-2,to=-0.4,by=0.1)
+  }
   # construct data frame
   sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
   cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
@@ -35,12 +55,12 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", ...
   out <- list()
   obj <- sapply(1:length(threshold), function(j) {
     fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method, threshold = threshold[j],...)
-    label <- data.frame(type = factor(seq_along(1:nct)), par = fit)
+    label <- data.frame(type = factor(levels(sce$x)), par = factor(fit))
     dat2 <- dat %>%
       left_join(label, by = c("x" = "type"))
     dat2 <- dat2 %>%
-      group_by(par) %>%
-      mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
+      group_by(.data$par) %>%
+      dplyr::mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
     # loss function
     loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
       nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
@@ -58,9 +78,11 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", ...
   rownames(coldata)<-coldata$rowname
   colData(sce_sub)<-coldata
   metadata(sce_sub)$partition <- partition
+  metadata(sce_sub)$threshold <- threshold[which.min(loss1)]
   return(sce_sub)
 }
 
+# not export
 wilcoxInt <- function(data, threshold = 0.05, p.adjust.method = "none", ...) {
   nct <- length(levels(data$x))
   res <- pairwise.wilcox.test(data$ratio, data$x, p.adjust.method = p.adjust.method, ...)
