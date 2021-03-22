@@ -8,13 +8,14 @@ geneCluster(sce, G, method = c("GMM", "hierarchical"), plot = TRUE, ...)
 }
 \arguments{
 \item{sce}{SingleCellExperiment containing assays \code{"ratio_pseudo"} and
-colData factor \code{"x"}
-TO DO: do we mention "GMM" maybe more accurate?}
+colData factor \code{"x"}}
 
 \item{G}{An integer vector specifying the numbers of clusters for which the BIC is to be calculated.
 The default is G=c(8, 12, 16, 20, 24).}
 
-\item{method}{either \code{"GMM"} or \code{"hierarchical"}}
+\item{method}{the method to do gene clustering. The default is the Gaussian Mixture Modeling which
+is likely to be more accurate. \code{"hierarchical"} represents
+automatic hierarchical clustering which is faster to compute.}
 
 \item{plot}{logical, whether to make a PCA plot}
 

@@ -6,8 +6,9 @@
 #'
 #' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
 #' \code{"counts"}) and colData \code{"x"}
-#' @param formula A \code{\link[stats]{formula}} object which will typically be:
-#' \code{ratio ~ p(x, pen="gflasso")}.
+#' @param formula A \code{\link[stats]{formula}} object which will typically be fused lasso penalty:
+#' \code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
+#' the Graph-Guided Fused Lasso penalty: \code{f <- ratio ~ p(x, pen = "ggflasso")}
 #' See \code{\link[smurf]{glmsmurf}} for more details
 #' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso
 #' @param genecluster which gene cluster result want to be returned.
@@ -31,7 +32,15 @@
 #' are returned in metadata \code{"partition"} and \code{"lambda"}.
 #' Partation also stored in colData\code{"part"}.
 #'
-#' @details See the package vignette for more details and a complete description of a use case.
+#' @details Usually, we used a Generalized Fused Lasso penalty for the
+#' cell states in order to regularize all possible coefficient differences.
+#' Another possibility would be to use the Graph-Guided Fused Lasso penalty
+#' to only regularize the differences of coefficients of neighboring cell states.
+#' When using a Graph-Guided Fused Lasso penalty, the adjacency matrix
+#' corresponding to the graph needs to be provided. The elements of this
+#' matrix are zero when two levels are not connected, and one when they are adjacent.
+#'
+#' See the package vignette for more details and a complete description of a use case.
 #'
 #' @references
 #'
