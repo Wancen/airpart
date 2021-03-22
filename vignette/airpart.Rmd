@@ -40,23 +40,23 @@ within the *airpart* package.
 Set up simulated example dataset has 3 gene clusters with differential
 allelic imbalance (DAI): 
 
-* first cluster has pairs of cell types with same allelic ratio spanning from 1/10 to 9/10 (larger DAI)
+* first cluster has pairs of cell types with same allelic ratio with 0.2 and 0.8 (larger DAI)
 * second cluster has balanced allelic ratio
-* third cluster has pairs of cell types with same allelic ratio spanning from 7/10 to 9/10 (smaller DAI)
+* third cluster has pairs of cell types with same allelic ratio with 0.7 and 0.9 (smaller DAI)
 
 Below we specify:
 
 * the "noisy" cell count is 2
 * the normal cell count is 10
 * 4 cell types
-* 10 cells within each cell types
+* 20 cells within each cell types
 * 25 genes within each gene cluster
 * overdispersion parameter in `rbetabinom` is 20
 
 ```{r}
 suppressPackageStartupMessages(library(SingleCellExperiment))
 p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
-sce <- makeSimulatedData( mu1 = 2, mu2 = 10, nct = 4,n = 20,
+sce <- makeSimulatedData(mu1 = 2, mu2 = 10, nct = 4,n = 20,
                          ngenecl = 25, theta = 20, ncl = 3,
                          p.vec = p.vec)
 ```

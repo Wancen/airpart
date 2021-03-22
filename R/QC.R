@@ -26,7 +26,6 @@
 #'   }
 #'
 #' @examples
-#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' cellQCmetrics <- cellQC(sce)

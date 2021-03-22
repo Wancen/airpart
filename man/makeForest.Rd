@@ -39,7 +39,6 @@ Draw a forest plot to visualized cell type specific allelic ratio estimator and 
 It is based on the \pkg{rmeta}-package`s \code{forestplot} function.
 }
 \examples{
-
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G=1:4)

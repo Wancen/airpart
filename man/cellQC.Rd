@@ -49,7 +49,6 @@ A DataFrame of QC statistics includes
 Quality control on cells
 }
 \examples{
-
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 cellQCmetrics <- cellQC(sce)

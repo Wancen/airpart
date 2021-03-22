@@ -28,7 +28,6 @@ metadata \code{"estimator"}
 Fit betabinomial on each cell type groups
 }
 \examples{
-
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G=1:4)

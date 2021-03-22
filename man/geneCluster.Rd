@@ -29,7 +29,6 @@ and a table of gene cluster is returned in metadata \code{geneCluster}
 Gene clustering based on allelic ratio matrix with pseudo-count
 }
 \examples{
-
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G=1:4)

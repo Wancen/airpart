@@ -20,7 +20,6 @@ ratio provides the maternal allele count over total
 Preprocess the SingleCellExperiment
 }
 \examples{
-
 library(SummarizedExperiment)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)

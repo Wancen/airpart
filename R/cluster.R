@@ -26,7 +26,6 @@
 #' and a table of gene cluster is returned in metadata \code{geneCluster}
 #'
 #' @examples
-#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G=1:4)
@@ -40,7 +39,8 @@
 #' @importFrom rlang .data
 #'
 #' @export
-geneCluster <- function(sce, G, method = c( "GMM", "hierarchical") , plot = TRUE, ...) {
+geneCluster <- function(sce, G, method = c( "GMM", "hierarchical") ,
+                        plot = TRUE, ...) {
   method <- match.arg(method, c( "GMM", "hierarchical"))[1]
   if (missing(method)) {
     G = c(8, 12, 16, 20, 24)

@@ -17,14 +17,14 @@ makeRatioHeatmap(sce, show_row_names = FALSE, ...)
 Plot allelic ratio as heatmap
 }
 \examples{
-
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
-makeRatioHeatmap(sce) # display whole data allelic ratio pattern
+# display allelic ratio pattern in whole dataset
+makeRatioHeatmap(sce)
 
 sce <- geneCluster(sce, G=1:4)
 sce_sub <- wilcoxExt(sce,genecluster=1)
-sce_sub <- allelicRatio(sce_sub)
-makeRatioHeatmap(sce_sub) # display specific gene cluster partition result
+# display specific gene cluster partition result
+makeRatioHeatmap(sce_sub)
 
 }

@@ -21,7 +21,6 @@
 #' \code{\link[forestplot]{fpShapesGp}}, \code{\link[forestplot]{fpLegend}}
 #'
 #' @examples
-#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G=1:4)

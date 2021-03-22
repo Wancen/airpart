@@ -20,7 +20,6 @@ Default is the cluster with the most cells}
 Estimate overdispersion parameter of a betabinomial
 }
 \examples{
-
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G=1:4)

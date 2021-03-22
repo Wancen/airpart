@@ -15,7 +15,6 @@
 #' metadata \code{"estimator"}
 #'
 #' @examples
-#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G=1:4)

@@ -8,7 +8,6 @@
 #' ratio provides the maternal allele count over total
 #'
 #' @examples
-#'
 #' library(SummarizedExperiment)
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)

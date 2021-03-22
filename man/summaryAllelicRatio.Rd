@@ -24,7 +24,6 @@ a list of gene cluster's summary table contains
 produce allelic ratio summary for each gene cluster
 }
 \examples{
-
 library(S4Vectors)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)

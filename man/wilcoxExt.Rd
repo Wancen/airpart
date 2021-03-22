@@ -4,7 +4,14 @@
 \alias{wilcoxExt}
 \title{Extension on Pairwise Mann Whitney Wilcoxon Test for partitioning}
 \usage{
-wilcoxExt(sce, genecluster, threshold, p.adjust.method = "none", ...)
+wilcoxExt(
+  sce,
+  genecluster,
+  threshold,
+  p.adjust.method = "none",
+  adj.matrix,
+  ...
+)
 }
 \arguments{
 \item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
@@ -20,10 +27,13 @@ For details please see vignette}
 \item{p.adjust.method}{method for adjusting p-values
 (see \code{\link[stats]{p.adjust}}). Can be abbreviated}
 
+\item{adj.matrix}{an adjacency matrix with 1 indicates cell states allowed to be grouped together,
+0 otherwise.}
+
 \item{...}{additional arguments to pass to \code{\link[stats]{wilcox.test}}.}
 }
 \value{
-A matrix grouping factor partition and used threshold value
+A matrix grouping factor partition and the significant cut-off threshold
 are returned in metadata \code{"partition"} and \code{"threshold"}.
 Partation also stored in colData\code{"part"}.
 }
@@ -32,7 +42,6 @@ Extends the Pairwise Mann Whitney Wilcoxon Test by combining
 hierarchical clustering for partition.
 }
 \examples{
-
 library(S4Vectors)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
@@ -41,8 +50,15 @@ sce_sub <- wilcoxExt(sce,genecluster=1)
 metadata(sce_sub)$partition
 metadata(sce_sub)$threshold
 
-# manully set threshold
+# Suppose we have 4 cell states, if we don't want cell state 1
+# to be grouped together with other cell states
+adj.matrix <- 1-diag(4)
+colnames(adj.matrix) <- rownames(adj.matrix) <- levels(sce$x)
+adj.matrix [1, c(2,3,4)]<-0
+adj.matrix [c(2,3,4), 1]<-0
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
-sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs)
+sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs,
+                     adj.matrix = adj.matrix)
+metadata(sce_sub)$partition
 
 }

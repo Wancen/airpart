@@ -47,7 +47,6 @@ cell types in the same order as cells in count matrix
 Make simulated data for airpart
 }
 \examples{
-
 library(SummarizedExperiment)
 sce <- makeSimulatedData()
 assayNames(sce)

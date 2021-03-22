@@ -21,7 +21,6 @@
 #' cell types in the same order as cells in count matrix
 #'
 #' @examples
-#'
 #' library(SummarizedExperiment)
 #' sce <- makeSimulatedData()
 #' assayNames(sce)

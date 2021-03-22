@@ -27,7 +27,7 @@
 #' deviance
 #' @param ... additional arguments passed to \code{\link[smurf]{glmsmurf}}
 #'
-#' @return A matrix grouping factor partition and used lambda value
+#' @return A matrix grouping factor partition and the penalized parameter lambda
 #' are returned in metadata \code{"partition"} and \code{"lambda"}.
 #' Partation also stored in colData\code{"part"}.
 #'
@@ -46,7 +46,6 @@
 #' \code{\link[smurf]{p}}, \code{\link[stats]{glm}}
 #'
 #' @examples
-#'
 #' library(S4Vectors)
 #' library(smurf)
 #' sce <- makeSimulatedData()
@@ -54,9 +53,21 @@
 #' sce <- geneCluster(sce, G=1:4)
 #' f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 #' sce_sub <- fusedLasso(sce,formula=f,model="binomial",genecluster=1,
-#'            ncores=2, se.rule.nct = 3)
+#'                       ncores=2, se.rule.nct = 3)
 #' metadata(sce_sub)$partition
 #' metadata(sce_sub)$lambda
+#'
+#' # Suppose we have 4 cell states, if we don't want cell state 1
+#' # to be grouped together with other cell states
+#' adj.matrix <- 1-diag(4)
+#' colnames(adj.matrix) <- rownames(adj.matrix) <- levels(sce$x)
+#' adj.matrix [1, c(2,3,4)]<-0
+#' adj.matrix [c(2,3,4), 1]<-0
+#' f <- ratio ~ p(x, pen = "ggflasso") # use graph-guided fused lasso
+#' sce_sub <- fusedLasso(sce,formula=f,model="binomial",genecluster=1,
+#'                       lambda=0.5,ncores=2, se.rule.nct = 3,
+#'                       adj.matrix = adj.matrix)
+#' metadata(sce_sub)$partition
 #'
 #' @import smurf
 #' @importFrom matrixStats rowSds

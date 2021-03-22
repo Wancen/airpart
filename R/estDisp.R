@@ -7,7 +7,6 @@
 #' Default is the cluster with the most cells
 #'
 #' @examples
-#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G=1:4)

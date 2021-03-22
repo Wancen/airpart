@@ -14,7 +14,6 @@
 #' } is returned in metadata \code{summary}
 #'
 #' @examples
-#'
 #' library(S4Vectors)
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
