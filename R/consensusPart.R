@@ -9,16 +9,18 @@
 #'
 #' @examples
 #'
+#' library(smurf)
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G=1:4)
 #' f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-#' sce_sub <- fusedLasso(sce,formula=f,model="binomial",
-#'                       genecluster=1,ncores=4, niter=2)
+#' sce_sub <- fusedLasso(sce,formula=f,model="binomial", genecluster=1, niter=2,
+#'                       ncores=2, se.rule.nct = 3)
 #' sce_sub <- consensusPart(sce_sub)
 #'
 #' @importFrom clue cl_consensus cl_ensemble as.cl_hard_partition
 #' @importFrom dplyr select
+#' @import lpSolve
 #'
 #' @export
 consensusPart <- function(sce) {

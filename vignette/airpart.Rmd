@@ -275,7 +275,7 @@ estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
 
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce,formula=f,model="binomial",
-                      genecluster=1,ncores=4,niter=2) 
+                      genecluster=1,ncores=2,niter=2) 
 sce_sub <- consensusPart(sce_sub)
 thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
 sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs) # faster alternative

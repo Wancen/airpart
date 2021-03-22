@@ -72,12 +72,13 @@ See the package vignette for more details and a complete description of a use ca
 \examples{
 
 library(S4Vectors)
+library(smurf)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G=1:4)
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-sce_sub <- fusedLasso(sce,formula=f,model="binomial",
-                      genecluster=1,ncores=4)
+sce_sub <- fusedLasso(sce,formula=f,model="binomial",genecluster=1,
+           ncores=2, se.rule.nct = 3)
 metadata(sce_sub)$partition
 metadata(sce_sub)$lambda
 

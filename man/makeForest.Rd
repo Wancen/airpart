@@ -35,21 +35,26 @@ or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}
 \item{...}{Passsed on the other argument in \code{\link[forestplot]{forestplot}}.}
 }
 \description{
-Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval. It is based on the \pkg{rmeta}-package`s
-\code{forestplot} function.
+Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval.
+It is based on the \pkg{rmeta}-package`s \code{forestplot} function.
 }
 \examples{
+
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G=1:4)
 sce_sub <- wilcoxExt(sce,genecluster=1)
 sce_sub <- allelicRatio(sce_sub)
+makeForest(sce_sub)
 
+\dontrun{
+library(forestplot)
 xticks <- seq(from = 0, to = 1, by = 0.05)
 xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
 attr(xticks, "labels") <- xtlab
 
 makeForest(sce_sub, xticks, col = fpColors(box = "royalblue"))
+}
 
 }
 \seealso{

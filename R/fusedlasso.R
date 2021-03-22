@@ -48,12 +48,13 @@
 #' @examples
 #'
 #' library(S4Vectors)
+#' library(smurf)
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G=1:4)
 #' f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-#' sce_sub <- fusedLasso(sce,formula=f,model="binomial",
-#'                       genecluster=1,ncores=4)
+#' sce_sub <- fusedLasso(sce,formula=f,model="binomial",genecluster=1,
+#'            ncores=2, se.rule.nct = 3)
 #' metadata(sce_sub)$partition
 #' metadata(sce_sub)$lambda
 #'
@@ -131,11 +132,11 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
         }
         return(c(co,lambda))
       })
-      TRUE
-    },
-    error = function(e) {
-      message(msg)
-    }
+    TRUE
+  },
+  error = function(e) {
+    message(msg)
+  }
   )
   if (niter == 1) {
     coef <- res[1:nct,]

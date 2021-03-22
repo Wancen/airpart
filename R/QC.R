@@ -45,8 +45,7 @@
 #' mad_detected = 4, mad_spikegenes = 4)
 #' keep_cell <- (
 #'   cellQCmetrics$sum > 4000 |
-#'   cellQCmetrics$detected > 3000 |
-#'   cellQCmetrics$spikePercent < 0.15
+#'   cellQCmetrics$detected > 3000
 #' )
 #' }
 #'
@@ -112,8 +111,7 @@ cellQC <- function(sce, spike, threshold = 0,
 #' featureQCmetric <- featureQC(sce, spike = "Ercc",
 #' threshold = 0.25, lowsd = 0.03, pc = 2)
 #' keep_feature <- (featureQCmetric$filter_celltype &
-#'   featureQCmetric$filter_sd &
-#'   featureQCmetric$filter_spike)
+#'   featureQCmetric$filter_sd )
 #' }
 #'
 #' @importFrom pbapply pbsapply

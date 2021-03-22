@@ -6,7 +6,7 @@ Authors@R:
            family = "Mu",
            role = c("aut", "cre"),
            email = "wancen@ad.unc.edu",
-           comment = c(ORCID = "YOUR-ORCID-ID")),
+           comment = c(ORCID = "0000-0002-5061-7581")),
     person(given = "Michael",
            family = "Love",
            role = c("aut", "ctb"),
@@ -39,7 +39,8 @@ Imports:
     ComplexHeatmap,
     forestplot,
     RColorBrewer,
-    rlang
+    rlang,
+    lpSolve
 Suggests: 
     knitr,
     rmarkdown,
