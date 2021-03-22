@@ -29,8 +29,7 @@
 #' @examples
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
-#' sce <- geneCluster(sce, G=1:4)
-#'
+#' sce <- geneCluster(sce, G = 1:4)
 #' @importFrom mclust Mclust hc hcEII mclustBIC
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_manual theme_minimal labs
 #' @importFrom dynamicTreeCut cutreeDynamic
@@ -40,11 +39,11 @@
 #' @importFrom rlang .data
 #'
 #' @export
-geneCluster <- function(sce, G, method = c( "GMM", "hierarchical") ,
+geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
                         plot = TRUE, ...) {
-  method <- match.arg(method, c( "GMM", "hierarchical"))[1]
+  method <- match.arg(method, c("GMM", "hierarchical"))[1]
   if (missing(method)) {
-    G = c(8, 12, 16, 20, 24)
+    G <- c(8, 12, 16, 20, 24)
   }
   if (!"x" %in% names(colData(sce))) {
     stop('require a vector of annotated cell types "x" in colData')

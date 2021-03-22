@@ -10,11 +10,10 @@
 #' # display allelic ratio pattern in whole dataset
 #' makeRatioHeatmap(sce)
 #'
-#' sce <- geneCluster(sce, G=1:4)
-#' sce_sub <- wilcoxExt(sce,genecluster=1)
+#' sce <- geneCluster(sce, G = 1:4)
+#' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' # display specific gene cluster partition result
 #' makeRatioHeatmap(sce_sub)
-#'
 #' @importFrom ComplexHeatmap Heatmap HeatmapAnnotation anno_block
 #' @importFrom RColorBrewer brewer.pal
 #'
@@ -22,11 +21,16 @@
 makeRatioHeatmap <- function(sce, show_row_names = FALSE, ...) {
   m <- assays(sce)[["ratio_pseudo"]]
   if (is.null(sce$part)) {
-    ha <- HeatmapAnnotation(`cell type` = sce$x, border = FALSE,
-                            col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
-                                                               names = levels(sce$x))))
-    Heatmap(m, name = "Allelic Ratio", cluster_columns = FALSE, cluster_rows = FALSE,
-            show_column_names = FALSE, show_row_names = show_row_names, top_annotation = ha)
+    ha <- HeatmapAnnotation(
+      `cell type` = sce$x, border = FALSE,
+      col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+        names = levels(sce$x)
+      ))
+    )
+    Heatmap(m,
+      name = "Allelic Ratio", cluster_columns = FALSE, cluster_rows = FALSE,
+      show_column_names = FALSE, show_row_names = show_row_names, top_annotation = ha
+    )
   } else {
     split <- sce$part
     ha <- HeatmapAnnotation(
@@ -38,8 +42,10 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE, ...) {
       `cell type` = sce$x, border = FALSE,
       col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"), names = levels(sce$x)))
     )
-    Heatmap(m, name = "Allelic Ratio", column_split = split,
-            cluster_columns = FALSE, cluster_rows = FALSE, show_column_names = FALSE,
-            show_row_names = show_row_names, top_annotation = ha, ...)
+    Heatmap(m,
+      name = "Allelic Ratio", column_split = split,
+      cluster_columns = FALSE, cluster_rows = FALSE, show_column_names = FALSE,
+      show_row_names = show_row_names, top_annotation = ha, ...
+    )
   }
 }

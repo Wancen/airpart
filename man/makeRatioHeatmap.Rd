@@ -22,9 +22,8 @@ sce <- preprocess(sce)
 # display allelic ratio pattern in whole dataset
 makeRatioHeatmap(sce)
 
-sce <- geneCluster(sce, G=1:4)
-sce_sub <- wilcoxExt(sce,genecluster=1)
+sce <- geneCluster(sce, G = 1:4)
+sce_sub <- wilcoxExt(sce, genecluster = 1)
 # display specific gene cluster partition result
 makeRatioHeatmap(sce_sub)
-
 }

@@ -24,22 +24,23 @@
 #' library(S4Vectors)
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
-#' sce <- geneCluster(sce, G=1:4)
-#' sce_sub <- wilcoxExt(sce,genecluster=1)
+#' sce <- geneCluster(sce, G = 1:4)
+#' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' metadata(sce_sub)$partition
 #' metadata(sce_sub)$threshold
 #'
 #' # Suppose we have 4 cell states, if we don't want cell state 1
 #' # to be grouped together with other cell states
-#' adj.matrix <- 1-diag(4)
+#' adj.matrix <- 1 - diag(4)
 #' colnames(adj.matrix) <- rownames(adj.matrix) <- levels(sce$x)
-#' adj.matrix [1, c(2,3,4)]<-0
-#' adj.matrix [c(2,3,4), 1]<-0
-#' thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
-#' sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs,
-#'                      adj.matrix = adj.matrix)
+#' adj.matrix [1, c(2, 3, 4)] <- 0
+#' adj.matrix [c(2, 3, 4), 1] <- 0
+#' thrs <- 10^seq(from = -2, to = -0.4, by = 0.1)
+#' sce_sub <- wilcoxExt(sce,
+#'   genecluster = 1, threshold = thrs,
+#'   adj.matrix = adj.matrix
+#' )
 #' metadata(sce_sub)$partition
-#'
 #' @importFrom dplyr left_join
 #' @importFrom plyr mutate
 #' @importFrom stats pairwise.wilcox.test
@@ -47,7 +48,7 @@
 #' @export
 wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj.matrix, ...) {
   if (missing(threshold)) {
-    threshold <- 10^seq(from=-2,to=-0.4,by=0.1)
+    threshold <- 10^seq(from = -2, to = -0.4, by = 0.1)
   }
   # construct data frame
   sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
@@ -60,11 +61,11 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
   )
   nct <- nlevels(sce$x)
   if (missing(adj.matrix)) {
-    adj.matrix <- matrix(1,nct,nct)
+    adj.matrix <- matrix(1, nct, nct)
   }
   out <- list()
   obj <- sapply(1:length(threshold), function(j) {
-    fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method, threshold = threshold[j],adj.matrix = adj.matrix, ...)
+    fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method, threshold = threshold[j], adj.matrix = adj.matrix, ...)
     label <- data.frame(type = factor(levels(sce$x)), par = factor(fit))
     dat2 <- dat %>%
       left_join(label, by = c("x" = "type"))
@@ -73,7 +74,7 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
       dplyr::mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
     # loss function
     loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
-                               nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
+      nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
     out[["cl"]] <- fit
     out[["loss1"]] <- loss1
     return(out)
@@ -82,11 +83,11 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
   cl <- do.call(rbind, obj[seq(1, length(obj), by = 2)])
   loss1 <- do.call(rbind, obj[seq(2, length(obj), by = 2)])
   partition <- data.frame(part = factor(cl[which.min(loss1), ]), x = levels(sce_sub$x))
-  coldata<-DataFrame(rowname=colnames(sce_sub), colData(sce_sub))
-  coldata <- merge(coldata, partition, by = "x",sort=F) %>%
+  coldata <- DataFrame(rowname = colnames(sce_sub), colData(sce_sub))
+  coldata <- merge(coldata, partition, by = "x", sort = F) %>%
     DataFrame()
-  rownames(coldata)<-coldata$rowname
-  colData(sce_sub)<-coldata
+  rownames(coldata) <- coldata$rowname
+  colData(sce_sub) <- coldata
   metadata(sce_sub)$partition <- partition
   metadata(sce_sub)$threshold <- threshold[which.min(loss1)]
   return(sce_sub)
@@ -102,7 +103,7 @@ wilcoxInt <- function(data, threshold = 0.05, p.adjust.method = "none", adj.matr
   b[lower.tri(b, diag = FALSE)] <- adj
   b2 <- b + t(b)
   diag(b2) <- 1
-  b2[which(adj.matrix==0)]<-0
+  b2[which(adj.matrix == 0)] <- 0
   bb <- ifelse(b2 < threshold, 1, 0) # binarize p-value to be seen as dismilarity matrix
   clust <- hclust(as.dist(bb)) # hierarchical cluster on adjacency matrix
   my.clusters <- cutree(clust, h = 0)

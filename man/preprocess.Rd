@@ -24,5 +24,4 @@ library(SummarizedExperiment)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 assayNames(sce)
-
 }

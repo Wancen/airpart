@@ -50,5 +50,4 @@ Make simulated data for airpart
 library(SummarizedExperiment)
 sce <- makeSimulatedData()
 assayNames(sce)
-
 }

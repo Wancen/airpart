@@ -17,16 +17,18 @@
 #' @examples
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
-#' sce <- geneCluster(sce, G=1:4)
-#' sce_sub <- wilcoxExt(sce,genecluster=1)
+#' sce <- geneCluster(sce, G = 1:4)
+#' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #'
 #' # Use normal approximation to calculate Wald-type confidence intervals
 #' sce_sub <- allelicRatio(sce_sub)
 #'
 #' # Alternative with bootstrap
 #' \dontrun{
-#' sce_sub <- allelicRatio(sce_sub, method = "bootstrap", R = 200,
-#' parallel="multicore", ncpus = 4)
+#' sce_sub <- allelicRatio(sce_sub,
+#'   method = "bootstrap", R = 200,
+#'   parallel = "multicore", ncpus = 4
+#' )
 #' }
 #'
 #' @importFrom VGAM vglm betabinomial Coef confintvglm
@@ -35,7 +37,7 @@
 #'
 #' @export
 allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
-                         R,  ...) {
+                         R, ...) {
   method <- match.arg(method, c("Normal", "bootstrap"))[1]
   cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce)))
@@ -46,7 +48,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
     part = rep(sce$part, each = length(sce))
   )
   if (method == "bootstrap") {
-    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level=level, ...)
+    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level = level, ...)
     confint <- sapply(1:nlevels(dat$part), function(m) {
       boot_ci <- boot.ci(boot, type = "perc", index = m, conf = level)
       ci <- boot_ci[[length(boot_ci)]]
@@ -57,7 +59,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
       as.data.frame() %>%
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   } else {
-    estimator <- betaBinom(dat, level=level)
+    estimator <- betaBinom(dat, level = level)
     coef <- as.vector(do.call(rbind, estimator[seq(1, length(estimator), by = 2)]))
     confint <- matrix(do.call(rbind, estimator[seq(2, length(estimator), by = 2)]), ncol = 2) %>%
       as.data.frame() %>%
@@ -93,7 +95,7 @@ betaBinom <- function(data, ci = TRUE, level) {
   return(res)
 }
 
-boot_ci <- function(data, indices, level=level) {
+boot_ci <- function(data, indices, level = level) {
   data_b <- data[indices, ]
   coef <- betaBinom(data_b, ci = FALSE, level)
   return(coef)

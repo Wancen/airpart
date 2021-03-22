@@ -54,20 +54,22 @@ sce <- preprocess(sce)
 cellQCmetrics <- cellQC(sce)
 keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
-  # sufficient molecules counted
-  cellQCmetrics$filter_detected |
-  # sufficient features expressed compared to spike genes
-  cellQCmetrics$filter_spike
-  )
- sce <- sce[, keep_cell]
+    # sufficient molecules counted
+    cellQCmetrics$filter_detected |
+    # sufficient features expressed compared to spike genes
+    cellQCmetrics$filter_spike
+)
+sce <- sce[, keep_cell]
 
 # or manully
 \dontrun{
-cellQCmetrics <- cellQC(sce, spike = "Ercc",
-mad_detected = 4, mad_spikegenes = 4)
+cellQCmetrics <- cellQC(sce,
+  spike = "Ercc",
+  mad_detected = 4, mad_spikegenes = 4
+)
 keep_cell <- (
   cellQCmetrics$sum > 4000 |
-  cellQCmetrics$detected > 3000
+    cellQCmetrics$detected > 3000
 )
 }
 

@@ -27,8 +27,7 @@ produce allelic ratio summary for each gene cluster
 library(S4Vectors)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
-sce <- geneCluster(sce, G=1:4)
-sce <- summaryAllelicRatio(sce,genecluster = c(1,3))
+sce <- geneCluster(sce, G = 1:4)
+sce <- summaryAllelicRatio(sce, genecluster = c(1, 3))
 metadata(sce)$summary
-
 }

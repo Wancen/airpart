@@ -41,11 +41,10 @@ It is based on the \pkg{rmeta}-package`s \code{forestplot} function.
 \examples{
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
-sce <- geneCluster(sce, G=1:4)
-sce_sub <- wilcoxExt(sce,genecluster=1)
+sce <- geneCluster(sce, G = 1:4)
+sce_sub <- wilcoxExt(sce, genecluster = 1)
 sce_sub <- allelicRatio(sce_sub)
 makeForest(sce_sub)
-
 \dontrun{
 library(forestplot)
 xticks <- seq(from = 0, to = 1, by = 0.05)
