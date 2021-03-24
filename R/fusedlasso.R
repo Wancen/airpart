@@ -16,16 +16,18 @@
 #' @param niter number of iteration to run; recommended to run 5 times
 #' if allelic ratio differences are within [0.05,0.1]
 #' @param pen.weights argument as described in \code{\link[smurf]{glmsmurf}}
-#' @param lambda argument as described in \code{\link[smurf]{glmsmurf}}
+#' @param lambda argument as described in \code{\link[smurf]{glmsmurf}}.
+#' Default lambda is determined by \code{"cv1se.dev"}
+#' (cross validation within 1 standard error rule(SE); deviance)
 #' @param k number of cross-validation folds
 #' @param adj.matrix argument as described in \code{\link[smurf]{glmsmurf}}
 #' @param lambda.length argument as described in \code{\link[smurf]{glmsmurf}}
-#' @param se.rule.nct the number of cell types to trigger an SE based rule
-#' (to prioritize smaller models, more fusing). When the number of cell types
-#' is less than or equal to this value, the SE rule is used
+#' @param se.rule.nct the number of cell types to trigger an other SE based rule
+#' (to prioritize larger models, less fusing, good to detect 0.05 allelic ratio difference).
+#' When the number of cell types is less than or equal to this value, the \code{se.rule.mult} SE rule is used
 #' @param se.rule.mult the multiplier of the SE in determining the lambda:
 #' the chosen lambda is within \code{se.rule.mult} x SE of the minimum
-#' deviance
+#' deviance. Default is 0.5 SE
 #' @param ... additional arguments passed to \code{\link[smurf]{glmsmurf}}
 #'
 #' @return A matrix grouping factor partition and the penalized parameter lambda
