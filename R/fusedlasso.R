@@ -101,13 +101,6 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   if (missing(adj.matrix)) {
     adj.matrix <- list()
   }
-  if (model == "binomial") {
-    fam <- binomial(link = "logit")
-    msg <- "Failed determining max of lambda, try other weights or gaussian model"
-  } else {
-    fam <- gaussian()
-    msg <- "Failed determining max of lambda, try other weights"
-  }
   sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
   cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce_sub)))
@@ -117,6 +110,15 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
     cts = cl_total
   )
   dat <- dat[!is.nan(dat$ratio), ]
+  if (model == "binomial") {
+    fam <- binomial(link = "logit")
+    msg <- "Failed determining max of lambda, try other weights or gaussian model"
+    weight <- dat$cts
+  } else {
+    fam <- gaussian()
+    msg <- "Failed determining max of lambda, try other weights"
+    weight <- NULL
+  }
   nct <- nlevels(sce$x)
   # need to use tryCatch to avoid lambda.max errors
   try <- tryCatch(
@@ -125,7 +127,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
         fit <- smurf::glmsmurf(
           formula = formula, family = fam,
           data = dat, adj.matrix = adj.matrix,
-          weights = dat$cts,
+          weights = weight,
           pen.weights = "glm.stand", lambda = lambda,
           control = list(lambda.length = lambda.length, k = k, ...)
         )
@@ -144,7 +146,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
           fit2 <- smurf::glmsmurf(
             formula = formula, family = fam,
             data = dat, adj.matrix = adj.matrix,
-            weights = dat$cts, pen.weights = "glm.stand",
+            weights = weight, pen.weights = "glm.stand",
             lambda = fit$lambda.vector[idx],
             control = list(...)
           )
