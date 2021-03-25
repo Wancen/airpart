@@ -12,7 +12,8 @@
 #' @param ... Argument for the \code{\link[boot]{boot}} functions.
 #'
 #' @return A matrix allelic ratio estimator is returned in
-#' metadata \code{"estimator"}
+#' metadata \code{"estimator"} which includes \code{"estimate"}, \code{"confidence interval"}
+#' and \code{"std.error"} if use normal approximation.
 #'
 #' @examples
 #' sce <- makeSimulatedData()
@@ -31,7 +32,9 @@
 #' )
 #' }
 #'
-#' @importFrom VGAM vglm betabinomial Coef confintvglm
+#' @importFrom gamlss gamlss
+#' @importFrom gamlss.dist BB
+#' @importFrom broom.mixed tidy
 #' @importFrom boot boot boot.ci
 #' @importFrom stats setNames
 #'
@@ -47,9 +50,10 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
     cts = cl_total,
     part = rep(sce$part, each = length(sce))
   )
+  dat <- dat[!is.nan(dat$ratio), ]
   if (method == "bootstrap") {
     boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level = level, ...)
-    confint <- sapply(1:nlevels(dat$part), function(m) {
+    confint <- sapply(1:nlevels(dat$x), function(m) {
       boot_ci <- boot.ci(boot, type = "perc", index = m, conf = level)
       ci <- boot_ci[[length(boot_ci)]]
       return(ci[(length(ci) - 1):length(ci)])
@@ -60,15 +64,14 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   } else {
     estimator <- betaBinom(dat, level = level)
-    coef <- as.vector(do.call(rbind, estimator[seq(1, length(estimator), by = 2)]))
-    confint <- matrix(do.call(rbind, estimator[seq(2, length(estimator), by = 2)]), ncol = 2) %>%
-      as.data.frame() %>%
-      setNames(names(estimator[[2]]))
+    coef <- estimator[,c("estimate","std.error")]
+    confint <- estimator[,c("conf.low","conf.high")] %>%
+      setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   }
-  est <- data.frame(part = factor(seq_len(length(coef))), estimator = round(coef, 3)) # allelic ratio estimator
-  ci <- cbind(part = factor(seq_len(length(coef))), round(confint, 3))
+  est <- cbind(x = metadata(sce)$partition$x, round(coef, 3)) # allelic ratio estimator
+  ci <- cbind(x = metadata(sce)$partition$x, round(confint, 3))
   coldata <- Reduce(
-    function(x, y) merge(x = x, y = y, by = "part"),
+    function(x, y) merge(x = x, y = y, by = "x"),
     list(metadata(sce)$partition, est, ci)
   )
   # colData(sce) <-coldata %>% DataFrame() %>% setNames(colnames(coldata)) # combine with partition label
@@ -76,27 +79,24 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
   return(sce)
 }
 
+# betabinomial estimator
 betaBinom <- function(data, ci = TRUE, level) {
   # Modeling each group separately because they may have different scale of over-dispersion
-  res <- sapply(1:nlevels(data$part), function(m) {
-    suppressWarnings(bb <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ 1, VGAM::betabinomial,
-      data = data[which(data$part == m), ],
-      trace = F
-    ))
-    coef_bb <- VGAM::Coef(bb)[-2] # betabinomial estimator
-    if (ci) {
-      suppressWarnings(confint_bb <- VGAM::confintvglm(bb, matrix = T, level = level)[-2, ]) # ci
-      confint_wilcoxon <- 1 / (1 + exp(-confint_bb))
-      return(list(coef_bb, confint_wilcoxon))
-    } else {
-      return(unname(coef_bb))
-    }
-  })
-  return(res)
+  suppressWarnings(fit <- gamlss::gamlss(cbind(ratio * cts, cts - ratio * cts) ~ x+0,
+                                         sigma.formula = ~part+0, # allow different dispersion for each group
+                                         data = data,
+                                         family = gamlss.dist::BB(mu.link = "identity")))
+  td <- broom.mixed::tidy(fit,conf.int = T,conf.level = level)
+  if (ci) {
+    return(td[which(td$parameter=="mu"),c(".rownames","estimate","std.error","conf.low","conf.high")])
+  } else {
+    return(td[which(td$parameter=="mu"),"estimate"])
+  }
 }
 
+# boostrap helper function
 boot_ci <- function(data, indices, level = level) {
   data_b <- data[indices, ]
   coef <- betaBinom(data_b, ci = FALSE, level)
-  return(coef)
+  return(unname(unlist(coef)))
 }

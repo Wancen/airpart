@@ -4,7 +4,7 @@
 \alias{featureQC}
 \title{Quality control on features}
 \usage{
-featureQC(sce, spike, threshold = 0.25, lowsd = 0.03, pc = 2)
+featureQC(sce, spike, threshold = 0.25, sd = 0.03, pc = 2)
 }
 \arguments{
 \item{sce}{SingleCellExperiment with \code{counts} and \code{ratio}}
@@ -14,7 +14,7 @@ featureQC(sce, spike, threshold = 0.25, lowsd = 0.03, pc = 2)
 \item{threshold}{A numeric scalar specifying the threshold above which
 percentage of cells expressed within each cell type. Default is 0.25}
 
-\item{lowsd}{A numeric scalar specifying the cell type weighted allelic ratio mean standard deviation threshold
+\item{sd}{A numeric scalar specifying the cell type weighted allelic ratio mean standard deviation threshold
 above which are interested features with highly variation. Default is 0.03}
 
 \item{pc}{pseudocount in the \code{preprocess} step}
@@ -24,7 +24,7 @@ A DataFrame of QC statistics includes
 \itemize{
   \item{filter_celltype} {indicate whether genes expressed in more than \code{threshold} cells for all cell types}
   \item{sd} {read counts standard deviation for each feature}
-  \item{filter_sd} {indicate whether gene standard deviation exceed \code{lowsd}}
+  \item{filter_sd} {indicate whether gene standard deviation exceed \code{sd}}
   \item{filter_spike} {indicate no spike genes}
   }
 }
@@ -43,7 +43,7 @@ sce <- sce[keep_feature, ]
 \dontrun{
 featureQCmetric <- featureQC(sce,
   spike = "Ercc",
-  threshold = 0.25, lowsd = 0.03, pc = 2
+  threshold = 0.25, sd = 0.03, pc = 2
 )
 keep_feature <- (featureQCmetric$filter_celltype &
   featureQCmetric$filter_sd)

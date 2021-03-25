@@ -222,6 +222,7 @@ metadata(sce_sub)$threshold
 
 ```{r, warning=FALSE, results="asis"}
 sce_sub <- allelicRatio(sce_sub)
+makeForest(sce_sub)
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 

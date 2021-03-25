@@ -4,12 +4,14 @@
 \alias{makeRatioHeatmap}
 \title{Plot allelic ratio as heatmap}
 \usage{
-makeRatioHeatmap(sce, show_row_names = FALSE, ...)
+makeRatioHeatmap(sce, show_row_names = FALSE, order_by_group = TRUE, ...)
 }
 \arguments{
 \item{sce}{SingleCellExperiment}
 
 \item{show_row_names}{show row names or not}
+
+\item{order_by_group}{indicate whether order by group or order by cell types}
 
 \item{...}{Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.}
 }
@@ -17,7 +19,7 @@ makeRatioHeatmap(sce, show_row_names = FALSE, ...)
 Plot allelic ratio as heatmap
 }
 \examples{
-sce <- makeSimulatedData()
+sce <- makeSimulatedData(p.vec=c(0.3,0.5,0.3,0.3),ncl=1)
 sce <- preprocess(sce)
 # display allelic ratio pattern in whole dataset
 makeRatioHeatmap(sce)
@@ -26,4 +28,6 @@ sce <- geneCluster(sce, G = 1:4)
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 # display specific gene cluster partition result
 makeRatioHeatmap(sce_sub)
+# display by cell type orders
+makeRatioHeatmap(sce_sub,order_by_group=FALSE)
 }

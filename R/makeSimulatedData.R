@@ -39,7 +39,7 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
   ngene <- ncl * ngenecl # total number of genes
   nclcell <- nct * n * ngenecl # number elements within each gene cluster
   mean_total_count <- rep(rep(c(mu1, mu2), each = n / 2), times = nct * ngene) # mean total count
-  cts <- matrix(rnbinom(n * nct * ngene, mu = mean_total_count, size = 2), # total count matrix
+  cts <- matrix(rnbinom(n * nct * ngene, mu = mean_total_count, size = 5), # total count matrix
     nrow = ngene, byrow = TRUE
   )
 

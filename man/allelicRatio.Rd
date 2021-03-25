@@ -22,7 +22,8 @@ however it is computationally intensive.}
 }
 \value{
 A matrix allelic ratio estimator is returned in
-metadata \code{"estimator"}
+metadata \code{"estimator"} which includes \code{"estimate"}, \code{"confidence interval"}
+and \code{"std.error"} if use normal approximation.
 }
 \description{
 Fit betabinomial on each cell type groups
