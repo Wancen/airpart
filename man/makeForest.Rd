@@ -10,7 +10,7 @@ makeForest(
   boxsize = 0.1,
   xlab = "Allelic Ratio",
   col = fpColors(),
-  grid = structure(c(0.1, 0.5, 0.9), gp = gpar(lty = 2, col = "#CCCCFF")),
+  grid = structure(seq(0.1, 0.9, 0.1), gp = gpar(lty = 2, col = "#CCCCFF")),
   ...
 )
 }

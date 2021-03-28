@@ -74,7 +74,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
     function(x, y) merge(x = x, y = y, by = "x"),
     list(metadata(sce)$partition, est, ci)
   )
-  # colData(sce) <-coldata %>% DataFrame() %>% setNames(colnames(coldata)) # combine with partition label
+  coldata <- coldata[order(match(coldata$x, est$x)),] # change cell type order
   metadata(sce)$estimator <- coldata
   return(sce)
 }
