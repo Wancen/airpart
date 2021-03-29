@@ -229,7 +229,9 @@ knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ### Confidence interval with bootstrap as alternative
 
 ```{r, warning=FALSE, results="asis"}
-sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=20, ncpus=4, parallel="multicore")
+# To do: default is using percentile method, cannot work with R=20, otherwise change to normal
+# bootstrap method
+sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=100, ncpus=4, parallel="multicore")
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 

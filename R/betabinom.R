@@ -36,7 +36,8 @@
 #' @importFrom gamlss.dist BB
 #' @importFrom broom.mixed tidy
 #' @importFrom boot boot boot.ci
-#' @importFrom stats setNames
+#' @importFrom stats setNames coef
+#' @importFrom VGAM vglm betabinomial
 #'
 #' @export
 allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
@@ -52,7 +53,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
   )
   dat <- dat[!is.nan(dat$ratio), ]
   if (method == "bootstrap") {
-    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, level = level, ...)
+    boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, ...)
     confint <- sapply(1:nlevels(dat$x), function(m) {
       boot_ci <- boot.ci(boot, type = "perc", index = m, conf = level)
       ci <- boot_ci[[length(boot_ci)]]
@@ -74,29 +75,51 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
     function(x, y) merge(x = x, y = y, by = "x"),
     list(metadata(sce)$partition, est, ci)
   )
-  coldata <- coldata[order(match(coldata$x, est$x)),] # change cell type order
+  coldata <- coldata[order(match(coldata$x, levels(sce$x))),] # change cell type order
   metadata(sce)$estimator <- coldata
   return(sce)
 }
 
 # betabinomial estimator
-betaBinom <- function(data, ci = TRUE, level) {
+betaBinom <- function(data,level) {
   # Modeling each group separately because they may have different scale of over-dispersion
   suppressWarnings(fit <- gamlss::gamlss(cbind(ratio * cts, cts - ratio * cts) ~ x+0,
                                          sigma.formula = ~part+0, # allow different dispersion for each group
                                          data = data,
                                          family = gamlss.dist::BB(mu.link = "identity")))
   td <- broom.mixed::tidy(fit,conf.int = T,conf.level = level)
-  if (ci) {
-    return(td[which(td$parameter=="mu"),c(".rownames","estimate","std.error","conf.low","conf.high")])
-  } else {
-    return(td[which(td$parameter=="mu"),"estimate"])
-  }
+  return(td[which(td$parameter=="mu"),c(".rownames","estimate","std.error","conf.low","conf.high")])
 }
 
+# betabinomial bootstrap estimator
+betaBinom_boot <- function(data) {
+  # Modeling each group separately because they may have different scale of over-dispersion
+  res <- sapply(1:nlevels(data$part), function(m) {
+    data2<-data[which(data$part == m), ]
+    if(length(unique(data2$x))==1){
+      suppressWarnings(fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ 1, VGAM::betabinomial,
+                                         data = data2,
+                                         trace = F
+      ))
+    }else{
+      suppressWarnings(fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ x, VGAM::betabinomial,
+                                         data = data2,
+                                         trace = F
+      ))
+    }
+    coef<-coef(fit)[-2]
+    coef<-coef+c(0,rep(coef[1],(length(coef)-1)))
+    coef <- 1 / (1 + exp(-coef))# betabinomial estimator
+    names(coef) <- unique(data2$x)
+    return(coef)
+  })
+  coef <- unlist(res)
+  coef <- coef[order(match(names(coef), levels(data$x)))]
+  return(unname(coef))
+}
 # boostrap helper function
-boot_ci <- function(data, indices, level = level) {
+boot_ci <- function(data, indices) {
   data_b <- data[indices, ]
-  coef <- betaBinom(data_b, ci = FALSE, level)
+  coef <- betaBinom_boot(data_b)
   return(unname(unlist(coef)))
 }
