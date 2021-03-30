@@ -177,7 +177,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
     colnames(part) <- paste0("part", seq_len(niter))
     names(lambda) <- paste0("part", seq_len(niter))
   }
-  cl <- data.frame(part, x = levels(sce_sub$x))
+  cl <- data.frame(part=factor(part), x = levels(sce_sub$x))
   coldata <- DataFrame(rowname = colnames(sce_sub), colData(sce_sub))
   coldata <- merge(coldata, cl, by = "x", sort = FALSE) %>%
     DataFrame()
