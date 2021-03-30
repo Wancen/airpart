@@ -38,6 +38,8 @@
 #' @importFrom boot boot boot.ci
 #' @importFrom stats setNames coef
 #' @importFrom VGAM vglm betabinomial
+#' @importFrom matrixStats colSds
+#' @importFrom stats pt
 #'
 #' @export
 allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
@@ -52,6 +54,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
     part = rep(sce$part, each = length(sce))
   )
   dat <- dat[!is.nan(dat$ratio), ]
+  n <- table(dat$x)
   if (method == "bootstrap") {
     boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, ...)
     confint <- sapply(1:nlevels(dat$x), function(m) {
@@ -59,21 +62,26 @@ allelicRatio <- function(sce, level = 0.95, method = c("Normal", "bootstrap"),
       ci <- boot_ci[[length(boot_ci)]]
       return(ci[(length(ci) - 1):length(ci)])
     })
-    coef <- boot$t0
+    statistics <- (boot$t0-0.5)/colSds(boot$t)
+    pvalue <- format(2 * pt(abs(statistics), df=n-1,lower.tail = FALSE),digits = 4)
+    coef <- cbind(estimate=boot$t0,std.error=colSds(boot$t)) %>% as.data.frame()
     confint <- t(confint) %>%
       as.data.frame() %>%
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   } else {
     estimator <- betaBinom(dat, level = level)
-    coef <- estimator[,c("estimate","std.error")]
+    statistics <- (estimator$estimate-0.5)/estimator$std.error
+    pvalue <- format(2 * pt(abs(statistics), df=n-1,lower.tail = FALSE),digits = 4)
+    coef <- cbind(estimator[,c("estimate","std.error")])
     confint <- estimator[,c("conf.low","conf.high")] %>%
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   }
   est <- cbind(x = metadata(sce)$partition$x, round(coef, 3)) # allelic ratio estimator
+  pvalue <- cbind(x = metadata(sce)$partition$x, pvalue) %>% as.data.frame()
   ci <- cbind(x = metadata(sce)$partition$x, round(confint, 3))
   coldata <- Reduce(
     function(x, y) merge(x = x, y = y, by = "x"),
-    list(metadata(sce)$partition, est, ci)
+    list(metadata(sce)$partition, est, pvalue, ci)
   )
   coldata <- coldata[order(match(coldata$x, levels(sce$x))),] # change cell type order
   metadata(sce)$estimator <- coldata

@@ -42,8 +42,7 @@
 #' @export
 makeForest <- function(sce, xticks, boxsize = 0.1,
                        xlab = "Allelic Ratio", col = fpColors(), grid = structure(seq(0.1,0.9,0.1),
-                         gp = gpar(lty = 2, col = "#CCCCFF")
-                       ), ...) {
+                         gp = gpar(lty = 2, col = "#CCCCFF")), ...) {
   if (missing(xticks)) {
     xticks <- seq(from = 0, to = 1, by = 0.05)
     xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
@@ -52,13 +51,18 @@ makeForest <- function(sce, xticks, boxsize = 0.1,
 
   ar <- apply(metadata(sce)$estimator, 2, as.character)
   forest_text <- rbind(colnames(ar), ar)
-  forest_plot <- data.frame(mean = c(NA, ar[, 3]), lower = c(NA, ar[, 4]), upper = c(NA, ar[, 5]))
+  forest_plot <- data.frame(mean = c(NA, ar[, "estimate"]), lower = c(NA, ar[, ncol(ar)-1]), upper = c(NA, ar[, ncol(ar)]))
 
   forestplot::forestplot(forest_text,
-    forest_plot,
-    new_page = TRUE, boxsize = boxsize,
-    hrzl_lines = list("2" = gpar(lty = 2)), lwd.ci = 2,
-    clip = c(0, 1.1), xticks = xticks, grid = grid,
-    col = col, xlab = xlab, ...
+                         forest_plot,
+                         is.summary = c(TRUE,rep(FALSE,nrow(forest_text)-1)),
+                         new_page = TRUE, boxsize = boxsize,
+                         hrzl_lines = list("2" = gpar(lty = 2)), lwd.ci = 2,
+                         clip = c(0.01,1), xticks = xticks, grid = grid, ref=0.5,col.diamond = "blue",
+                         col = col, xlab = xlab, graphwidth = unit(10, "cm"),
+                         txt_gp = fpTxtGp(label = list(gpar(cex=0.8),
+                                                       gpar(cex=0.8, col = "#660000")),
+                                          ticks = gpar(cex = 1),
+                                          xlab  = gpar(cex = 1)), ...
   )
 }

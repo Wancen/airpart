@@ -285,7 +285,7 @@ sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs) # faster alternative
 sce_sub <- allelicRatio(sce_sub)
 # TODO these are GREAT!
 makeForest(sce_sub)
-makeBoxplot(sce_sub)
+makeViolin(sce_sub)
 makeRatioHeatmap(sce_sub)
 ```
 
