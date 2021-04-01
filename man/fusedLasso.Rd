@@ -85,7 +85,7 @@ library(S4Vectors)
 library(smurf)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
-sce <- geneCluster(sce, G = 1:4)
+sce <- geneCluster(sce, G = seq_len(4))
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce,
   formula = f, model = "binomial", genecluster = 1,
@@ -98,8 +98,8 @@ metadata(sce_sub)$lambda
 # to be grouped together with other cell states
 adj.matrix <- 1 - diag(4)
 colnames(adj.matrix) <- rownames(adj.matrix) <- levels(sce$x)
-adj.matrix [1, c(2, 3, 4)] <- 0
-adj.matrix [c(2, 3, 4), 1] <- 0
+adj.matrix[1, c(2, 3, 4)] <- 0
+adj.matrix[c(2, 3, 4), 1] <- 0
 f <- ratio ~ p(x, pen = "ggflasso") # use graph-guided fused lasso
 sce_sub <- fusedLasso(sce,
   formula = f, model = "binomial", genecluster = 1,

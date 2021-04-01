@@ -62,7 +62,7 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
   ratio_pca <- as.matrix(pca$x)
 
   if (method == "GMM") {
-    fit <- gmmCluster(ratio_pca, G)
+    fit <- gmmCluster(ratio_pca, G, ...)
   } else if (method == "hierarchical") {
     fit <- hierCluster(ratio_pca)
   }
@@ -85,7 +85,7 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
   return(sce)
 }
 
-gmmCluster <- function(ratio_pca, G) {
+gmmCluster <- function(ratio_pca, G, ...) {
   init <- list(hcPairs = mclust::hc(ratio_pca, modelName = "EII", use = "VARS"))
   d_clust <- mclust::Mclust(ratio_pca,
     G = G, modelNames = "EII",

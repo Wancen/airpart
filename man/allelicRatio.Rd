@@ -7,7 +7,7 @@
 allelicRatio(
   sce,
   level = 0.95,
-  method = c("Normal", "bootstrap"),
+  method = c("normal", "bootstrap"),
   R,
   trace = TRUE,
   ...
@@ -19,8 +19,8 @@ allelicRatio(
 
 \item{level}{the confidence interval required}
 
-\item{method}{the method to used for construct confidence interval. The default is the first method.
-"bootstrap" is likely to be more accurate especially when the data is highly overdispersed,
+\item{method}{the method to used for construct confidence interval. The default is \code{"normal"}.
+\code{"bootstrap"} is likely to be more accurate especially when the data is highly overdispersed,
 however it is computationally intensive.}
 
 \item{R}{The number of bootstrap replicates.}
@@ -40,7 +40,7 @@ Fit betabinomial on each cell type groups
 \examples{
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
-sce <- geneCluster(sce, G = 1:4)
+sce <- geneCluster(sce, G = seq_len(4))
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 
 # Use normal approximation to calculate Wald-type confidence intervals

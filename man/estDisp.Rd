@@ -25,6 +25,6 @@ Estimate overdispersion parameter of a betabinomial
 \examples{
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
-sce <- geneCluster(sce, G = 1:4)
+sce <- geneCluster(sce, G = seq_len(4))
 estDisp(sce)
 }
