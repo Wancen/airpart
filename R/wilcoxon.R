@@ -84,8 +84,8 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
     return(list(cl = fit, loss1 = loss1))
   })
 
-  cl <- do.call(rbind, obj[seq(1, length(obj), by = 2)])
-  loss1 <- do.call(rbind, obj[seq(2, length(obj), by = 2)])
+  cl <- do.call(rbind, lapply(obj, `[[`, 1))
+  loss1 <- do.call(rbind, lapply(obj, `[[`, 2))
   partition <- data.frame(part = factor(cl[which.min(loss1), ]), x = levels(sce_sub$x))
   cd <- colData(sce_sub)
   cd2 <- cd[, !names(cd) %in% c("part", "rowname")] %>%

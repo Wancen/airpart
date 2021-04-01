@@ -8,6 +8,8 @@
 #' @param method the method to used for construct confidence interval. The default is \code{"normal"}.
 #' \code{"bootstrap"} is likely to be more accurate especially when the data is highly overdispersed,
 #' however it is computationally intensive.
+#' @param type the type of intervals required for bootstrap. The values should be one of the values
+#' \code{c("norm","basic","perc")}
 #' @param R The number of bootstrap replicates.
 #' @param trace logical indicating if output should be produced for each iteration.
 #' @param ... Argument for the \code{\link[boot]{boot}} functions.
@@ -26,12 +28,10 @@
 #' sce_sub <- allelicRatio(sce_sub)
 #'
 #' # Alternative with bootstrap
-#' \dontrun{
 #' sce_sub <- allelicRatio(sce_sub,
-#'   method = "bootstrap", R = 200,
+#'   method = "bootstrap", R = 5, type="norm",
 #'   parallel = "multicore", ncpus = 4
 #' )
-#' }
 #'
 #' @importFrom broom.mixed tidy
 #' @importFrom boot boot boot.ci
@@ -40,8 +40,8 @@
 #' @importFrom matrixStats colSds
 #'
 #' @export
-allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"),
-                         R, trace = TRUE, ...) {
+allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), type = "perc",
+                         R, trace = TRUE,...) {
   method <- match.arg(method, c("normal", "bootstrap"))[1]
   cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce)))
@@ -56,7 +56,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"),
   if (method == "bootstrap") {
     boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, trace = trace, ...)
     confint <- vapply(seq_len(nlevels(dat$x)), function(m) {
-      boot_ci <- boot.ci(boot, type = "perc", index = m, conf = level)
+      boot_ci <- boot.ci(boot, type = type, index = m, conf = level)
       ci <- boot_ci[[length(boot_ci)]]
       return(ci[(length(ci) - 1):length(ci)])
     }, double(2))
@@ -176,6 +176,6 @@ betaBinom <- function(data, ci, level, trace) {
 # boostrap helper function
 boot_ci <- function(data, indices, trace) {
   data_b <- data[indices, ]
-  coef <- betaBinom(data_b, ci = FALSE, trace)
+  coef <- betaBinom(data_b, ci = FALSE, trace=trace)
   return(unname(unlist(coef)))
 }

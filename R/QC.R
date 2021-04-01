@@ -38,17 +38,15 @@
 #' )
 #' sce <- sce[, keep_cell]
 #'
-#' # or manully
-#' \dontrun{
+#' # or manually setting threshold
 #' cellQCmetrics <- cellQC(sce,
 #'   spike = "Ercc",
 #'   mad_detected = 4, mad_spikegenes = 4
 #' )
 #' keep_cell <- (
-#'   cellQCmetrics$sum > 4000 |
-#'     cellQCmetrics$detected > 3000
+#'   cellQCmetrics$sum > 2.4 |
+#'     cellQCmetrics$detected > 110
 #' )
-#' }
 #'
 #' @importFrom SingleCellExperiment counts
 #' @importFrom SummarizedExperiment colData colData<- rowData rowData<- assayNames assays assays<-
@@ -69,6 +67,9 @@ cellQC <- function(sce, spike, threshold = 0,
     filter_spike <- rep(TRUE, ncol(sce))
   } else {
     spike_gene <- grep(paste0("^", spike), row.names(sce))
+    if (length(spike_gene) == 0) {
+      message("No spike genes found")
+    }
     spikePercent <- colSums(counts(sce)[spike_gene, ], na.rm = TRUE) * 100 /
       colSums(counts(sce)[-spike_gene, ], na.rm = TRUE)
     filter_spike <- (spikePercent > (median(spikePercent) - mad_spikegenes * mad(spikePercent)) &
@@ -109,14 +110,14 @@ cellQC <- function(sce, spike, threshold = 0,
 #'   featureQCmetric$filter_sd &
 #'   featureQCmetric$filter_spike)
 #' sce <- sce[keep_feature, ]
-#' \dontrun{
+#'
+#' # or manually setting threshold
 #' featureQCmetric <- featureQC(sce,
 #'   spike = "Ercc",
 #'   threshold = 0.25, sd = 0.03, pc = 2
 #' )
 #' keep_feature <- (featureQCmetric$filter_celltype &
-#'   featureQCmetric$filter_sd)
-#' }
+#'   featureQCmetric$sd >0.02)
 #'
 #' @importFrom pbapply pbsapply
 #' @importFrom scater nexprs

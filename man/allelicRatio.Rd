@@ -8,6 +8,7 @@ allelicRatio(
   sce,
   level = 0.95,
   method = c("normal", "bootstrap"),
+  type = "perc",
   R,
   trace = TRUE,
   ...
@@ -22,6 +23,9 @@ allelicRatio(
 \item{method}{the method to used for construct confidence interval. The default is \code{"normal"}.
 \code{"bootstrap"} is likely to be more accurate especially when the data is highly overdispersed,
 however it is computationally intensive.}
+
+\item{type}{the type of intervals required for bootstrap. The values should be one of the values
+\code{c("norm","basic","perc")}}
 
 \item{R}{The number of bootstrap replicates.}
 
@@ -47,11 +51,9 @@ sce_sub <- wilcoxExt(sce, genecluster = 1)
 sce_sub <- allelicRatio(sce_sub)
 
 # Alternative with bootstrap
-\dontrun{
 sce_sub <- allelicRatio(sce_sub,
-  method = "bootstrap", R = 200,
+  method = "bootstrap", R = 5, type="norm",
   parallel = "multicore", ncpus = 4
 )
-}
 
 }

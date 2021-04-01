@@ -48,14 +48,14 @@ sce <- geneCluster(sce, G = 1:4)
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 sce_sub <- allelicRatio(sce_sub)
 makeForest(sce_sub)
-\dontrun{
+
+# if want to change some properties, like ticks position
 library(forestplot)
-xticks <- seq(from = 0, to = 1, by = 0.05)
+xticks <- seq(from = 0, to = 1, by = 0.1)
 xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
 attr(xticks, "labels") <- xtlab
 
 makeForest(sce_sub, xticks, col = fpColors(box = "royalblue"))
-}
 
 }
 \seealso{

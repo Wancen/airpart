@@ -40,13 +40,13 @@ keep_feature <- (featureQCmetric$filter_celltype &
   featureQCmetric$filter_sd &
   featureQCmetric$filter_spike)
 sce <- sce[keep_feature, ]
-\dontrun{
+
+# or manually setting threshold
 featureQCmetric <- featureQC(sce,
   spike = "Ercc",
   threshold = 0.25, sd = 0.03, pc = 2
 )
 keep_feature <- (featureQCmetric$filter_celltype &
-  featureQCmetric$filter_sd)
-}
+  featureQCmetric$sd >0.02)
 
 }

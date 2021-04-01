@@ -61,16 +61,14 @@ keep_cell <- (
 )
 sce <- sce[, keep_cell]
 
-# or manully
-\dontrun{
+# or manually setting threshold
 cellQCmetrics <- cellQC(sce,
   spike = "Ercc",
   mad_detected = 4, mad_spikegenes = 4
 )
 keep_cell <- (
-  cellQCmetrics$sum > 4000 |
-    cellQCmetrics$detected > 3000
+  cellQCmetrics$sum > 2.4 |
+    cellQCmetrics$detected > 110
 )
-}
 
 }
