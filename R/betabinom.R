@@ -66,9 +66,9 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
       ci <- boot_ci[[length(boot_ci)]]
       return(ci[(length(ci) - 1):length(ci)])
     }, double(2))
-    statistics <- (boot$t0 - 0.5) / colSds(boot$t)
+    statistics <- (as.vector(boot$t0) - 0.5) / colSds(boot$t)
     pvalue <- data.frame(pvalue = format(2 * pt(abs(statistics), df = n - 1, lower.tail = FALSE), digits = 4))
-    coef <- cbind(estimate = boot$t0, std.error = colSds(boot$t)) %>% as.data.frame()
+    coef <- cbind(estimate = as.vector(boot$t0), std.error = colSds(boot$t)) %>% as.data.frame()
     confint <- t(confint) %>%
       as.data.frame() %>%
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))

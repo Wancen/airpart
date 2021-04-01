@@ -5,6 +5,7 @@
 #' @param method the method to do gene clustering. The default is the Gaussian Mixture Modeling which
 #' is likely to be more accurate. \code{"hierarchical"} represents
 #' automatic hierarchical clustering which is faster to compute.
+#' @param minClusterSize Minimum cluster size of \code{"hierarchical"} method.
 #' @param plot logical, whether to make a PCA plot
 #' @param G An integer vector specifying the numbers of clusters for which the BIC is to be calculated.
 #'  The default is G=c(8, 12, 16, 20, 24).
@@ -41,7 +42,7 @@
 #' @importFrom rlang .data
 #'
 #' @export
-geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
+geneCluster <- function(sce, G, method = c("GMM", "hierarchical"), minClusterSize = 3,
                         plot = TRUE, ...) {
   method <- match.arg(method, c("GMM", "hierarchical"))[1]
   if (missing(method)) {
@@ -101,7 +102,7 @@ hierCluster <- function(ratio_pca) {
   my_dist <- dist(ratio_pca, method = "manhattan")
   my_tree <- hclust(my_dist, method = "ward.D2")
   my_clusters <- unname(
-    cutreeDynamic(my_tree, distM = as.matrix(my_dist), verbose = 0)
+    cutreeDynamic(my_tree, distM = as.matrix(my_dist), verbose = 0, minClusterSize = minClusterSize)
   )
   nclust <- max(my_clusters)
   list(nclust = nclust, my_clusters = my_clusters)

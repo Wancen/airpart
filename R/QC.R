@@ -136,14 +136,14 @@ featureQC <- function(sce, spike, threshold = 0.25, sd = 0.03, pc = 2) {
   filter_celltype <- rowSums(ct_threshold) == nlevels(sce$x)
 
   weighted_mean <- do.call(cbind, check[seq(2, length(check), 2)])
-  sd <- rowSds(weighted_mean)
-  filter_sd <- sd > sd
+  gsd <- rowSds(weighted_mean)
+  filter_sd <- gsd > sd
 
   filter_spike <- rep(TRUE, nrow(sce))
   if (!missing(spike)) {
     filter_spike[grep(paste0("^", spike), row.names(sce))] <- FALSE
   }
 
-  rowdata <- cbind(rowData(sce), filter_celltype, sd, filter_sd, filter_spike)
+  rowdata <- cbind(rowData(sce), filter_celltype, gsd, filter_sd, filter_spike)
   rowdata
 }

@@ -140,8 +140,6 @@ metadata(sce)$geneCluster
 * Hierarchical clustering 
 
 ```{r}
-# TODO note: if you do feature filtering, hc misses the third cluster!
-# interesting...
 sce.hc <- geneCluster(sce, method="hierarchical")
 metadata(sce.hc)$geneCluster
 ```
@@ -210,7 +208,7 @@ metadata(sce_sub)$lambda
 ## Modeling using pairwise Mann Whitney Wilcoxon extension
 
 ```{r}
-thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
+thrs <- 10^seq(from=-2,to=-0.4,by=0.2)
 sce_sub <- wilcoxExt(sce, genecluster=1, threshold=thrs)
 knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 metadata(sce_sub)$threshold
@@ -221,7 +219,7 @@ metadata(sce_sub)$threshold
 ### Confidence interval with normal approximation
 
 ```{r, warning=FALSE, results="asis"}
-sce_sub <- allelicRatio(sce_sub)
+sce_sub <- allelicRatio(sce_sub,trace =FALSE)
 makeForest(sce_sub)
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
@@ -229,9 +227,7 @@ knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ### Confidence interval with bootstrap as alternative
 
 ```{r, warning=FALSE, results="asis"}
-# To do: default is using percentile method, cannot work with R=20, otherwise change to normal
-# bootstrap method
-sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=100, ncpus=4, parallel="multicore")
+sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=5, ncpus=2, parallel="multicore",trace = FALSE)
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 
@@ -278,10 +274,7 @@ estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
 
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce,formula=f,model="binomial",
-                      genecluster=1,ncores=2,niter=2) 
-sce_sub <- consensusPart(sce_sub)
-thrs <- 10^seq(from=-2,to=-0.4,by=0.1)
-sce_sub <- wilcoxExt(sce,genecluster=1,threshold=thrs) # faster alternative
+                      genecluster=1,ncores=2) 
 sce_sub <- allelicRatio(sce_sub)
 
 makeForest(sce_sub)

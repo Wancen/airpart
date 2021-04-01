@@ -1,4 +1,3 @@
-context("fusedLasso")
 library(S4Vectors)
 
 test_that("wrong inputs", {

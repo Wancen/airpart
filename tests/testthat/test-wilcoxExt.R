@@ -1,4 +1,3 @@
-context("wilcoxExt")
 library(S4Vectors)
 
 test_that("wrong inputs", {

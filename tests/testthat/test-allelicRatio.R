@@ -1,4 +1,3 @@
-context("fusedLasso")
 library(S4Vectors)
 
 test_that("check inputs", {
@@ -31,6 +30,6 @@ test_that("bootstrap CI", {
   sce <- preprocess(sce)
   sce <- geneCluster(sce, G = seq_len(4))
   sce_sub <- wilcoxExt(sce,genecluster = 1)
-  sce_sub <- allelicRatio(sce_sub,model="bootstrap", R=5)
+  sce_sub <- allelicRatio(sce_sub,method="bootstrap", R=5, ncpus=2, parallel="multicore")
   expect_true(!is.null(metadata(sce_sub)$estimator))
 })
