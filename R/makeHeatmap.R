@@ -6,9 +6,9 @@
 #' @param ... Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.
 #'
 #' @return generates a heatmap
-#' 
+#'
 #' @examples
-#' sce <- makeSimulatedData(p.vec=c(0.3,0.5,0.3,0.3),ncl=1)
+#' sce <- makeSimulatedData(p.vec = c(0.3, 0.5, 0.3, 0.3), ncl = 1)
 #' sce <- preprocess(sce)
 #' # display allelic ratio pattern in whole dataset
 #' makeRatioHeatmap(sce)
@@ -18,7 +18,7 @@
 #' # display specific gene cluster partition result
 #' makeRatioHeatmap(sce_sub)
 #' # display by cell type orders
-#' makeRatioHeatmap(sce_sub,order_by_group=FALSE)
+#' makeRatioHeatmap(sce_sub, order_by_group = FALSE)
 #' @importFrom ComplexHeatmap Heatmap HeatmapAnnotation anno_block
 #' @importFrom RColorBrewer brewer.pal
 #'
@@ -38,35 +38,39 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
       show_column_names = FALSE, show_row_names = show_row_names, top_annotation = ha
     )
   } else {
-    if(order_by_group){
+    if (order_by_group) {
       split <- sce$part
       ha <- HeatmapAnnotation(
         group = anno_block(
           gp = gpar(fill = brewer.pal(9, "Pastel1")[seq_len(nlevels(split))]),
-          labels_gp = gpar(col = "white",fontface=4),
+          labels_gp = gpar(col = "white", fontface = 4),
           labels = paste0("group", seq_len(nlevels(split)))
         ),
         `cell type` = sce$x, border = FALSE,
         col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"), names = levels(sce$x)))
       )
       Heatmap(m,
-              name = "Allelic Ratio", column_split = split,
-              column_order = order(seq_len(ncol(m))),column_title = paste0("group", seq_len(nlevels(split))),
-              cluster_columns = FALSE, cluster_rows = FALSE, show_column_names = FALSE,
-              show_row_names = show_row_names, top_annotation = ha
+        name = "Allelic Ratio", column_split = split,
+        column_order = order(seq_len(ncol(m))), column_title = paste0("group", seq_len(nlevels(split))),
+        cluster_columns = FALSE, cluster_rows = FALSE, show_column_names = FALSE,
+        show_row_names = show_row_names, top_annotation = ha
       )
-    }else{
+    } else {
       ha <- HeatmapAnnotation(
         group = sce$part, `cell type` = sce$x, border = FALSE,
-        col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
-                                           names = levels(sce$x)),
-                   group = structure(brewer.pal(9, "Pastel1")[seq_len(nlevels(sce$part))],
-                                     names = levels(sce$part)))
+        col = list(
+          `cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+            names = levels(sce$x)
+          ),
+          group = structure(brewer.pal(9, "Pastel1")[seq_len(nlevels(sce$part))],
+            names = levels(sce$part)
+          )
+        )
       )
       Heatmap(m,
-              name = "Allelic Ratio", cluster_columns = FALSE, cluster_rows = FALSE,
-              show_column_names = FALSE, show_row_names = show_row_names, top_annotation = ha)
+        name = "Allelic Ratio", cluster_columns = FALSE, cluster_rows = FALSE,
+        show_column_names = FALSE, show_row_names = show_row_names, top_annotation = ha
+      )
     }
-
   }
 }

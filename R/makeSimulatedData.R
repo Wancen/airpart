@@ -63,7 +63,7 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
 
   true.ratio <- matrix(vapply(seq_len(ncl), function(m) {
     rep(p.vec[((m - 1) * nct + 1):(m * nct)], ngenecl)
-  }, double(nct*ngenecl)),
+  }, double(nct * ngenecl)),
   ncol = nct, byrow = TRUE
   )
 

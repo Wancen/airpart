@@ -74,8 +74,8 @@
 #' # to be grouped together with other cell states
 #' adj.matrix <- 1 - diag(4)
 #' colnames(adj.matrix) <- rownames(adj.matrix) <- levels(sce$x)
-#' adj.matrix [1, c(2, 3, 4)] <- 0
-#' adj.matrix [c(2, 3, 4), 1] <- 0
+#' adj.matrix[1, c(2, 3, 4)] <- 0
+#' adj.matrix[c(2, 3, 4), 1] <- 0
 #' f <- ratio ~ p(x, pen = "ggflasso") # use graph-guided fused lasso
 #' sce_sub <- fusedLasso(sce,
 #'   formula = f, model = "binomial", genecluster = 1,
@@ -179,9 +179,9 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   }
   cl <- data.frame(part, x = levels(sce_sub$x))
   cd <- colData(sce_sub)
-  cd2 <- cd[,!names(cd) %in% c("part","rowname")] %>%
+  cd2 <- cd[, !names(cd) %in% c("part", "rowname")] %>%
     as.data.frame() %>%
-    setNames(names(cd)[!names(cd)%in%c("part","rowname")])
+    setNames(names(cd)[!names(cd) %in% c("part", "rowname")])
   coldata <- DataFrame(rowname = colnames(sce_sub), cd2)
   coldata <- merge(coldata, cl, by = "x", sort = FALSE) %>%
     DataFrame()

@@ -33,8 +33,8 @@
 #' # to be grouped together with other cell states
 #' adj.matrix <- 1 - diag(4)
 #' colnames(adj.matrix) <- rownames(adj.matrix) <- levels(sce$x)
-#' adj.matrix [1, c(2, 3, 4)] <- 0
-#' adj.matrix [c(2, 3, 4), 1] <- 0
+#' adj.matrix[1, c(2, 3, 4)] <- 0
+#' adj.matrix[c(2, 3, 4), 1] <- 0
 #' thrs <- 10^seq(from = -2, to = -0.4, by = 0.1)
 #' sce_sub <- wilcoxExt(sce,
 #'   genecluster = 1, threshold = thrs,
@@ -66,10 +66,12 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
   if (missing(adj.matrix)) {
     adj.matrix <- matrix(1, nct, nct)
   }
-  
+
   obj <- lapply(seq_len(length(threshold)), function(j) {
-    fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method,
-                     threshold = threshold[j], adj.matrix = adj.matrix, ...)
+    fit <- wilcoxInt(dat,
+      p.adjust.method = p.adjust.method,
+      threshold = threshold[j], adj.matrix = adj.matrix, ...
+    )
     label <- data.frame(type = factor(levels(sce$x)), par = factor(fit))
     dat2 <- dat %>%
       left_join(label, by = c("x" = "type"))
@@ -79,16 +81,16 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
     # loss function
     loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
       nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
-    return(list(cl=fit, loss1=loss1))
+    return(list(cl = fit, loss1 = loss1))
   })
 
   cl <- do.call(rbind, obj[seq(1, length(obj), by = 2)])
   loss1 <- do.call(rbind, obj[seq(2, length(obj), by = 2)])
   partition <- data.frame(part = factor(cl[which.min(loss1), ]), x = levels(sce_sub$x))
   cd <- colData(sce_sub)
-  cd2 <- cd[,!names(cd)%in%c("part","rowname")] %>%
+  cd2 <- cd[, !names(cd) %in% c("part", "rowname")] %>%
     as.data.frame() %>%
-    setNames(names(cd)[!names(cd)%in%c("part","rowname")])
+    setNames(names(cd)[!names(cd) %in% c("part", "rowname")])
   coldata <- DataFrame(rowname = colnames(sce_sub), cd2)
   coldata <- merge(coldata, partition, by = "x", sort = FALSE) %>%
     DataFrame()

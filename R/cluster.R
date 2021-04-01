@@ -66,7 +66,7 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
   }
   nclust <- fit$clust
   my_clusters <- fit$my_clusters
-  
+
   if (plot) {
     dat <- as.data.frame(ratio_pca)
     dat$GeneCluster <- factor(my.clusters)
@@ -86,13 +86,13 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
 gmmCluster <- function(ratio_pca, G) {
   init <- list(hcPairs = mclust::hc(ratio_pca, modelName = "EII", use = "VARS"))
   d_clust <- mclust::Mclust(ratio_pca,
-                            G = G, modelNames = "EII",
-                            initialization = init, ...
-                            )
+    G = G, modelNames = "EII",
+    initialization = init, ...
+  )
   nclust <- dim(d_clust$z)[2]
   my_clusters <- unname(d_clust$classification)
   cat("model-based optimal number of clusters:", nclust, "\n")
-  list(nclust=nclust, my_clusters=my_clusters)
+  list(nclust = nclust, my_clusters = my_clusters)
 }
 
 hierCluster <- function(ratio_pca) {
@@ -102,5 +102,5 @@ hierCluster <- function(ratio_pca) {
     cutreeDynamic(my_tree, distM = as.matrix(my_dist), verbose = 0)
   )
   nclust <- max(my_clusters)
-  list(nclust=nclust, my_clusters=my_clusters)
+  list(nclust = nclust, my_clusters = my_clusters)
 }

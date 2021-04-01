@@ -7,7 +7,7 @@
 #' Default is the cluster with the most cells
 #'
 #' @return A ggplot object of the dispersion estimates over the mean
-#' 
+#'
 #' @examples
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
@@ -50,7 +50,7 @@ estDisp <- function(sce, ct, pc = 2, genecluster) {
 
   # TODO: consider also outputting the dispersion estimates?
   # could do a `type="plot"` or `"values"` argument
-  
+
   p <- ggplot(est, aes(mean, .data$theta)) +
     geom_point() +
     geom_smooth() +
