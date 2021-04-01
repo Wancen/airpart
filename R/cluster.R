@@ -65,7 +65,7 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"), minClusterSiz
   if (method == "GMM") {
     fit <- gmmCluster(ratio_pca, G, ...)
   } else if (method == "hierarchical") {
-    fit <- hierCluster(ratio_pca)
+    fit <- hierCluster(ratio_pca,minClusterSize)
   }
   nclust <- fit$nclust
   my_clusters <- fit$my_clusters
@@ -98,7 +98,7 @@ gmmCluster <- function(ratio_pca, G, ...) {
   list(nclust = nclust, my_clusters = my_clusters)
 }
 
-hierCluster <- function(ratio_pca) {
+hierCluster <- function(ratio_pca,minClusterSize) {
   my_dist <- dist(ratio_pca, method = "manhattan")
   my_tree <- hclust(my_dist, method = "ward.D2")
   my_clusters <- unname(
