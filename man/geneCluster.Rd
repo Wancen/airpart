@@ -33,7 +33,7 @@ Gene clustering based on allelic ratio matrix with pseudo-count
 
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
-sce <- geneCluster(sce, G = 1:4)
+sce <- geneCluster(sce, G = seq_len(4))
 
 }
 \references{

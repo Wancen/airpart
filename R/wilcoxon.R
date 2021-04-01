@@ -50,6 +50,13 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
   if (missing(threshold)) {
     threshold <- 10^seq(from = -2, to = -0.4, by = 0.1)
   }
+  if (missing(genecluster)) {
+    stop("No gene cluster number")
+  }
+
+  stopifnot(c("ratio", "counts") %in% assayNames(sce))
+  stopifnot("x" %in% names(colData(sce)))
+  stopifnot("cluster" %in% names(rowData(sce)))
 
   # construct data frame
   sce_sub <- sce[rowData(sce)$cluster == genecluster, ]

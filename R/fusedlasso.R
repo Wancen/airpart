@@ -97,8 +97,14 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   if (missing(genecluster)) {
     stop("No gene cluster number")
   }
-  stopifnot(c("ratio", "counts") %in% assayNames(sce))
 
+  stopifnot(c("ratio", "counts") %in% assayNames(sce))
+  stopifnot("x" %in% names(colData(sce)))
+  stopifnot("cluster" %in% names(rowData(sce)))
+
+  if (missing(formula)) {
+    formula <- ratio ~ p(x, pen="gflasso")
+  }
   # default is empty list
   if (missing(adj.matrix)) {
     adj.matrix <- list()
@@ -158,7 +164,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
           lambda <- fit2$lambda
         }
         return(c(co, lambda))
-      }, double(nct))
+      }, double(nct+1))
       TRUE
     },
     error = function(e) {

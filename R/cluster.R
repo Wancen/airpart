@@ -27,11 +27,11 @@
 #' and a table of gene cluster is returned in metadata \code{geneCluster}
 #'
 #' @examples
-#' 
+#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
-#' sce <- geneCluster(sce, G = 1:4)
-#' 
+#' sce <- geneCluster(sce, G = seq_len(4))
+#'
 #' @importFrom mclust Mclust hc hcEII mclustBIC
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_manual theme_minimal labs
 #' @importFrom dynamicTreeCut cutreeDynamic

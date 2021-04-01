@@ -45,6 +45,9 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
   method <- match.arg(method, c("normal", "bootstrap"))[1]
   cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce)))
+
+  stopifnot(c("x","part") %in% names(colData(sce)))
+
   dat <- data.frame(
     ratio = cl_ratio,
     x = factor(rep(sce$x, each = length(sce))),
@@ -54,6 +57,9 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
   dat <- dat[!is.nan(dat$ratio), ]
   n <- table(dat$x)
   if (method == "bootstrap") {
+    if (missing(R)) {
+      stop("No number of bootstrap replicates")
+    }
     boot <- boot(dat, statistic = boot_ci, R = R, strata = dat$part, trace = trace, ...)
     confint <- vapply(seq_len(nlevels(dat$x)), function(m) {
       boot_ci <- boot.ci(boot, type = type, index = m, conf = level)

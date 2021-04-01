@@ -55,9 +55,9 @@ Suggests:
     knitr,
     rmarkdown,
     roxygen2 (>= 6.0.0),
-    testthat,
+    testthat (>= 3.0.0),
     pheatmap,
-    gplots,
+    gplots
 VignetteBuilder: knitr, rmarkdown
 biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,
     GeneRegulation, GeneExpression,
@@ -68,3 +68,4 @@ biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
+Config/testthat/edition: 3
