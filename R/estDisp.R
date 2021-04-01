@@ -6,10 +6,12 @@
 #' @param genecluster which gene cluster dispersion parameter want to be estimated.
 #' Default is the cluster with the most cells
 #'
+#' @return A ggplot object of the dispersion estimates over the mean
+#' 
 #' @examples
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
-#' sce <- geneCluster(sce, G = 1:4)
+#' sce <- geneCluster(sce, G = seq_len(4))
 #' estDisp(sce)
 #' @importFrom apeglm apeglm bbEstDisp
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth theme_minimal labs coord_cartesian
@@ -31,7 +33,7 @@ estDisp <- function(sce, ct, pc = 2, genecluster) {
   theta.hat <- 100
   param <- cbind(theta.hat, counts(sce_sub))
   maxDisp <- 5000
-  for (i in 1:5) {
+  for (i in seq_len(5)) {
     fit.mle <- apeglm(
       Y = assays(sce_sub)[["ase.mat"]], x = x, log.lik = NULL,
       param = param, no.shrink = TRUE, log.link = FALSE, method = "betabinC"
@@ -45,6 +47,10 @@ estDisp <- function(sce, ct, pc = 2, genecluster) {
   gene_mean <- rowMeans(counts(sce_sub))
   est <- data.frame(mean = gene_mean, theta = theta.hat)
   est <- est[est$mean > 2 & est$theta < 100, ] # focus on genes with evidence of over-dispersion
+
+  # TODO: consider also outputting the dispersion estimates?
+  # could do a `type="plot"` or `"values"` argument
+  
   p <- ggplot(est, aes(mean, .data$theta)) +
     geom_point() +
     geom_smooth() +

@@ -56,7 +56,7 @@ get_overlap<-function(gene_prom,feat,mef,mESC){
       fold_enrichment=sum(fold_enrichment),
       peak_count=sum(!is.na(fold_enrichment)))
   
-  enrich<-merge(mESC_ov2,mef_ov2,by="sym",all=T)
+  enrich<-merge(mESC_ov2,mef_ov2,by="sym",all=TRUE)
   return(enrich)
 }
 ```
@@ -78,7 +78,7 @@ for (i in 1:28) {
   cl_ratio<-as.vector(unlist(ratio[feat,]))
   cl_total<-as.vector(unlist(total_fil[feat,]))
   dat<-tibble(ratio=cl_ratio,x=factor(rep(as.vector(celltypeQC[,1]),each=length(feat)),levels = cell_meta_unique),cts=cl_total)
-  summary<-dat %>% group_by(x) %>% summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = T),mean=mean(ratio,na.rm = T),var=var(ratio,na.rm = T)) %>% data.frame()
+  summary<-dat %>% group_by(x) %>% summarise(weighted.mean=weighted.mean(ratio,cts,na.rm = TRUE),mean=mean(ratio,na.rm = TRUE),var=var(ratio,na.rm = TRUE)) %>% data.frame()
   summary2<-summary[order(summary$weighted.mean),]
   if(max(diff(summary2$weighted.mean))>0.2){
     print(paste("cluster",i,"has",length(feat),"genes exists allelic ratio imbalance"))

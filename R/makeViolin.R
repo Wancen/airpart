@@ -2,6 +2,8 @@
 #'
 #' @param sce SingleCellExperiment
 #'
+#' @return a ggplot2 object
+#'
 #' @examples
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)

@@ -9,6 +9,9 @@ makeViolin(sce)
 \arguments{
 \item{sce}{SingleCellExperiment}
 }
+\value{
+a ggplot2 object
+}
 \description{
 Plot allelic ratio as heatmap
 }

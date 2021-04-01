@@ -46,7 +46,7 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
   p <- rep(p.vec, each = n * nct * ngene / length(p.vec))
 
   # maternal allelic expression matrix
-  ase.mat <- lapply(1:ncl, function(m) {
+  ase.mat <- lapply(seq_len(ncl), function(m) {
     matrix(emdbook::rbetabinom(nclcell,
       prob = p[(nclcell * m - nclcell + 1):(nclcell * m)],
       size = cts[(m * ngenecl - ngenecl + 1):(m * ngenecl), ],
@@ -54,20 +54,20 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
     ), ncol = nct * n)
   })
   ase.mat <- do.call(rbind, ase.mat)
-  colnames(ase.mat) <- paste0("cell", 1:(nct * n))
-  rownames(ase.mat) <- paste0("gene", 1:ngene)
+  colnames(ase.mat) <- paste0("cell", seq_len(nct * n))
+  rownames(ase.mat) <- paste0("gene", seq_len(ngene))
 
   ase.pat <- cts - ase.mat # paternal allelic expression matrix
 
-  x <- factor(rep(paste0("ct", 1:nct), each = n)) # cell type vector
+  x <- factor(rep(paste0("ct", seq_len(nct)), each = n)) # cell type vector
 
-  true.ratio <- matrix(sapply(1:ncl, function(m) {
+  true.ratio <- matrix(vapply(seq_len(ncl), function(m) {
     rep(p.vec[((m - 1) * nct + 1):(m * nct)], ngenecl)
-  }),
+  }, double(nct*ngenecl)),
   ncol = nct, byrow = TRUE
   )
 
-  colnames(true.ratio) <- paste0("ct", 1:nct) # cell type names
+  colnames(true.ratio) <- paste0("ct", seq_len(nct)) # cell type names
   coldata <- data.frame(x = factor(x, levels = unique(x)))
   rowdata <- data.frame(true.ratio)
   assay.list <- list(ase.mat = ase.mat, ase.pat = ase.pat)

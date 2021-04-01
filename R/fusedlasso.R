@@ -61,7 +61,7 @@
 #' library(smurf)
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
-#' sce <- geneCluster(sce, G = 1:4)
+#' sce <- geneCluster(sce, G = seq_len(4))
 #' f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 #' sce_sub <- fusedLasso(sce,
 #'   formula = f, model = "binomial", genecluster = 1,
@@ -125,7 +125,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   # need to use tryCatch to avoid lambda.max errors
   try <- tryCatch(
     {
-      res <- sapply(1:niter, function(t) {
+      res <- vapply(seq_len(niter), function(t) {
         fit <- smurf::glmsmurf(
           formula = formula, family = fam,
           data = dat, adj.matrix = adj.matrix,
@@ -158,7 +158,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
           lambda <- fit2$lambda
         }
         return(c(co, lambda))
-      })
+      }, double(nct))
       TRUE
     },
     error = function(e) {
@@ -166,12 +166,12 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
     }
   )
   if (niter == 1) {
-    coef <- res[1:nct, ]
+    coef <- res[seq_len(nct), ]
     lambda <- unname(res[nct + 1, ])
     part <- match(coef, unique(coef)) %>% as.factor()
   } else {
     # multiple partitions
-    coef <- res[1:nct, ]
+    coef <- res[seq_len(nct), ]
     lambda <- res[nct + 1, ]
     part <- apply(coef, 2, function(z) match(z, unique(z)))
     colnames(part) <- paste0("part", seq_len(niter))
@@ -179,7 +179,9 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   }
   cl <- data.frame(part, x = levels(sce_sub$x))
   cd <- colData(sce_sub)
-  cd2 <- cd[,!names(cd)%in%c("part","rowname")] %>% as.data.frame() %>% setNames(names(cd)[!names(cd)%in%c("part","rowname")])
+  cd2 <- cd[,!names(cd) %in% c("part","rowname")] %>%
+    as.data.frame() %>%
+    setNames(names(cd)[!names(cd)%in%c("part","rowname")])
   coldata <- DataFrame(rowname = colnames(sce_sub), cd2)
   coldata <- merge(coldata, cl, by = "x", sort = FALSE) %>%
     DataFrame()

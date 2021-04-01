@@ -1,21 +1,27 @@
 Package: airpart
-Title: Differential cell-type-specific allelic imbalance with airpart
-Version: 0.0.17
+Title: Differential cell-type-specific allelic imbalance
+Version: 0.0.18
 Authors@R: 
     c(person(given = "Wancen",
            family = "Mu",
            role = c("aut", "cre"),
-           email = "wancen@ad.unc.edu",
+           email = "wancen@live.unc.edu",
            comment = c(ORCID = "0000-0002-5061-7581")),
     person(given = "Michael",
            family = "Love",
            role = c("aut", "ctb"),
            comment = c(ORCID = "0000-0001-8401-0545")))
-Description: Identifies subsets of genes displaying differential
-    cell-type-specific allelic imbalance across all cell types
-    or states.
+Description: Airpart identifies sets of genes displaying differential
+    cell-type-specific allelic imbalance across cell types
+    or states, utilizing single-cell allelic counts. It makes use of a
+    generalized fused lasso with binomial observations of allelic
+    counts to partition cell types by their allelic
+    imbalance. Alternatively, a nonparametric method for partitioning
+    cell types is offered. The package includes a number of
+    visualizations and quality control functions for examining single
+    cell allelic imbalance datasets.
 License: GPL (>=2)
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.0)
 Imports:
     SingleCellExperiment,
     SummarizedExperiment,
@@ -34,14 +40,17 @@ Imports:
     matrixStats,
     dplyr,
     plyr,
-    magrittr,
     pbapply,
     ggplot2,
     ComplexHeatmap,
     forestplot,
     RColorBrewer,
     rlang,
-    lpSolve
+    lpSolve,
+    grid,
+    grDevices,
+    graphics,
+    utils
 Suggests: 
     knitr,
     rmarkdown,
@@ -50,6 +59,12 @@ Suggests:
     pheatmap,
     gplots,
 VignetteBuilder: knitr, rmarkdown
+biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,
+    GeneRegulation, GeneExpression,
+    Transcription, TranscriptomeVariant,
+    CellBiology, FunctionalGenomics,
+    DifferentialExpression,
+    GraphAndNetwork, Regression, Clustering, QualityControl
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1

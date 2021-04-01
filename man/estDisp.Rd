@@ -16,6 +16,9 @@ estDisp(sce, ct, pc = 2, genecluster)
 \item{genecluster}{which gene cluster dispersion parameter want to be estimated.
 Default is the cluster with the most cells}
 }
+\value{
+A ggplot object of the dispersion estimates over the mean
+}
 \description{
 Estimate overdispersion parameter of a betabinomial
 }

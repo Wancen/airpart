@@ -15,6 +15,9 @@ makeRatioHeatmap(sce, show_row_names = FALSE, order_by_group = TRUE, ...)
 
 \item{...}{Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.}
 }
+\value{
+generates a heatmap
+}
 \description{
 Plot allelic ratio as heatmap
 }

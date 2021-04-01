@@ -58,24 +58,15 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
   # PCA first
   pca <- prcomp(assays(sce)[["ratio_pseudo"]], rank. = 2 * nct) # use 2*nct
   ratio_pca <- as.matrix(pca$x)
+
   if (method == "GMM") {
-    init <- list(hcPairs = mclust::hc(ratio_pca, modelName = "EII", use = "VARS"))
-    d_clust <- mclust::Mclust(ratio_pca,
-      G = G, modelNames = "EII",
-      initialization = init, ...
-    )
-    nclust <- dim(d_clust$z)[2]
-    my.clusters <- unname(d_clust$classification)
-    cat("model-based optimal number of clusters:", nclust, "\n")
+    fit <- gmmCluster(ratio_pca, G)
+  } else if (method == "hierarchical") {
+    fit <- hierCluster(ratio_pca)
   }
-  if (method == "hierarchical") {
-    my.dist <- dist(ratio_pca, method = "manhattan")
-    my.tree <- hclust(my.dist, method = "ward.D2")
-    my.clusters <- unname(
-      cutreeDynamic(my.tree, distM = as.matrix(my.dist), verbose = 0)
-    )
-    nclust <- max(my.clusters)
-  }
+  nclust <- fit$clust
+  my_clusters <- fit$my_clusters
+  
   if (plot) {
     dat <- as.data.frame(ratio_pca)
     dat$GeneCluster <- factor(my.clusters)
@@ -86,8 +77,30 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
       theme_minimal()
     print(p)
   }
-  rowdata <- cbind(rowData(sce), cluster = my.clusters)
+  rowdata <- cbind(rowData(sce), cluster = my_clusters)
   rowData(sce) <- rowdata
-  metadata(sce)$geneCluster <- table(my.clusters)
+  metadata(sce)$geneCluster <- table(my_clusters)
   return(sce)
+}
+
+gmmCluster <- function(ratio_pca, G) {
+  init <- list(hcPairs = mclust::hc(ratio_pca, modelName = "EII", use = "VARS"))
+  d_clust <- mclust::Mclust(ratio_pca,
+                            G = G, modelNames = "EII",
+                            initialization = init, ...
+                            )
+  nclust <- dim(d_clust$z)[2]
+  my_clusters <- unname(d_clust$classification)
+  cat("model-based optimal number of clusters:", nclust, "\n")
+  list(nclust=nclust, my_clusters=my_clusters)
+}
+
+hierCluster <- function(ratio_pca) {
+  my_dist <- dist(ratio_pca, method = "manhattan")
+  my_tree <- hclust(my_dist, method = "ward.D2")
+  my_clusters <- unname(
+    cutreeDynamic(my_tree, distM = as.matrix(my_dist), verbose = 0)
+  )
+  nclust <- max(my_clusters)
+  list(nclust=nclust, my_clusters=my_clusters)
 }

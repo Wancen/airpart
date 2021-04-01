@@ -24,7 +24,7 @@
 #' library(S4Vectors)
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
-#' sce <- geneCluster(sce, G = 1:4)
+#' sce <- geneCluster(sce, G = seq_len(4))
 #' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' metadata(sce_sub)$partition
 #' metadata(sce_sub)$threshold
@@ -50,6 +50,7 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
   if (missing(threshold)) {
     threshold <- 10^seq(from = -2, to = -0.4, by = 0.1)
   }
+
   # construct data frame
   sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
   cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
@@ -59,13 +60,16 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
     x = factor(rep(sce_sub$x, each = length(sce_sub))),
     cts = cl_total
   )
+
   nct <- nlevels(sce$x)
+
   if (missing(adj.matrix)) {
     adj.matrix <- matrix(1, nct, nct)
   }
-  out <- list()
-  obj <- sapply(1:length(threshold), function(j) {
-    fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method, threshold = threshold[j], adj.matrix = adj.matrix, ...)
+  
+  obj <- lapply(seq_len(length(threshold)), function(j) {
+    fit <- wilcoxInt(dat, p.adjust.method = p.adjust.method,
+                     threshold = threshold[j], adj.matrix = adj.matrix, ...)
     label <- data.frame(type = factor(levels(sce$x)), par = factor(fit))
     dat2 <- dat %>%
       left_join(label, by = c("x" = "type"))
@@ -75,18 +79,18 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
     # loss function
     loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
       nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
-    out[["cl"]] <- fit
-    out[["loss1"]] <- loss1
-    return(out)
+    return(list(cl=fit, loss1=loss1))
   })
 
   cl <- do.call(rbind, obj[seq(1, length(obj), by = 2)])
   loss1 <- do.call(rbind, obj[seq(2, length(obj), by = 2)])
   partition <- data.frame(part = factor(cl[which.min(loss1), ]), x = levels(sce_sub$x))
   cd <- colData(sce_sub)
-  cd2 <- cd[,!names(cd)%in%c("part","rowname")] %>% as.data.frame() %>% setNames(names(cd)[!names(cd)%in%c("part","rowname")])
+  cd2 <- cd[,!names(cd)%in%c("part","rowname")] %>%
+    as.data.frame() %>%
+    setNames(names(cd)[!names(cd)%in%c("part","rowname")])
   coldata <- DataFrame(rowname = colnames(sce_sub), cd2)
-  coldata <- merge(coldata, partition, by = "x", sort = F) %>%
+  coldata <- merge(coldata, partition, by = "x", sort = FALSE) %>%
     DataFrame()
   rownames(coldata) <- coldata$rowname
   colData(sce_sub) <- coldata

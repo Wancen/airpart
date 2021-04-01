@@ -16,6 +16,7 @@
 #' or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}(lty=2, col = "red")
 #' @param ... Passsed on the other argument in \code{\link[forestplot]{forestplot}}.
 #'
+#' @return generates a forest plot
 #'
 #' @seealso \code{\link[forestplot]{forestplot}}, \code{\link[forestplot]{fpColors}},
 #' \code{\link[forestplot]{fpShapesGp}}, \code{\link[forestplot]{fpLegend}}

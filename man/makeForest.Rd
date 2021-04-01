@@ -34,6 +34,9 @@ or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}
 
 \item{...}{Passsed on the other argument in \code{\link[forestplot]{forestplot}}.}
 }
+\value{
+generates a forest plot
+}
 \description{
 Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval.
 It is based on the \pkg{rmeta}-package`s \code{forestplot} function.
