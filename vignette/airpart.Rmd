@@ -288,6 +288,23 @@ makeForest(sce_sub)
 makeViolin(sce_sub)
 makeRatioHeatmap(sce_sub)
 ```
+# Per gene testing 
+
+If you are interested in specific gene allelic imbalance, you can do
+
+```{r}
+sce_gene <- sce_sub[which(rownames(sce_sub)%in%c("gene1","gene2")),]
+rowData(sce_gene)$cluster <- seq_len(dim(sce_gene)[1])
+library(smurf)
+library(pbapply)
+f <- ratio ~ p(x, pen = "gflasso")
+fl <- pbsapply(1:dim(sce_gene)[1], function(i) {
+  sce_genesub <- airpart::fusedLasso(sce_gene,formula=f,model="binomial",genecluster = i,ncores=4)
+  sce_genesub <- allelicRatio(sce_genesub)
+  print(metadata(sce_genesub)$estimator)
+},cl=1)
+```
+
 
 # Session Info
 

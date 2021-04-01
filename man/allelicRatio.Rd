@@ -4,7 +4,14 @@
 \alias{allelicRatio}
 \title{Fit betabinomial on each cell type groups}
 \usage{
-allelicRatio(sce, level = 0.95, method = c("Normal", "bootstrap"), R, ...)
+allelicRatio(
+  sce,
+  level = 0.95,
+  method = c("Normal", "bootstrap"),
+  R,
+  trace = TRUE,
+  ...
+)
 }
 \arguments{
 \item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
@@ -17,6 +24,8 @@ allelicRatio(sce, level = 0.95, method = c("Normal", "bootstrap"), R, ...)
 however it is computationally intensive.}
 
 \item{R}{The number of bootstrap replicates.}
+
+\item{trace}{logical indicating if output should be produced for each iteration.}
 
 \item{...}{Argument for the \code{\link[boot]{boot}} functions.}
 }

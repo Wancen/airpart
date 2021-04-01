@@ -168,7 +168,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   if (niter == 1) {
     coef <- res[1:nct, ]
     lambda <- unname(res[nct + 1, ])
-    part <- match(coef, unique(coef))
+    part <- match(coef, unique(coef)) %>% as.factor()
   } else {
     # multiple partitions
     coef <- res[1:nct, ]
@@ -177,8 +177,10 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
     colnames(part) <- paste0("part", seq_len(niter))
     names(lambda) <- paste0("part", seq_len(niter))
   }
-  cl <- data.frame(part=factor(part), x = levels(sce_sub$x))
-  coldata <- DataFrame(rowname = colnames(sce_sub), colData(sce_sub))
+  cl <- data.frame(part, x = levels(sce_sub$x))
+  cd <- colData(sce_sub)
+  cd2 <- cd[,!names(cd)%in%c("part","rowname")] %>% as.data.frame() %>% setNames(names(cd)[!names(cd)%in%c("part","rowname")])
+  coldata <- DataFrame(rowname = colnames(sce_sub), cd2)
   coldata <- merge(coldata, cl, by = "x", sort = FALSE) %>%
     DataFrame()
   rownames(coldata) <- coldata$rowname
