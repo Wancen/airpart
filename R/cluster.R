@@ -66,7 +66,7 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
   } else if (method == "hierarchical") {
     fit <- hierCluster(ratio_pca)
   }
-  nclust <- fit$clust
+  nclust <- fit$nclust
   my_clusters <- fit$my_clusters
 
   if (plot) {
