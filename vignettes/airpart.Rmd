@@ -4,8 +4,15 @@ author:
   - name: Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, Rob Patro, Michael I. Love
 date: "Feb 1, 2021"
 abstract: |
-  airpart is an R package that identifies subsets of genes 
-  displaying differential allelic imbalance across cell types.
+  Airpart identifies sets of genes displaying differential
+  cell-type-specific allelic imbalance across cell types
+  or states, utilizing single-cell allelic counts. It makes use of a
+  generalized fused lasso with binomial observations of allelic
+  counts to partition cell types by their allelic
+  imbalance. Alternatively, a nonparametric method for partitioning
+  cell types is offered. The package includes a number of
+  visualizations and quality control functions for examining single
+  cell allelic imbalance datasets.
 output: 
   html_document:
     toc: true
@@ -22,35 +29,42 @@ vignette: |
 knitr::opts_chunk$set(echo=TRUE)
 ```
 
-# Overview of data
+# Overview of input data
 
-We will simulate some data using `makeSimulatedData` function provided
-within the *airpart* package.
+The airpart package takes input data of counts from each of two
+alleles across genes (rows) and cells (columns) from a single-cell
+RNA-seq experiment.
+
+For demonstration in the package vignette, We will simulate some data
+using `makeSimulatedData` function provided within the *airpart*
+package. We will examine the allelic counts and then perform QC steps
+before analyzing the data for allelic imbalance across groups of cells.
 
 ### Simulation set-up
 
-Set up simulated example dataset has 3 gene clusters with differential
+The simulated example dataset has 3 gene clusters with differential
 allelic imbalance (DAI): 
 
-* first cluster has pairs of cell types with same allelic ratio with 0.2 and 0.8 (larger DAI)
-* second cluster has balanced allelic ratio
-* third cluster has pairs of cell types with same allelic ratio with 0.7 and 0.9 (smaller DAI)
+* the first cluster has pairs of cell types with same allelic ratio
+  with 0.2 and 0.8 (larger DAI) 
+* the second cluster has balanced allelic ratio
+* the third cluster has pairs of cell types with same allelic ratio
+  with 0.7 and 0.9 (smaller DAI)
 
-Below we specify:
+Below we specify a number of simulation settings as arguments to the
+simulation function:
 
 * the "noisy" cell count is 2
 * the normal cell count is 10
 * 4 cell types
 * 20 cells within each cell types
 * 25 genes within each gene cluster
-* overdispersion parameter in `rbetabinom` is 20
+* overdispersion parameter `theta` in `rbetabinom` is 20 (higher is
+  less dispersion)
 
 ```{r}
 library(airpart)
-# library(devtools)
-# load_all()
 suppressPackageStartupMessages(library(SingleCellExperiment))
-# suppressPackageStartupMessages(library(smurf))
 p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
 set.seed(2021)
 sce <- makeSimulatedData(mu1 = 2, mu2 = 10, nct = 4,n = 20,
@@ -59,21 +73,29 @@ sce <- makeSimulatedData(mu1 = 2, mu2 = 10, nct = 4,n = 20,
 ```
 
 ```{r}
-unique(rowData(sce))
-table(colData(sce))
-assays(sce)[["ase.mat"]][1:5,1:5]
+unique(rowData(sce)) # the true underlying allelic ratios
+table(colData(sce)) # counts of each cell type
+assays(sce)[["ase.mat"]][1:5,1:5] # allelic counts (maternal)
 ```
 
 # Create allelic ratio matrix
 
-Here we add the pseudo count for gene clustering and visualization.
+In the `preprocess` step, we add a pseudo-count for gene clustering
+and visualization (not used for inference later on allelic imbalance
+though, which uses original allelic counts). From the heatmap, we can
+clearly identify the three gene clusters (across rows), and we also
+see cell type differences (across columns). Within each cell type,
+there are some cells with noisier estimates (lower total count) than
+others. 
 
 ```{r}
 sce <- preprocess(sce)
 makeRatioHeatmap(sce)
 ```
 
-The true partition in the simulation is given by these underlying ratios:
+The true partition in the simulation is given by these underlying
+ratios (this code only useful for simulated data, as true allelic
+ratio would not be known from scRNA-seq data).
 
 ```{r}
 library(pheatmap)
@@ -86,9 +108,12 @@ pheatmap(unique(rowData(sce)),
          show_colnames=FALSE, show_rownames=FALSE)
 ```
 
-# Quality control step
+# Quality control steps
 
 ## QC on cells
+
+We recommend both QC on cells and on genes. We begin with cell allelic
+ratio quality control. For details on these metrics, see `?cellQC`.
 
 ```{r}
 cellQCmetrics <- cellQC(sce,mad_detected=4)
@@ -102,14 +127,19 @@ out based on `sum`,`detected` and `spikePercent`.
 keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
   cellQCmetrics$filter_detected | # sufficient molecules counted
-  cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
+  # sufficient features expressed compared to spike genes, high quality cells
+  cellQCmetrics$filter_spike  
 ) 
 sce <- sce[,keep_cell]
 ```
 
 ## QC on genes
 
-Note that we require genes expressed in at least **25%** cells within each cell types and the genes has high allelic imbalance variation among cell types. 
+We also recommend QC on genes for allelic ratio analysis.. Note that
+we require genes expressed in at least **25%** cells within each cell
+types and the genes has high allelic imbalance variation among cell
+types. The following code chunk is recommended (not evaluated here
+though). 
 
 ```{r, eval=FALSE}
 featureQCmetric <- featureQC(sce)
@@ -121,32 +151,43 @@ sce <- sce[keep_feature,]
 
 # Gene clustering
 
+TODO: write more on gene clustering -- how it is part of our method...
+
 We provide two methods for gene clustering. 
 
-* Gaussian Mixture modeling
+1. Gaussian Mixture modeling
 
-This is the default method. The scatter plot is shown based on Top 2
-PCs. And `plot=FALSE` can be used to avoid showing the plot.
-
+Gaussian mixture modeling is the default method for gene
+clustering. The scatter plot is shown based on top 2 PCs of the
+smoothed allelic ratio data. The argument `plot=FALSE` can be used to
+avoid showing the plot.
 
 ```{r}
 sce <- geneCluster(sce, G=1:4)
 metadata(sce)$geneCluster
 ```
 
-* Hierarchical clustering 
+2. Hierarchical clustering 
 
 ```{r}
 sce.hc <- geneCluster(sce, method="hierarchical")
 metadata(sce.hc)$geneCluster
 ```
 
-# Running airpart
+In this simulated dataset case, the clustering is very similar, but on
+allelic scRNA-seq datasets, we have found improved clustering with the
+Gaussian mixture model approach (more similar genes within cluster,
+based on visual inspection in PC space and of allelic ratio heatmaps).
+
+# Running airpart for allelic imbalance across cells
 
 ## Simple summary table of alleic ratio
 
-Quickly look at the weighted mean of allelic ratio for each gene
-cluster. Identify the interested gene cluster.
+We first quickly look at the weighted mean of allelic ratio for each
+gene cluster. From this step we will identify the interesting gene
+clusters.
+
+TODO: not sure about the look of the asis results here...
 
 ```{r, results = "asis"}
 sce <- summaryAllelicRatio(sce)
@@ -179,7 +220,6 @@ estDisp(sce)
 The penalty $\lambda$ in fused lasso as well as partition groups are stored in the metadata.
 
 ```{r}
-# f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce,model="binomial",
                       genecluster=1, ncores=2, niter=2)
 ```
@@ -249,7 +289,8 @@ p.vec <- ( rep(c(
     rep(0,nct/2),
     seq(from=2,to=4,length.out=nct/2)
   ), each=2) + 5 ) / 10
-sce <- makeSimulatedData(mu1=2,mu2=10,nct=nct,n=30,ngenecl=50,theta=20,ncl=3,p.vec=p.vec)
+sce <- makeSimulatedData(mu1=2, mu2=10, nct=nct, n=30,
+                         ngenecl=50, theta=20, ncl=3, p.vec=p.vec)
 sce <- preprocess(sce)
 
 cellQCmetrics <- cellQC(sce,mad_detected=4)
@@ -270,12 +311,9 @@ makeRatioHeatmap(sce)
 sce <- geneCluster(sce, G=1:4)
 sce <- summaryAllelicRatio(sce) # identify interesting gene cluster
 estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
-
-# f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-sce_sub <- fusedLasso(sce,model="binomial",
-                      genecluster=1,ncores=2) 
+sce_sub <- fusedLasso(sce, model="binomial",
+                      genecluster=1, ncores=2) 
 sce_sub <- allelicRatio(sce_sub)
-
 makeForest(sce_sub)
 makeViolin(sce_sub)
 makeRatioHeatmap(sce_sub)
@@ -288,14 +326,12 @@ If you are interested in specific gene allelic imbalance, you can do
 sce_gene <- sce_sub[which(rownames(sce_sub)%in%c("gene1","gene2")),]
 rowData(sce_gene)$cluster <- seq_len(dim(sce_gene)[1])
 library(pbapply)
-# f <- ratio ~ p(x, pen = "gflasso")
 fl <- pbsapply(1:dim(sce_gene)[1], function(i) {
   sce_genesub <- airpart::fusedLasso(sce_gene,model="binomial",genecluster = i,ncores=2)
   sce_genesub <- allelicRatio(sce_genesub)
   print(metadata(sce_genesub)$estimator)
 },cl=1)
 ```
-
 
 # Session Info
 
