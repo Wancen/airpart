@@ -173,6 +173,8 @@ estDisp(sce)
 
 ## Modeling using fused lasso with binomial likelihood
 
+The penalty $\lambda$ in fused lasso as well as partition groups are stored in the metadata.
+
 ```{r}
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce, formula=f, model="binomial",
@@ -181,6 +183,7 @@ sce_sub <- fusedLasso(sce, formula=f, model="binomial",
 
 ```{r, results="asis"}
 knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
+metadata(sce_sub)$lambda
 ```
 
 Here `ncores` is the number of CPU used for parallelization. One can
@@ -196,7 +199,6 @@ final partition.
 ```{r, results='asis', collapse=TRUE}
 sce_sub <- consensusPart(sce_sub)
 knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
-metadata(sce_sub)$lambda
 ```
 
 ## Modeling using pairwise Mann Whitney Wilcoxon extension

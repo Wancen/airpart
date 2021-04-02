@@ -129,10 +129,10 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   }
   nct <- nlevels(sce$x)
   # need to use tryCatch to avoid lambda.max errors
-  try <- tryCatch(
+  res <- tryCatch(
     {
-      res <- vapply(seq_len(niter), function(t) {
-        fit <- smurf::glmsmurf(
+        vapply(seq_len(niter), function(t) {
+          fit <- smurf::glmsmurf(
           formula = formula, family = fam,
           data = dat, adj.matrix = adj.matrix,
           weights = weight,
@@ -165,12 +165,13 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
         }
         return(c(co, lambda))
       }, double(nct+1))
-      TRUE
     },
     error = function(e) {
       message(msg)
+      return(NA)
     }
   )
+  suppressWarnings(if (is.na(res)) stop("Error occurred in attempting to run fused lasso"))
   if (niter == 1) {
     coef <- res[seq_len(nct), ]
     lambda <- unname(res[nct + 1, ])
