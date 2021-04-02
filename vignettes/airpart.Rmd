@@ -22,14 +22,6 @@ vignette: |
 knitr::opts_chunk$set(echo=TRUE)
 ```
 
-# Download package
-
-```{r}
-library(devtools)
-load_all()
-# library(airpart)
-```
-
 # Overview of data
 
 We will simulate some data using `makeSimulatedData` function provided
@@ -54,6 +46,7 @@ Below we specify:
 * overdispersion parameter in `rbetabinom` is 20
 
 ```{r}
+library(airpart)
 suppressPackageStartupMessages(library(SingleCellExperiment))
 p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
 sce <- makeSimulatedData(mu1 = 2, mu2 = 10, nct = 4,n = 20,
