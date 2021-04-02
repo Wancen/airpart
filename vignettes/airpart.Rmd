@@ -176,8 +176,8 @@ estDisp(sce)
 The penalty $\lambda$ in fused lasso as well as partition groups are stored in the metadata.
 
 ```{r}
-f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-sce_sub <- fusedLasso(sce, formula=f, model="binomial",
+# f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
+sce_sub <- fusedLasso(sce,model="binomial",
                       genecluster=1, ncores=2, niter=2)
 ```
 
@@ -268,8 +268,8 @@ sce <- geneCluster(sce, G=1:4)
 sce <- summaryAllelicRatio(sce) # identify interesting gene cluster
 estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
 
-f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
-sce_sub <- fusedLasso(sce,formula=f,model="binomial",
+# f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
+sce_sub <- fusedLasso(sce,model="binomial",
                       genecluster=1,ncores=2) 
 sce_sub <- allelicRatio(sce_sub)
 
@@ -284,11 +284,10 @@ If you are interested in specific gene allelic imbalance, you can do
 ```{r}
 sce_gene <- sce_sub[which(rownames(sce_sub)%in%c("gene1","gene2")),]
 rowData(sce_gene)$cluster <- seq_len(dim(sce_gene)[1])
-library(smurf)
 library(pbapply)
-f <- ratio ~ p(x, pen = "gflasso")
+# f <- ratio ~ p(x, pen = "gflasso")
 fl <- pbsapply(1:dim(sce_gene)[1], function(i) {
-  sce_genesub <- airpart::fusedLasso(sce_gene,formula=f,model="binomial",genecluster = i,ncores=4)
+  sce_genesub <- airpart::fusedLasso(sce_gene,model="binomial",genecluster = i,ncores=4)
   sce_genesub <- allelicRatio(sce_genesub)
   print(metadata(sce_genesub)$estimator)
 },cl=1)

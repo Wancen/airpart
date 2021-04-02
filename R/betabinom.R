@@ -33,7 +33,6 @@
 #'   parallel = "multicore", ncpus = 4
 #' )
 #'
-#' @importFrom broom.mixed tidy
 #' @importFrom boot boot boot.ci
 #' @importFrom stats setNames coef pt qnorm
 #' @importFrom VGAM vglm betabinomial confintvglm
