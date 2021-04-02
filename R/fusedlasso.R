@@ -171,7 +171,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
       return(NA)
     }
   )
-  suppressWarnings(if (is.na(res)) stop("Error occurred in attempting to run fused lasso"))
+  if (length(res) == 1 && is.na(res)) stop("Error occurred in attempting to run fused lasso")
   if (niter == 1) {
     coef <- res[seq_len(nct), ]
     lambda <- unname(res[nct + 1, ])

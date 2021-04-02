@@ -47,7 +47,10 @@ Below we specify:
 
 ```{r}
 library(airpart)
+# library(devtools)
+# load_all()
 suppressPackageStartupMessages(library(SingleCellExperiment))
+# suppressPackageStartupMessages(library(smurf))
 p.vec <- rep(c(0.2,0.8,0.5,0.5,0.7,0.9),each=2)
 set.seed(2021)
 sce <- makeSimulatedData(mu1 = 2, mu2 = 10, nct = 4,n = 20,
@@ -287,7 +290,7 @@ rowData(sce_gene)$cluster <- seq_len(dim(sce_gene)[1])
 library(pbapply)
 # f <- ratio ~ p(x, pen = "gflasso")
 fl <- pbsapply(1:dim(sce_gene)[1], function(i) {
-  sce_genesub <- airpart::fusedLasso(sce_gene,model="binomial",genecluster = i,ncores=4)
+  sce_genesub <- airpart::fusedLasso(sce_gene,model="binomial",genecluster = i,ncores=2)
   sce_genesub <- allelicRatio(sce_genesub)
   print(metadata(sce_genesub)$estimator)
 },cl=1)
