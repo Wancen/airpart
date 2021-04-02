@@ -3,6 +3,7 @@ library(S4Vectors)
 test_that("wrong inputs", {
 
   # missed input arrays
+  set.seed(2021)
   sce <- makeSimulatedData()
   expect_error(wilcoxExt(sce))
 
@@ -21,9 +22,10 @@ test_that("wrong inputs", {
 
 test_that("basic wilcox analyses", {
 
+  set.seed(2021)
   sce <- makeSimulatedData()
   sce <- preprocess(sce)
-  sce <- geneCluster(sce, G = seq_len(4))
+  sce <- geneCluster(sce, G = seq_len(4), plot=FALSE)
   sce_sub <- wilcoxExt(sce,genecluster = 1)
   expect_true(is.numeric(metadata(sce_sub)$threshold))
 
