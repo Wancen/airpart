@@ -19,6 +19,7 @@
 #' and \code{"std.error"} if use normal approximation.
 #'
 #' @examples
+#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
@@ -73,8 +74,10 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   } else if (method == "normal") {
     estimator <- betaBinom(dat, ci = TRUE, level = level, trace = trace)
-    coef <- unlist(estimator[seq(1, length(estimator), by = 2)])
-    confint <- matrix(do.call(rbind, estimator[seq(2, length(estimator), by = 2)]), ncol = 2) %>%
+    # TODO is this correct?
+    coef <- do.call(cbind, lapply(estimator, `[[`, 1))
+    # TODO is this correct?
+    confint <- matrix(do.call(rbind, lapply(estimator, `[[`, 2)), ncol = 2) %>%
       as.data.frame() %>%
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
     aa <- (1 - level) / 2
@@ -87,6 +90,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
   order <- dat %>%
     group_by(.data$part) %>%
     summarise(x = unique(.data$x))
+  # TODO this gives a warning... are these objects being combined correctly?
   est <- cbind(x = order$x, round(coef, 3)) # allelic ratio estimator
   pvalue <- cbind(x = order$x, pvalue = pvalue)
   ci <- cbind(x = order$x, round(confint, 3))
@@ -99,71 +103,24 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
   return(sce)
 }
 
-# betabinomial estimator
-# betaBinom <- function(data,ci,level) {
-#   # Modeling each group separately because they may have different scale of over-dispersion
-# suppressWarnings(fit <- gamlss::gamlss(cbind(ratio * cts, cts - ratio * cts) ~ x+0,
-#                                        sigma.formula = ~part+0, # allow different dispersion for each group
-#                                        data = data,
-#                                        family = gamlss.dist::BB("identity")))
-# #   try <- tryCatch(
-# #     {
-#       td <- broom.mixed::tidy(fit,conf.int = T,conf.level = level)
-#       TRUE
-#     },
-#     error = function(e) {
-#         p <- fit$mu.df
-#         df_r = fit$df.residual
-#         w = fit$weights
-#         idx = w > 0
-#         dispersion = sum(w[idx] * fit$residuals[idx]^2)/df_r
-#         p1 = seq_len(p)
-#         nm <- names(fit$mu.coefficients[fit$mu.qr$pivot[p1]])
-#         covmat = dispersion * chol2inv(fit$mu.qr$qr[p1, p1])
-#         dimnames(covmat) = list(nm, nm)
-#         se <- sqrt(diag(covmat))
-#         cf <- fit$mu.coefficients
-#         aa <- (1 - level) / 2
-#         aa <- c(aa, 1 - aa)
-#         fac <- qnorm(aa)
-#         ci <- cf + se %o% fac
-#         td <- data.frame(`.rownames`=nm,estimate=cf,`std.error`=se,`conf.low`= ci[,1],`conf.high`=ci[,2])
-#     }
-#   )
-#   td$estimate <- 1 / (1 + exp(-td$estimate))
-#   td$conf.low <- 1 / (1 + exp(-td$conf.low))
-#   td$conf.high <- 1 / (1 + exp(-td$conf.high))
-#   if(ci){
-#     return(td[which(td$parameter=="mu"),c(".rownames","estimate","std.error","conf.low","conf.high")])
-#   }else{
-#     return(unname(unlist(td[which(td$parameter=="mu"),c("estimate")])))
-#   }
-# }
-
 # betabinomial bootstrap estimator
 betaBinom <- function(data, ci, level, trace) {
-
-  # modeling each group separately because they may have different scale of over-dispersion
-
-  # NOTE: sapply either returns a matrix of coefficients or a list of coefficients and confidence intervals
-  res <- sapply(seq_len(nlevels(data$part)), function(m) {
+  # modeling each group separately because they may
+  # have different scale of over-dispersion
+  res <- lapply(seq_len(nlevels(data$part)), function(m) {
     data2 <- data[which(data$part == m), ]
     if (length(unique(data2$x)) == 1) {
-      suppressWarnings(fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ 1, VGAM::betabinomial(
-        lmu = "identitylink",
-        lrho = "identitylink"
-      ),
-      data = data2,
-      trace = trace
-      ))
+      suppressWarnings({
+        fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ 1,
+                 VGAM::betabinomial(lmu = "identitylink", lrho = "identitylink"),
+                 data = data2, trace = trace)
+      })
     } else {
-      suppressWarnings(fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ x, VGAM::betabinomial(
-        lmu = "identitylink",
-        lrho = "identitylink"
-      ),
-      data = data2,
-      trace = trace
-      ))
+      suppressWarnings({
+        fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ x,
+                 VGAM::betabinomial(lmu = "identitylink", lrho = "identitylink"),
+                 data = data2, trace = trace)
+      })
     }
     coef <- coef(fit)[-2]
     coef <- coef + c(0, rep(coef[1], (length(coef) - 1)))
@@ -175,6 +132,12 @@ betaBinom <- function(data, ci, level, trace) {
       return(unname(coef))
     }
   })
+
+  # return a matrix of coefficients (columns) if the CI were not requested
+  if (!ci) {
+    res <- do.call(cbind, res)
+  }
+  
   return(res)
 }
 
@@ -182,5 +145,5 @@ betaBinom <- function(data, ci, level, trace) {
 boot_ci <- function(data, indices, trace) {
   data_b <- data[indices, ]
   coef <- betaBinom(data_b, ci = FALSE, trace=trace)
-  return(unname(unlist(coef)))
+  return(unname(coef))
 }

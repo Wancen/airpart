@@ -57,7 +57,7 @@ Suggests:
     testthat (>= 3.0.0),
     pheatmap,
     gplots
-VignetteBuilder: knitr, rmarkdown
+VignetteBuilder: knitr
 biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,
     GeneRegulation, GeneExpression,
     Transcription, TranscriptomeVariant,
