@@ -8,7 +8,7 @@
 #' @param genecluster which gene cluster result want to be returned.
 #' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
 #' @param threshold a vector with candidate thresholds for raw p-value
-#' cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.1).
+#' cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.2).
 #' For details please see vignette
 #' @param p.adjust.method method for adjusting p-values
 #' (see \code{\link[stats]{p.adjust}}). Can be abbreviated
@@ -48,7 +48,7 @@
 #' @export
 wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj.matrix, ...) {
   if (missing(threshold)) {
-    threshold <- 10^seq(from = -2, to = -0.4, by = 0.1)
+    threshold <- 10^seq(from = -2, to = -0.4, by = 0.2)
   }
   if (missing(genecluster)) {
     stop("No gene cluster number")

@@ -21,7 +21,7 @@ wilcoxExt(
 Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}}
 
 \item{threshold}{a vector with candidate thresholds for raw p-value
-cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.1).
+cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.2).
 For details please see vignette}
 
 \item{p.adjust.method}{method for adjusting p-values

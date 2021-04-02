@@ -10,7 +10,8 @@
 #' sce <- geneCluster(sce, G = 1:4)
 #' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' makeViolin(sce_sub)
-#' @importFrom ggplot2 ggplot aes geom_violin scale_fill_brewer theme labs
+#' @importFrom ggplot2 ggplot aes geom_boxplot geom_violin scale_fill_brewer theme labs
+#' @importFrom dplyr n
 #'
 #' @export
 makeViolin <- function(sce) {
@@ -23,8 +24,15 @@ makeViolin <- function(sce) {
     part = factor(rep(sce$part, each = length(sce)))
   )
   dat <- dat[!is.nan(dat$ratio), ]
-  p <- ggplot(dat, aes(x = .data$x, y = .data$ratio, fill = .data$part)) +
-    geom_violin(alpha = 0.5) +
+  # sample size
+  sample_size = dat %>% group_by(.data$x) %>% summarise(num=n())
+  dat <- dat %>%
+    left_join(sample_size) %>%
+    mutate(myaxis = paste0(.data$x, "\n", "n=", .data$num))
+  p <- ggplot(dat, aes(x = .data$myaxis, y = .data$ratio, fill = .data$part)) +
+    geom_violin(alpha = 0.8,color='#A4A4A4') +
+    geom_boxplot(width=0.1, color="grey")+
+    theme_minimal() +
     theme(legend.position = "none") +
     scale_fill_brewer(palette = "BuPu") +
     labs(x = "cell type", y = "allelic ratio")

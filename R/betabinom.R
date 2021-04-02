@@ -19,7 +19,6 @@
 #' and \code{"std.error"} if use normal approximation.
 #'
 #' @examples
-#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
@@ -74,9 +73,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
   } else if (method == "normal") {
     estimator <- betaBinom(dat, ci = TRUE, level = level, trace = trace)
-    # TODO is this correct?
-    coef <- do.call(cbind, lapply(estimator, `[[`, 1))
-    # TODO is this correct?
+    coef <- do.call(c, lapply(estimator, `[[`, 1))
     confint <- matrix(do.call(rbind, lapply(estimator, `[[`, 2)), ncol = 2) %>%
       as.data.frame() %>%
       setNames(paste(c((1 - level) * 50, 100 - (1 - level) * 50), "%"))
@@ -90,7 +87,6 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"), t
   order <- dat %>%
     group_by(.data$part) %>%
     summarise(x = unique(.data$x))
-  # TODO this gives a warning... are these objects being combined correctly?
   est <- cbind(x = order$x, round(coef, 3)) # allelic ratio estimator
   pvalue <- cbind(x = order$x, pvalue = pvalue)
   ci <- cbind(x = order$x, round(confint, 3))
@@ -135,9 +131,9 @@ betaBinom <- function(data, ci, level, trace) {
 
   # return a matrix of coefficients (columns) if the CI were not requested
   if (!ci) {
-    res <- do.call(cbind, res)
+    res <- do.call(c, res)
   }
-  
+
   return(res)
 }
 
