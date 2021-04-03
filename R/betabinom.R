@@ -3,18 +3,21 @@
 #' @description Fit betabinomial on each cell type groups
 #'
 #' @param sce A SingleCellExperiment containing assays
-#'   (\code{"ratio"}, \code{"counts"}) and colData (\code{"x"},
-#'   \code{"part"}) @param level the confidence interval required
-#'   @param method the method to used for construct confidence
-#'   interval. The default is \code{"normal"}.  \code{"bootstrap"} is
-#'   likely to be more accurate especially when the data is highly
-#'   overdispersed, however it is computationally intensive.  @param
-#'   type the type of intervals required for bootstrap. The values
-#'   should be one of the values \code{c("norm","basic","perc")}
-#'   @param R The number of bootstrap replicates.  @param trace
-#'   logical indicating if output should be produced for each
-#'   iteration.  @param ... Argument for the \code{\link[boot]{boot}}
-#'   functions.
+#' (\code{"ratio"}, \code{"counts"}) and colData (\code{"x"},
+#' \code{"part"})
+#' @param level the confidence interval required
+#' @param method the method to used for construct confidence
+#' interval. The default is \code{"normal"}.  \code{"bootstrap"} is
+#' likely to be more accurate especially when the data is highly
+#' overdispersed, however it is computationally intensive.
+#' @param type the type of intervals required for bootstrap. The values
+#' should be one of the values \code{c("norm","basic","perc")}
+#' @param R The number of bootstrap replicates.
+#' @param trace
+#' logical indicating if output should be produced for each
+#' iteration.
+#' @param ... Argument for the \code{\link[boot]{boot}}
+#' functions.
 #'
 #' @return A matrix allelic ratio estimator is returned in metadata
 #'   \code{"estimator"} which includes \code{"estimate"},
@@ -22,6 +25,7 @@
 #'   approximation.
 #'
 #' @examples
+#' 
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
