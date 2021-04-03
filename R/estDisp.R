@@ -1,8 +1,6 @@
 #' Estimate overdispersion parameter of a betabinomial
 #'
-#' @param sce SingleCellExperiment with \code{ase.mat} and \code{counts}
-#' @param ct the name of the cell type to be estimated.
-#' Default is the highest one.
+#' @param sce SingleCellExperiment with \code{a1} matrix and \code{counts}
 #' @param pc pseudocount for calculating the smoothed
 #' ratio in the preprocess step.
 #' @param genecluster which gene cluster dispersion
@@ -12,38 +10,35 @@
 #' @return A ggplot object of the dispersion estimates over the mean
 #'
 #' @examples
+#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
 #' estDisp(sce)
+#' 
 #' @importFrom apeglm apeglm bbEstDisp
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' theme_minimal labs coord_cartesian
+#' @importFrom stats model.matrix
 #'
 #' @export
-estDisp <- function(sce, ct, pc = 2, genecluster) {
-  if (missing(ct)) {
-    cell_sum <- colSums(counts(sce)) %>% by(sce$x, FUN = mean)
-    ct <- names(which.max(cell_sum))
-  }
-
+estDisp <- function(sce, pc=2, genecluster) {
   if (missing(genecluster)) {
     cl <- metadata(sce)$geneCluster
     genecluster <- names(cl[which.max(cl)])
   }
-
-  sce_sub <- sce[rowData(sce)$cluster == genecluster, sce$x == ct]
-  x <- matrix(1, ncol = 1, nrow = dim(sce_sub)[2])
+  sce_sub <- sce[rowData(sce)$cluster == genecluster,]
+  x <- model.matrix(~x, colData(sce))
   theta.hat <- 100
   param <- cbind(theta.hat, counts(sce_sub))
   maxDisp <- 5000
   for (i in seq_len(5)) {
     fit.mle <- apeglm(
-      Y = assays(sce_sub)[["ase.mat"]], x = x, log.lik = NULL,
+      Y = assays(sce_sub)[["a1"]], x = x, log.lik = NULL,
       param = param, no.shrink = TRUE, log.link = FALSE, method = "betabinC"
     )
     theta.hat <- bbEstDisp(
-      success = assays(sce_sub)[["ase.mat"]],
+      success = assays(sce_sub)[["a1"]],
       size = counts(sce_sub), x = x,
       beta = fit.mle$map, minDisp = .01, maxDisp = maxDisp
     )

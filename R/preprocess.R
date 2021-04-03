@@ -1,11 +1,12 @@
 #' Preprocess the SingleCellExperiment
 #'
-#' @param sce SingleCellExperiment with \code{ase.mat} and \code{ase.pat}
+#' @param sce SingleCellExperiment with \code{a1} (effect allele)
+#' and \code{a2} (non-effect allele). The allelic ratio will be
+#' calculated as a1 / (a1 + a2).
 #' @param pc pseudocount for calculating the smoothed ratio
 #'
 #' @return SingleCellExperiment with total count,
-#' ratio and pseudocount-smoothed ratio, where the
-#' ratio provides the maternal allele count over total
+#' allelic ratio = a1/(a1 + a2), and pseud-ocount-smoothed ratio
 #'
 #' @examples
 #' library(SummarizedExperiment)
@@ -16,11 +17,11 @@
 #'
 #' @export
 preprocess <- function(sce, pc = 2) {
-  assays(sce)[["counts"]] <- assays(sce)[["ase.mat"]] +
-    assays(sce)[["ase.pat"]]
-  assays(sce)[["ratio"]] <- assays(sce)[["ase.mat"]] /
+  assays(sce)[["counts"]] <- assays(sce)[["a1"]] +
+    assays(sce)[["a2"]]
+  assays(sce)[["ratio"]] <- assays(sce)[["a1"]] /
     assays(sce)[["counts"]]
-  assays(sce)[["ratio_pseudo"]] <- (assays(sce)[["ase.mat"]] + pc) /
+  assays(sce)[["ratio_pseudo"]] <- (assays(sce)[["a1"]] + pc) /
     (assays(sce)[["counts"]] + 2 * pc)
   metadata(sce) <- list(airpartVersion = packageVersion("airpart"))
   sce

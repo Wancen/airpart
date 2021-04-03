@@ -13,8 +13,8 @@
 #'
 #' @return SingleCellExperiment with the following elements as assays
 #' \itemize{
-#'   \item{ase.mat} {maternal allelic expression matrix}
-#'   \item{ase.pat} {paternal allelic expression matrix}
+#'   \item{a1} {allelic count matrix for the numerator/effect allele}
+#'   \item{a2} {allelic count matrix for the denominator/non-effect allele}
 #'   \item{true.ratio} {a matrix of the true probabilities
 #' (allelic ratios) for the cell types}
 #' }
@@ -50,19 +50,18 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
 
   p <- rep(p.vec, each = n * nct * ngene / length(p.vec))
 
-  # maternal allelic expression matrix
-  ase.mat <- lapply(seq_len(ncl), function(m) {
+  # allelic expression matrix for the effect allele
+  a1 <- lapply(seq_len(ncl), function(m) {
     matrix(emdbook::rbetabinom(nclcell,
       prob = p[(nclcell * m - nclcell + 1):(nclcell * m)],
       size = cts[(m * ngenecl - ngenecl + 1):(m * ngenecl), ],
       theta = theta
     ), ncol = nct * n)
   })
-  ase.mat <- do.call(rbind, ase.mat)
-  colnames(ase.mat) <- paste0("cell", seq_len(nct * n))
-  rownames(ase.mat) <- paste0("gene", seq_len(ngene))
-
-  ase.pat <- cts - ase.mat # paternal allelic expression matrix
+  a1 <- do.call(rbind, a1)
+  colnames(a1) <- paste0("cell", seq_len(nct * n))
+  rownames(a1) <- paste0("gene", seq_len(ngene))
+  a2 <- cts - a1
 
   x <- factor(rep(paste0("ct", seq_len(nct)), each = n)) # cell type vector
 
@@ -75,7 +74,7 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
   colnames(true.ratio) <- paste0("ct", seq_len(nct)) # cell type names
   coldata <- data.frame(x = factor(x, levels = unique(x)))
   rowdata <- data.frame(true.ratio)
-  assay.list <- list(ase.mat = ase.mat, ase.pat = ase.pat)
+  assay.list <- list(a1=a1,a2=a2)
   SingleCellExperiment(assays = assay.list,
                        colData = coldata, rowData = rowdata)
 }

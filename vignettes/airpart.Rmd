@@ -76,7 +76,7 @@ sce <- makeSimulatedData(mu1 = 2, mu2 = 10, nct = 4,n = 20,
 ```{r}
 unique(rowData(sce)) # the true underlying allelic ratios
 table(sce$x) # counts of each cell type
-assays(sce)[["ase.mat"]][1:5,1:5] # allelic counts (maternal)
+assays(sce)[["a1"]][1:5,1:5] # allelic counts for the effect allele
 ```
 
 ### Required input data
@@ -84,7 +84,9 @@ assays(sce)[["ase.mat"]][1:5,1:5] # allelic counts (maternal)
 In summary, *airpart* expects a *SingleCellExperiment* object with:
 
 * discrete cell types recorded as a variable `x` in the `colData(sce)`
-* maternal and paternal allelic counts as assays `ase.mat` and `ase.pat`
+* effect and non-effect allelic counts as assays `a1` and `a2`
+
+The allelic ratio is calculated as `a1 / (a1 + a2)`.
 
 ```{r}
 assayNames(sce)
@@ -99,7 +101,10 @@ though, which uses original allelic counts). From the heatmap, we can
 clearly identify the three gene clusters (across rows), and we also
 see cell type differences (across columns). Within each cell type,
 there are some cells with noisier estimates (lower total count) than
-others. 
+others. Again, the allelic ratio tells us how much more of the `a1`
+allele is expressed, with 1 indicating all of the expression coming
+from the `a1` allele and 0 indicating all of the expression coming
+from the `a2` allele.
 
 ```{r}
 sce <- preprocess(sce)
