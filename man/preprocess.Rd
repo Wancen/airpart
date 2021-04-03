@@ -7,14 +7,15 @@
 preprocess(sce, pc = 2)
 }
 \arguments{
-\item{sce}{SingleCellExperiment with \code{ase.mat} and \code{ase.pat}}
+\item{sce}{SingleCellExperiment with \code{a1} (effect allele)
+and \code{a2} (non-effect allele). The allelic ratio will be
+calculated as a1 / (a1 + a2).}
 
 \item{pc}{pseudocount for calculating the smoothed ratio}
 }
 \value{
 SingleCellExperiment with total count,
-ratio and pseudocount-smoothed ratio, where the
-ratio provides the maternal allele count over total
+allelic ratio = a1/(a1 + a2), and pseud-ocount-smoothed ratio
 }
 \description{
 Preprocess the SingleCellExperiment

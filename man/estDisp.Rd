@@ -4,13 +4,10 @@
 \alias{estDisp}
 \title{Estimate overdispersion parameter of a betabinomial}
 \usage{
-estDisp(sce, ct, pc = 2, genecluster)
+estDisp(sce, pc = 2, genecluster)
 }
 \arguments{
-\item{sce}{SingleCellExperiment with \code{ase.mat} and \code{counts}}
-
-\item{ct}{the name of the cell type to be estimated.
-Default is the highest one.}
+\item{sce}{SingleCellExperiment with \code{a1} matrix and \code{counts}}
 
 \item{pc}{pseudocount for calculating the smoothed
 ratio in the preprocess step.}
@@ -26,8 +23,10 @@ A ggplot object of the dispersion estimates over the mean
 Estimate overdispersion parameter of a betabinomial
 }
 \examples{
+
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 estDisp(sce)
+
 }

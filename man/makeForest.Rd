@@ -28,7 +28,8 @@ and last two column is the confidence interval.}
 \item{col}{Set the colors for all the elements. See
 \code{\link[forestplot]{fpColors}} for details}
 
-\item{grid}{If you want a discrete gray dashed grid at the level of the ticks
+\item{grid}{If you want a discrete gray dashed grid
+at the level of the ticks
 you can set this parameter to TRUE.
 If you set the parameter to a vector of values lines will be drawn at the
 corresponding positions.

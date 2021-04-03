@@ -36,8 +36,8 @@ makeSimulatedData(
 \value{
 SingleCellExperiment with the following elements as assays
 \itemize{
-  \item{ase.mat} {maternal allelic expression matrix}
-  \item{ase.pat} {paternal allelic expression matrix}
+  \item{a1} {allelic count matrix for the numerator/effect allele}
+  \item{a2} {allelic count matrix for the denominator/non-effect allele}
   \item{true.ratio} {a matrix of the true probabilities
 (allelic ratios) for the cell types}
 }
