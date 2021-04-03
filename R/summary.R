@@ -47,7 +47,8 @@ summaryAllelicRatio <- function(sce, genecluster) {
       as.data.frame()
     summary
   })
-  names(res) <- paste("gene cluster", genecluster, "with", metadata(sce)$geneCluster[genecluster], "genes")
+  names(res) <- paste("gene cluster", genecluster, "with",
+                      metadata(sce)$geneCluster[genecluster], "genes")
   metadata(sce)$summary <- res
   return(sce)
 }

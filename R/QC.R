@@ -2,14 +2,22 @@
 #'
 #' @param sce SingleCellExperiment with \code{counts} and \code{ratio}
 #' @param spike the character name of spike genes.
-#' If missing, \code{spikePercent} will all be zero and \code{filter_spike} will be false.
-#' @param threshold A numeric scalar specifying the threshold above which a gene is considered to be detected.
-#' @param mad_sum A numeric scalar specifying exceed how many median absolute deviations
-#' from the median log10-counts a cell is considered to be filtered out. Default is 5.
-#' @param mad_detected A numeric scalar specifying exceed how many median absolute deviations
-#' from the median detected features a cell is considered to be filtered out. Default is 5.
-#' @param mad_spikegenes A numeric scalar specifying exceed how many median absolute deviations
-#' from the median spike genes expression percentage a cell is considered to be filtered out. Default is 5.
+#' If missing, \code{spikePercent} will all be zero and
+#' \code{filter_spike} will be false.
+#' @param threshold A numeric scalar specifying the threshold
+#' above which a gene is considered to be detected.
+#' @param mad_sum A numeric scalar specifying exceed
+#' how many median absolute deviations
+#' from the median log10-counts a cell is considered to be filtered out.
+#' Default is 5.
+#' @param mad_detected A numeric scalar specifying exceed
+#' how many median absolute deviations
+#' from the median detected features a cell is considered to be filtered out.
+#' Default is 5.
+#' @param mad_spikegenes A numeric scalar specifying exceed
+#' how many median absolute deviations
+#' from the median spike genes expression percentage a cell
+#' is considered to be filtered out. Default is 5.
 #'
 #' @return A DataFrame of QC statistics includes
 #' \itemize{
@@ -17,9 +25,11 @@
 #'   \item{detected} {the number of features above \code{threshold}}
 #'   \item{spikePercent} {the percentage of counts assignes to spike genes}
 #'   \item{filter_sum} {indicate whether log10-counts
-#'    within \code{mad_sum} median absolute deviations from the median log10-counts for the dataset}
+#'    within \code{mad_sum} median absolute deviations
+#' from the median log10-counts for the dataset}
 #'   \item{filter_detected} {indicate whether features detected by this cell
-#'    within \code{mad_detected} median absolute deviations from the median detected features for the dataset}
+#'    within \code{mad_detected} median absolute deviations
+#' from the median detected features for the dataset}
 #'   \item{filter_spike} {indicate whether percentage expressed by spike genes
 #'    within \code{mad_spikegenes} median absolute deviations from the median
 #'    spike genes expression percentage for the dataset}
@@ -49,7 +59,8 @@
 #' )
 #'
 #' @importFrom SingleCellExperiment counts
-#' @importFrom SummarizedExperiment colData colData<- rowData rowData<- assayNames assays assays<-
+#' @importFrom SummarizedExperiment colData colData<- rowData
+#' rowData<- assayNames assays assays<-
 #' @importFrom S4Vectors DataFrame metadata metadata<-
 #'
 #' @export
@@ -61,7 +72,8 @@ cellQC <- function(sce, spike, threshold = 0,
   filter_sum <- (sum > (median(sum) - mad_sum * mad(sum)))
 
   detected <- colSums(counts(sce) > threshold)
-  filter_detected <- (detected > (median(detected) - mad_detected * mad(detected)))
+  filter_detected <- (detected > (median(detected) -
+                                  mad_detected * mad(detected)))
   if (missing(spike)) {
     spikePercent <- rep(0, ncol(sce))
     filter_spike <- rep(TRUE, ncol(sce))
@@ -72,8 +84,10 @@ cellQC <- function(sce, spike, threshold = 0,
     }
     spikePercent <- colSums(counts(sce)[spike_gene, ], na.rm = TRUE) * 100 /
       colSums(counts(sce)[-spike_gene, ], na.rm = TRUE)
-    filter_spike <- (spikePercent > (median(spikePercent) - mad_spikegenes * mad(spikePercent)) &
-      spikePercent < (median(spikePercent) + mad_spikegenes * mad(spikePercent)))
+    filter_spike <- (spikePercent > (median(spikePercent) -
+                                     mad_spikegenes * mad(spikePercent)) &
+                     spikePercent < (median(spikePercent) +
+                                     mad_spikegenes * mad(spikePercent)))
   }
 
   coldata <- cbind(
@@ -89,15 +103,18 @@ cellQC <- function(sce, spike, threshold = 0,
 #' @param spike the character name of spike genes. The default is \code{Ercc}
 #' @param threshold A numeric scalar specifying the threshold above which
 #' percentage of cells expressed within each cell type. Default is 0.25
-#' @param sd A numeric scalar specifying the cell type weighted allelic ratio mean standard deviation threshold
+#' @param sd A numeric scalar specifying the cell type weighted
+#' allelic ratio mean standard deviation threshold
 #' above which are interested features with highly variation. Default is 0.03
 #' @param pc pseudocount in the \code{preprocess} step
 #'
 #' @return A DataFrame of QC statistics includes
 #' \itemize{
-#'   \item{filter_celltype} {indicate whether genes expressed in more than \code{threshold} cells for all cell types}
+#'   \item{filter_celltype} {indicate whether genes expressed in more than
+#' \code{threshold} cells for all cell types}
 #'   \item{sd} {read counts standard deviation for each feature}
-#'   \item{filter_sd} {indicate whether gene standard deviation exceed \code{sd}}
+#'   \item{filter_sd} {indicate whether gene standard deviation
+#' exceed \code{sd}}
 #'   \item{filter_spike} {indicate no spike genes}
 #'   }
 #'
@@ -126,9 +143,11 @@ cellQC <- function(sce, spike, threshold = 0,
 featureQC <- function(sce, spike, threshold = 0.25, sd = 0.03, pc = 2) {
   check <- pbsapply(levels(sce$x), function(c) {
     poi <- which(sce$x == c)
-    ct_threshold <- nexprs(counts(sce), byrow = TRUE, detection_limit = 1, subset_col = poi) >=
+    ct_threshold <- nexprs(counts(sce), byrow = TRUE, detection_limit = 1,
+                           subset_col = poi) >=
       length(poi) * threshold
-    weighted_mean <- rowSums(assays(sce[, poi])[["ratio_pseudo"]] * (counts(sce[, poi]) + 2 * pc) /
+    weighted_mean <- rowSums(assays(sce[, poi])[["ratio_pseudo"]] *
+                             (counts(sce[, poi]) + 2 * pc) /
       rowSums(counts(sce[, poi]) + 2 * pc))
     return(list(ct_threshold, weighted_mean))
   })

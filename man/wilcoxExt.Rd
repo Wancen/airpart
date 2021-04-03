@@ -18,7 +18,8 @@ wilcoxExt(
 \code{"counts"}) and colData \code{"x"}}
 
 \item{genecluster}{which gene cluster result want to be returned.
-Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}}
+Usually identified interesting gene cluster pattern by
+\code{\link{summaryAllelicRatio}}}
 
 \item{threshold}{a vector with candidate thresholds for raw p-value
 cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.2).
@@ -27,13 +28,14 @@ For details please see vignette}
 \item{p.adjust.method}{method for adjusting p-values
 (see \code{\link[stats]{p.adjust}}). Can be abbreviated}
 
-\item{adj.matrix}{an adjacency matrix with 1 indicates cell states allowed to be grouped together,
-0 otherwise.}
+\item{adj.matrix}{an adjacency matrix with 1 indicates cell states
+allowed to be grouped together, 0 otherwise.}
 
 \item{...}{additional arguments to pass to \code{\link[stats]{wilcox.test}}.}
 }
 \value{
-A matrix grouping factor partition and the significant cut-off threshold
+A matrix grouping factor partition and
+the significant cut-off threshold
 are returned in metadata \code{"partition"} and \code{"threshold"}.
 Partation also stored in colData\code{"part"}.
 }

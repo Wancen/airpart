@@ -17,18 +17,26 @@ cellQC(
 \item{sce}{SingleCellExperiment with \code{counts} and \code{ratio}}
 
 \item{spike}{the character name of spike genes.
-If missing, \code{spikePercent} will all be zero and \code{filter_spike} will be false.}
+If missing, \code{spikePercent} will all be zero and
+\code{filter_spike} will be false.}
 
-\item{threshold}{A numeric scalar specifying the threshold above which a gene is considered to be detected.}
+\item{threshold}{A numeric scalar specifying the threshold
+above which a gene is considered to be detected.}
 
-\item{mad_sum}{A numeric scalar specifying exceed how many median absolute deviations
-from the median log10-counts a cell is considered to be filtered out. Default is 5.}
+\item{mad_sum}{A numeric scalar specifying exceed
+how many median absolute deviations
+from the median log10-counts a cell is considered to be filtered out.
+Default is 5.}
 
-\item{mad_detected}{A numeric scalar specifying exceed how many median absolute deviations
-from the median detected features a cell is considered to be filtered out. Default is 5.}
+\item{mad_detected}{A numeric scalar specifying exceed
+how many median absolute deviations
+from the median detected features a cell is considered to be filtered out.
+Default is 5.}
 
-\item{mad_spikegenes}{A numeric scalar specifying exceed how many median absolute deviations
-from the median spike genes expression percentage a cell is considered to be filtered out. Default is 5.}
+\item{mad_spikegenes}{A numeric scalar specifying exceed
+how many median absolute deviations
+from the median spike genes expression percentage a cell
+is considered to be filtered out. Default is 5.}
 }
 \value{
 A DataFrame of QC statistics includes
@@ -37,9 +45,11 @@ A DataFrame of QC statistics includes
   \item{detected} {the number of features above \code{threshold}}
   \item{spikePercent} {the percentage of counts assignes to spike genes}
   \item{filter_sum} {indicate whether log10-counts
-   within \code{mad_sum} median absolute deviations from the median log10-counts for the dataset}
+   within \code{mad_sum} median absolute deviations
+from the median log10-counts for the dataset}
   \item{filter_detected} {indicate whether features detected by this cell
-   within \code{mad_detected} median absolute deviations from the median detected features for the dataset}
+   within \code{mad_detected} median absolute deviations
+from the median detected features for the dataset}
   \item{filter_spike} {indicate whether percentage expressed by spike genes
    within \code{mad_spikegenes} median absolute deviations from the median
    spike genes expression percentage for the dataset}

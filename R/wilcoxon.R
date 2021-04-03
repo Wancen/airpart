@@ -6,17 +6,19 @@
 #' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
 #' \code{"counts"}) and colData \code{"x"}
 #' @param genecluster which gene cluster result want to be returned.
-#' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
+#' Usually identified interesting gene cluster pattern by
+#' \code{\link{summaryAllelicRatio}}
 #' @param threshold a vector with candidate thresholds for raw p-value
 #' cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.2).
 #' For details please see vignette
 #' @param p.adjust.method method for adjusting p-values
 #' (see \code{\link[stats]{p.adjust}}). Can be abbreviated
 #' @param ... additional arguments to pass to \code{\link[stats]{wilcox.test}}.
-#' @param adj.matrix an adjacency matrix with 1 indicates cell states allowed to be grouped together,
-#' 0 otherwise.
+#' @param adj.matrix an adjacency matrix with 1 indicates cell states
+#' allowed to be grouped together, 0 otherwise.
 #'
-#' @return A matrix grouping factor partition and the significant cut-off threshold
+#' @return A matrix grouping factor partition and
+#' the significant cut-off threshold
 #' are returned in metadata \code{"partition"} and \code{"threshold"}.
 #' Partation also stored in colData\code{"part"}.
 #'
@@ -46,7 +48,8 @@
 #' @importFrom stats pairwise.wilcox.test
 #'
 #' @export
-wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj.matrix, ...) {
+wilcoxExt <- function(sce, genecluster, threshold,
+                      p.adjust.method = "none", adj.matrix, ...) {
   if (missing(threshold)) {
     threshold <- 10^seq(from = -2, to = -0.4, by = 0.2)
   }
@@ -93,7 +96,8 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
 
   cl <- do.call(rbind, lapply(obj, `[[`, 1))
   loss1 <- do.call(rbind, lapply(obj, `[[`, 2))
-  partition <- data.frame(part = factor(cl[which.min(loss1), ]), x = levels(sce_sub$x))
+  partition <- data.frame(part = factor(cl[which.min(loss1), ]),
+                          x = levels(sce_sub$x))
   cd <- colData(sce_sub)
   cd2 <- cd[, !names(cd) %in% c("part", "rowname")] %>%
     as.data.frame() %>%
@@ -111,18 +115,23 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
 # TODO can we remove this code below then? 
 
 # not exported
-wilcoxInt <- function(data, threshold = 0.05, p.adjust.method = "none", adj.matrix, ...) {
+wilcoxInt <- function(data, threshold = 0.05,
+                      p.adjust.method = "none", adj.matrix, ...) {
   nct <- length(levels(data$x))
-  res <- pairwise.wilcox.test(data$ratio, data$x, p.adjust.method = p.adjust.method, ...)
+  res <- pairwise.wilcox.test(data$ratio, data$x,
+                              p.adjust.method = p.adjust.method, ...)
   adj <- as.data.frame(res$p.value)[lower.tri(res$p.value, diag = TRUE)]
-  adj <- ifelse(is.nan(adj), 1, adj) # Wilcoxon output Nan if ratio of two cell types are exactly same
+  # Wilcoxon output Nan if ratio of two cell types are exactly same
+  adj <- ifelse(is.nan(adj), 1, adj) 
   b <- matrix(0, nct, nct)
   b[lower.tri(b, diag = FALSE)] <- adj
   b2 <- b + t(b)
   diag(b2) <- 1
   b2[which(adj.matrix == 0)] <- 0
-  bb <- ifelse(b2 < threshold, 1, 0) # binarize p-value to be seen as dismilarity matrix
-  clust <- hclust(as.dist(bb)) # hierarchical cluster on adjacency matrix
+  # binarize p-value to be seen as dismilarity matrix
+  bb <- ifelse(b2 < threshold, 1, 0)
+  # hierarchical cluster on adjacency matrix
+  clust <- hclust(as.dist(bb)) 
   my.clusters <- cutree(clust, h = 0)
   return(my.clusters)
 }
