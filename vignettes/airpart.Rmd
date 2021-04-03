@@ -1,7 +1,8 @@
 ---
 title: "Differential cell-type-specific allelic imbalance with airpart"
 author: 
-  - name: Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, Rob Patro, Michael I. Love
+  - name: Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, 
+          Rob Patro, Michael I. Love
 date: "Feb 1, 2021"
 abstract: |
   Airpart identifies sets of genes displaying differential
@@ -20,7 +21,7 @@ output:
     theme: united
     highlight: tango
 vignette: |
-  %\VignetteIndexEntry{Differential cell-type-specific allelic imbalance with airpart}
+  %\VignetteIndexEntry{Differential allelic imbalance with airpart}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -111,7 +112,8 @@ ratio would not be known from scRNA-seq data).
 
 ```{r}
 library(pheatmap)
-anno_df <- data.frame(x=factor(1:length(p.vec)),row.names=paste0("ct",1:length(p.vec)))
+anno_df <- data.frame(x=factor(1:length(p.vec)),
+                      row.names=paste0("ct",1:length(p.vec)))
 pheatmap(unique(rowData(sce)),
          color=colorRampPalette(c("blue","white","red"))(101),
          breaks=0:100/100,
@@ -351,7 +353,8 @@ cellQCmetrics <- cellQC(sce,mad_detected=4)
 keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
   cellQCmetrics$filter_detected | # sufficient molecules counted
-  cellQCmetrics$filter_spike  # sufficient features expressed compared to spike genes, high quality cells
+  # sufficient features expressed compared to spike genes, high quality cells
+  cellQCmetrics$filter_spike  
 ) 
 sce <- sce[,keep_cell]
 
@@ -415,7 +418,8 @@ sce_gene <- sce_sub[which(rownames(sce_sub)%in%c("gene1","gene2")),]
 rowData(sce_gene)$cluster <- seq_len(dim(sce_gene)[1])
 library(pbapply)
 fl <- pbsapply(1:dim(sce_gene)[1], function(i) {
-  sce_genesub <- airpart::fusedLasso(sce_gene,model="binomial",genecluster = i,ncores=2)
+  sce_genesub <- airpart::fusedLasso(sce_gene,model="binomial",
+                                     genecluster = i,ncores=2)
   sce_genesub <- allelicRatio(sce_genesub, trace=FALSE)
   print(metadata(sce_genesub)$estimator)
 },cl=1)
