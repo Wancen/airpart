@@ -8,7 +8,8 @@
 #' @param ngenecl number of genes per cluster
 #' @param theta overdispersion parameter (higher is closer to binomial)
 #' @param ncl number of gene cluster
-#' @param p.vec the allelic ratio vector which follows gene cluster order. (length is nct * ncl)
+#' @param p.vec the allelic ratio vector which follows gene cluster order.
+#' (length is nct * ncl)
 #'
 #' @return SingleCellExperiment with the following elements as assays
 #' \itemize{
@@ -31,15 +32,19 @@
 #' @export
 makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
                               ngenecl = 50, theta = 20, ncl = 3,
-                              p.vec = rep(c(0.2, 0.8, 0.5, 0.5, 0.7, 0.9), each = 2)) {
+                              p.vec = rep(c(0.2, 0.8, 0.5, 0.5, 0.7, 0.9),
+                                          each = 2)) {
   if ((length(p.vec) / ncl) != nct) {
-    stop("allelic ratio number is not matched with the product of number of cell types and number of gene cluster")
+    stop("allelic ratio number is not matched with the product of
+  number of cell types and number of gene cluster")
   }
 
   ngene <- ncl * ngenecl # total number of genes
   nclcell <- nct * n * ngenecl # number elements within each gene cluster
-  mean_total_count <- rep(rep(c(mu1, mu2), each = n / 2), times = nct * ngene) # mean total count
-  cts <- matrix(rnbinom(n * nct * ngene, mu = mean_total_count, size = 5), # total count matrix
+  # mean total count
+  mean_total_count <- rep(rep(c(mu1, mu2), each = n / 2), times = nct * ngene)
+  # total count matrix
+  cts <- matrix(rnbinom(n * nct * ngene, mu = mean_total_count, size = 5), 
     nrow = ngene, byrow = TRUE
   )
 
@@ -71,5 +76,6 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
   coldata <- data.frame(x = factor(x, levels = unique(x)))
   rowdata <- data.frame(true.ratio)
   assay.list <- list(ase.mat = ase.mat, ase.pat = ase.pat)
-  SingleCellExperiment(assays = assay.list, colData = coldata, rowData = rowdata)
+  SingleCellExperiment(assays = assay.list,
+                       colData = coldata, rowData = rowdata)
 }

@@ -6,13 +6,17 @@
 #'
 #' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
 #' \code{"counts"}) and colData \code{"x"}
-#' @param formula A \code{\link[stats]{formula}} object which will typically be fused lasso penalty:
+#' @param formula A \code{\link[stats]{formula}} object which will typically be
+#' fused lasso penalty:
 #' \code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
-#' the Graph-Guided Fused Lasso penalty: \code{f <- ratio ~ p(x, pen = "ggflasso")}
+#' the Graph-Guided Fused Lasso penalty:
+#' \code{f <- ratio ~ p(x, pen = "ggflasso")}
 #' See \code{\link[smurf]{glmsmurf}} for more details
-#' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso
+#' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit
+#' the generalized fused lasso
 #' @param genecluster which gene cluster result want to be returned.
-#' Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}
+#' Usually identified interesting gene cluster pattern by
+#' \code{\link{summaryAllelicRatio}}
 #' @param niter number of iteration to run; recommended to run 5 times
 #' if allelic ratio differences are within [0.05,0.1]
 #' @param pen.weights argument as described in \code{\link[smurf]{glmsmurf}}
@@ -23,8 +27,10 @@
 #' @param adj.matrix argument as described in \code{\link[smurf]{glmsmurf}}
 #' @param lambda.length argument as described in \code{\link[smurf]{glmsmurf}}
 #' @param se.rule.nct the number of cell types to trigger an other SE based rule
-#' (to prioritize larger models, less fusing, good to detect 0.05 allelic ratio difference).
-#' When the number of cell types is less than or equal to this value, the \code{se.rule.mult} SE rule is used
+#' (to prioritize larger models, less fusing, good to detect 0.05 allelic ratio
+#' difference).
+#' When the number of cell types is less than or equal to this value, the
+#' \code{se.rule.mult} SE rule is used
 #' @param se.rule.mult the multiplier of the SE in determining the lambda:
 #' the chosen lambda is within \code{se.rule.mult} x SE of the minimum
 #' deviance. Default is 0.5 SE
@@ -37,12 +43,15 @@
 #' @details Usually, we used a Generalized Fused Lasso penalty for the
 #' cell states in order to regularize all possible coefficient differences.
 #' Another possibility would be to use the Graph-Guided Fused Lasso penalty
-#' to only regularize the differences of coefficients of neighboring cell states.
+#' to only regularize the differences of coefficients of neighboring
+#' cell states.
 #' When using a Graph-Guided Fused Lasso penalty, the adjacency matrix
 #' corresponding to the graph needs to be provided. The elements of this
-#' matrix are zero when two levels are not connected, and one when they are adjacent.
+#' matrix are zero when two levels are not connected, and one when they are
+#' adjacent.
 #'
-#' See the package vignette for more details and a complete description of a use case.
+#' See the package vignette for more details and a complete description of a
+#' use case.
 #'
 #' @references
 #'
@@ -53,7 +62,8 @@
 #' Sparse regression with multi-type regularized feature modeling[J].
 #' Insurance: Mathematics and Economics, 2021, 96: 248-261.
 #'
-#' @seealso \code{\link[smurf]{glmsmurf}}, \code{\link[smurf]{glmsmurf.control}},
+#' @seealso \code{\link[smurf]{glmsmurf}},
+#' \code{\link[smurf]{glmsmurf.control}},
 #' \code{\link[smurf]{p}}, \code{\link[stats]{glm}}
 #'
 #' @examples
@@ -88,7 +98,8 @@
 #' @importFrom stats binomial gaussian
 #'
 #' @export
-fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
+fusedLasso <- function(sce, formula, model = "binomial",
+                       genecluster, niter = 1,
                        pen.weights, lambda = "cv1se.dev", k = 5,
                        adj.matrix, lambda.length = 25L,
                        se.rule.nct = 8,
@@ -120,7 +131,7 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
   dat <- dat[!is.nan(dat$ratio), ]
   if (model == "binomial") {
     fam <- binomial(link = "logit")
-    msg <- "Failed determining max of lambda, try other weights or gaussian model"
+    msg <- "Failed determining max lambda, try other weights or gaussian model"
     weight <- dat$cts
   } else {
     fam <- gaussian()
@@ -144,7 +155,8 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
         lambda <- fit$lambda
         # if number of cell types is 'se.rule.nct' or less:
         if (nct <= se.rule.nct) {
-          # choose lambda by the lowest deviance within 'se.rule.mult' standard error of the min
+          # choose lambda by the lowest deviance within 'se.rule.mult'
+          # standard error of the min
           mean.dev <- rowMeans(fit$lambda.measures$dev)
           min.dev <- min(mean.dev)
           sd.dev <- matrixStats::rowSds(fit$lambda.measures$dev)
@@ -171,7 +183,8 @@ fusedLasso <- function(sce, formula, model = "binomial", genecluster, niter = 1,
       return(NA)
     }
   )
-  if (length(res) == 1 && is.na(res)) stop("Error occurred in attempting to run fused lasso")
+  if (length(res) == 1 && is.na(res))
+    stop("Error occurred in attempting to run fused lasso")
   if (niter == 1) {
     coef <- res[seq_len(nct), ]
     lambda <- unname(res[nct + 1, ])

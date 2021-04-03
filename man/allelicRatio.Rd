@@ -15,39 +15,46 @@ allelicRatio(
 )
 }
 \arguments{
-\item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
-\code{"counts"}) and colData (\code{"x"}, \code{"part"})}
+\item{sce}{A SingleCellExperiment containing assays
+(\code{"ratio"}, \code{"counts"}) and colData (\code{"x"},
+\code{"part"})}
 
 \item{level}{the confidence interval required}
 
-\item{method}{the method to used for construct confidence interval. The default is \code{"normal"}.
-\code{"bootstrap"} is likely to be more accurate especially when the data is highly overdispersed,
-however it is computationally intensive.}
+\item{method}{the method to used for construct confidence
+interval. The default is \code{"normal"}.  \code{"bootstrap"} is
+likely to be more accurate especially when the data is highly
+overdispersed, however it is computationally intensive.}
 
-\item{type}{the type of intervals required for bootstrap. The values should be one of the values
-\code{c("norm","basic","perc")}}
+\item{type}{the type of intervals required for bootstrap. The values
+should be one of the values \code{c("norm","basic","perc")}}
 
 \item{R}{The number of bootstrap replicates.}
 
-\item{trace}{logical indicating if output should be produced for each iteration.}
+\item{trace}{logical indicating if output should be produced for each
+iteration.}
 
-\item{...}{Argument for the \code{\link[boot]{boot}} functions.}
+\item{...}{Argument for the \code{\link[boot]{boot}}
+functions.}
 }
 \value{
-A matrix allelic ratio estimator is returned in
-metadata \code{"estimator"} which includes \code{"estimate"}, \code{"confidence interval"}
-and \code{"std.error"} if use normal approximation.
+A matrix allelic ratio estimator is returned in metadata
+  \code{"estimator"} which includes \code{"estimate"},
+  \code{"confidence interval"} and \code{"std.error"} if use normal
+  approximation.
 }
 \description{
 Fit betabinomial on each cell type groups
 }
 \examples{
+
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 
-# Use normal approximation to calculate Wald-type confidence intervals
+# Use normal approximation to calculate
+# Wald-type confidence intervals
 sce_sub <- allelicRatio(sce_sub)
 
 # Alternative with bootstrap

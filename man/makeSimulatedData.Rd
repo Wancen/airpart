@@ -30,7 +30,8 @@ makeSimulatedData(
 
 \item{ncl}{number of gene cluster}
 
-\item{p.vec}{the allelic ratio vector which follows gene cluster order. (length is nct * ncl)}
+\item{p.vec}{the allelic ratio vector which follows gene cluster order.
+(length is nct * ncl)}
 }
 \value{
 SingleCellExperiment with the following elements as assays

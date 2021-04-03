@@ -13,7 +13,8 @@ makeRatioHeatmap(sce, show_row_names = FALSE, order_by_group = TRUE, ...)
 
 \item{order_by_group}{indicate whether order by group or order by cell types}
 
-\item{...}{Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.}
+\item{...}{Passsed on the other argument in
+\code{\link[ComplexHeatmap]{Heatmap}}.}
 }
 \value{
 generates a heatmap

@@ -10,7 +10,8 @@
 #' sce <- geneCluster(sce, G = 1:4)
 #' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' makeViolin(sce_sub)
-#' @importFrom ggplot2 ggplot aes geom_boxplot geom_violin scale_fill_brewer theme labs
+#' @importFrom ggplot2 ggplot aes geom_boxplot geom_violin
+#' scale_fill_brewer theme labs
 #' @importFrom dplyr n
 #'
 #' @export

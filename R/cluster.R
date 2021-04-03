@@ -2,12 +2,14 @@
 #'
 #' @param sce SingleCellExperiment containing assays \code{"ratio_pseudo"} and
 #' colData factor \code{"x"}
-#' @param method the method to do gene clustering. The default is the Gaussian Mixture Modeling which
+#' @param method the method to do gene clustering. The default is the Gaussian
+#' Mixture Modeling which
 #' is likely to be more accurate. \code{"hierarchical"} represents
 #' automatic hierarchical clustering which is faster to compute.
 #' @param minClusterSize Minimum cluster size of \code{"hierarchical"} method.
 #' @param plot logical, whether to make a PCA plot
-#' @param G An integer vector specifying the numbers of clusters for which the BIC is to be calculated.
+#' @param G An integer vector specifying the numbers of clusters for which the
+#' BIC is to be calculated.
 #'  The default is G=c(8, 12, 16, 20, 24).
 #' @param ... Catches unused arguments in indirect or list calls via do.call
 #' as described in \code{\link[mclust]{Mclust}}
@@ -34,7 +36,8 @@
 #' sce <- geneCluster(sce, G = seq_len(4))
 #'
 #' @importFrom mclust Mclust hc hcEII mclustBIC
-#' @importFrom ggplot2 ggplot aes geom_point scale_color_manual theme_minimal labs
+#' @importFrom ggplot2 ggplot aes geom_point scale_color_manual
+#' theme_minimal labs
 #' @importFrom dynamicTreeCut cutreeDynamic
 #' @importFrom stats prcomp hclust cutree dist as.dist median mad
 #' @importFrom grDevices rainbow
@@ -42,8 +45,8 @@
 #' @importFrom rlang .data
 #'
 #' @export
-geneCluster <- function(sce, G, method = c("GMM", "hierarchical"), minClusterSize = 3,
-                        plot = TRUE, ...) {
+geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
+                        minClusterSize = 3, plot = TRUE, ...) {
   method <- match.arg(method, c("GMM", "hierarchical"))[1]
   if (missing(method)) {
     G <- c(8, 12, 16, 20, 24)
@@ -102,7 +105,8 @@ hierCluster <- function(ratio_pca,minClusterSize) {
   my_dist <- dist(ratio_pca, method = "manhattan")
   my_tree <- hclust(my_dist, method = "ward.D2")
   my_clusters <- unname(
-    cutreeDynamic(my_tree, distM = as.matrix(my_dist), verbose = 0, minClusterSize = minClusterSize)
+    cutreeDynamic(my_tree, distM = as.matrix(my_dist),
+                  verbose = 0, minClusterSize = minClusterSize)
   )
   nclust <- max(my_clusters)
   list(nclust = nclust, my_clusters = my_clusters)

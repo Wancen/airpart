@@ -15,7 +15,8 @@ makeForest(
 )
 }
 \arguments{
-\item{sce}{A SingleCellExperiment containing colData allelic ratio estimator in the third column
+\item{sce}{A SingleCellExperiment containing colData
+allelic ratio estimator in the third column
 and last two column is the confidence interval.}
 
 \item{xticks}{argument as described in \code{\link[forestplot]{forestplot}}}
@@ -24,21 +25,28 @@ and last two column is the confidence interval.}
 
 \item{xlab}{x-axis label. Default is "Allelic Ratio"}
 
-\item{col}{Set the colors for all the elements. See \code{\link[forestplot]{fpColors}} for details}
+\item{col}{Set the colors for all the elements. See
+\code{\link[forestplot]{fpColors}} for details}
 
 \item{grid}{If you want a discrete gray dashed grid at the level of the ticks
 you can set this parameter to TRUE.
-If you set the parameter to a vector of values lines will be drawn at the corresponding positions.
-If you want to specify the \code{\link[grid]{gpar}} of the lines then either directly pass a \code{\link[grid]{gpar}} object
-or set the gp attribute e.g. attr(line_vector, "gp") <- \code{\link[grid]{gpar}}(lty=2, col = "red")}
+If you set the parameter to a vector of values lines will be drawn at the
+corresponding positions.
+If you want to specify the \code{\link[grid]{gpar}} of the lines
+then either directly pass a \code{\link[grid]{gpar}} object
+or set the gp attribute e.g.
+\code{attr(line_vector, "gp") <- }
+\code{\link[grid]{gpar}}\code{(lty=2, col = "red")}}
 
-\item{...}{Passsed on the other argument in \code{\link[forestplot]{forestplot}}.}
+\item{...}{Passsed on the other argument in
+\code{\link[forestplot]{forestplot}}.}
 }
 \value{
 generates a forest plot
 }
 \description{
-Draw a forest plot to visualized cell type specific allelic ratio estimator and confidence interval.
+Draw a forest plot to visualized cell type specific
+allelic ratio estimator and confidence interval.
 It is based on the \pkg{rmeta}-package`s \code{forestplot} function.
 }
 \examples{
@@ -59,6 +67,7 @@ makeForest(sce_sub, xticks, col = fpColors(box = "royalblue"))
 
 }
 \seealso{
-\code{\link[forestplot]{forestplot}}, \code{\link[forestplot]{fpColors}},
+\code{\link[forestplot]{forestplot}},
+\code{\link[forestplot]{fpColors}},
 \code{\link[forestplot]{fpShapesGp}}, \code{\link[forestplot]{fpLegend}}
 }

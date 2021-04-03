@@ -24,15 +24,19 @@ fusedLasso(
 \item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
 \code{"counts"}) and colData \code{"x"}}
 
-\item{formula}{A \code{\link[stats]{formula}} object which will typically be fused lasso penalty:
+\item{formula}{A \code{\link[stats]{formula}} object which will typically be
+fused lasso penalty:
 \code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
-the Graph-Guided Fused Lasso penalty: \code{f <- ratio ~ p(x, pen = "ggflasso")}
+the Graph-Guided Fused Lasso penalty:
+\code{f <- ratio ~ p(x, pen = "ggflasso")}
 See \code{\link[smurf]{glmsmurf}} for more details}
 
-\item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit the generalized fused lasso}
+\item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit
+the generalized fused lasso}
 
 \item{genecluster}{which gene cluster result want to be returned.
-Usually identified interesting gene cluster pattern by \code{\link{summaryAllelicRatio}}}
+Usually identified interesting gene cluster pattern by
+\code{\link{summaryAllelicRatio}}}
 
 \item{niter}{number of iteration to run; recommended to run 5 times
 if allelic ratio differences are within [0.05,0.1]}
@@ -50,8 +54,10 @@ Default lambda is determined by \code{"cv1se.dev"}
 \item{lambda.length}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
 \item{se.rule.nct}{the number of cell types to trigger an other SE based rule
-(to prioritize larger models, less fusing, good to detect 0.05 allelic ratio difference).
-When the number of cell types is less than or equal to this value, the \code{se.rule.mult} SE rule is used}
+(to prioritize larger models, less fusing, good to detect 0.05 allelic ratio
+difference).
+When the number of cell types is less than or equal to this value, the
+\code{se.rule.mult} SE rule is used}
 
 \item{se.rule.mult}{the multiplier of the SE in determining the lambda:
 the chosen lambda is within \code{se.rule.mult} x SE of the minimum
@@ -73,12 +79,15 @@ or gaussian likelihood, leveraging functions from the
 Usually, we used a Generalized Fused Lasso penalty for the
 cell states in order to regularize all possible coefficient differences.
 Another possibility would be to use the Graph-Guided Fused Lasso penalty
-to only regularize the differences of coefficients of neighboring cell states.
+to only regularize the differences of coefficients of neighboring
+cell states.
 When using a Graph-Guided Fused Lasso penalty, the adjacency matrix
 corresponding to the graph needs to be provided. The elements of this
-matrix are zero when two levels are not connected, and one when they are adjacent.
+matrix are zero when two levels are not connected, and one when they are
+adjacent.
 
-See the package vignette for more details and a complete description of a use case.
+See the package vignette for more details and a complete description of a
+use case.
 }
 \examples{
 library(S4Vectors)
@@ -117,6 +126,7 @@ Sparse regression with multi-type regularized feature modeling[J].
 Insurance: Mathematics and Economics, 2021, 96: 248-261.
 }
 \seealso{
-\code{\link[smurf]{glmsmurf}}, \code{\link[smurf]{glmsmurf.control}},
+\code{\link[smurf]{glmsmurf}},
+\code{\link[smurf]{glmsmurf.control}},
 \code{\link[smurf]{p}}, \code{\link[stats]{glm}}
 }

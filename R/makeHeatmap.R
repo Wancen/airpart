@@ -3,7 +3,8 @@
 #' @param sce SingleCellExperiment
 #' @param show_row_names show row names or not
 #' @param order_by_group indicate whether order by group or order by cell types
-#' @param ... Passsed on the other argument in \code{\link[ComplexHeatmap]{Heatmap}}.
+#' @param ... Passsed on the other argument in
+#' \code{\link[ComplexHeatmap]{Heatmap}}.
 #'
 #' @return generates a heatmap
 #'
@@ -35,8 +36,8 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
     )
     Heatmap(m,
       name = "Allelic Ratio", cluster_columns = FALSE, cluster_rows = FALSE,
-      show_column_names = FALSE, show_row_names = show_row_names, top_annotation = ha
-    )
+      show_column_names = FALSE, show_row_names = show_row_names,
+      top_annotation = ha)
   } else {
     if (order_by_group) {
       split <- sce$part
@@ -47,12 +48,15 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
           labels = paste0("group", seq_len(nlevels(split)))
         ),
         `cell type` = sce$x, border = FALSE,
-        col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"), names = levels(sce$x)))
+        col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+                                           names = levels(sce$x)))
       )
       Heatmap(m,
         name = "Allelic Ratio", column_split = split,
-        column_order = order(seq_len(ncol(m))), column_title = paste0("group", seq_len(nlevels(split))),
-        cluster_columns = FALSE, cluster_rows = FALSE, show_column_names = FALSE,
+        column_order = order(seq_len(ncol(m))),
+        column_title = paste0("group", seq_len(nlevels(split))),
+        cluster_columns = FALSE, cluster_rows = FALSE,
+        show_column_names = FALSE,
         show_row_names = show_row_names, top_annotation = ha
       )
     } else {
@@ -62,15 +66,16 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
           `cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
             names = levels(sce$x)
           ),
-          group = structure(brewer.pal(9, "Pastel1")[seq_len(nlevels(sce$part))],
+          group = structure(brewer.pal(9,
+                    "Pastel1")[seq_len(nlevels(sce$part))],
             names = levels(sce$part)
           )
         )
       )
       Heatmap(m,
         name = "Allelic Ratio", cluster_columns = FALSE, cluster_rows = FALSE,
-        show_column_names = FALSE, show_row_names = show_row_names, top_annotation = ha
-      )
+        show_column_names = FALSE, show_row_names = show_row_names,
+        top_annotation = ha)
     }
   }
 }
