@@ -108,7 +108,9 @@ wilcoxExt <- function(sce, genecluster, threshold, p.adjust.method = "none", adj
   return(sce_sub)
 }
 
-# not export
+# TODO can we remove this code below then? 
+
+# not exported
 wilcoxInt <- function(data, threshold = 0.05, p.adjust.method = "none", adj.matrix, ...) {
   nct <- length(levels(data$x))
   res <- pairwise.wilcox.test(data$ratio, data$x, p.adjust.method = p.adjust.method, ...)

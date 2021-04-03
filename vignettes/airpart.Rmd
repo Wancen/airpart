@@ -74,8 +74,20 @@ sce <- makeSimulatedData(mu1 = 2, mu2 = 10, nct = 4,n = 20,
 
 ```{r}
 unique(rowData(sce)) # the true underlying allelic ratios
-table(colData(sce)) # counts of each cell type
+table(sce$x) # counts of each cell type
 assays(sce)[["ase.mat"]][1:5,1:5] # allelic counts (maternal)
+```
+
+### Required input data
+
+In summary, *airpart* expects a *SingleCellExperiment* object with:
+
+* discrete cell types recorded as a variable `x` in the `colData(sce)`
+* maternal and paternal allelic counts as assays `ase.mat` and `ase.pat`
+
+```{r}
+assayNames(sce)
+sce$x
 ```
 
 # Create allelic ratio matrix
@@ -187,12 +199,12 @@ We first quickly look at the weighted mean of allelic ratio for each
 gene cluster. From this step we will identify the interesting gene
 clusters.
 
-TODO: not sure about the look of the asis results here...
-
-```{r, results = "asis"}
+```{r}
 sce <- summaryAllelicRatio(sce)
 metadata(sce)$summary
 ```
+
+TODO need to clarify this maybe...
 
 Note that we recommend users only run `airpart` when the largest
 ordered allelic ratio difference > 0.05 for speed concerns. We find
@@ -209,35 +221,50 @@ sapply(1:length(summary), function(i){
 })
 ```
 
-## check for experiment-wide beta-binomial over-dispersion
+## Experiment-wide beta-binomial over-dispersion
+
+TODO need to motivate why are we looking at over-dispersion
+
 ```{r}
 estDisp(sce)
 ```
 
-
 ## Modeling using fused lasso with binomial likelihood
 
-The penalty $\lambda$ in fused lasso as well as partition groups are stored in the metadata.
+*airpart* offers a method for partitioning cell types using the
+generalized fused lasso with binomial likelihood, as implemented in
+the *smurf* package. Cell types are merged based on their similarity
+of allelic ratios, accounting for excess variability on the ratio from
+low counts. The penalization is determined using deviance on held-out
+data, with a 1 SE cross-validation rule for favoring smaller models
+(more fused cell types).
 
 ```{r}
 sce_sub <- fusedLasso(sce,model="binomial",
                       genecluster=1, ncores=2, niter=2)
 ```
 
+The penalty $\lambda$ in fused lasso as well as partition groups are
+stored in the metadata. 
+
 ```{r, results="asis"}
 knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
+```
+
+```{r}
 metadata(sce_sub)$lambda
 ```
 
-Here `ncores` is the number of CPU used for parallelization. One can
-specify `niter=5` when the `cts` weighted allelic ratio difference
-is smaller than 0.1, in order to provide additional estimator
-robustness.
+Here `ncores` is the number of CPU used for parallelization. As a
+guide, one can specify `niter=5` when the `cts` weighted allelic ratio
+difference is smaller than 0.1, in order to provide additional
+estimator robustness.
 
 ### Consensus partition
 
-If you run `niter` > 1, please use a consensus partition to derive the
-final partition.
+If you run `niter` > 1, you can use our consensus partition function
+to derive the final partition. This function makes use of ensemble
+consensus clustering via the *clue* package.
 
 ```{r, results='asis', collapse=TRUE}
 sce_sub <- consensusPart(sce_sub)
@@ -246,6 +273,16 @@ knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 
 ## Modeling using pairwise Mann Whitney Wilcoxon extension
 
+An alternative to the fused lasso with binomial likelihood is an
+extension we have implemented wherein all pairs cell types are
+compared with Mann Whitney Wilcoxon rank sum tests. In practice, we
+find that when the allelic counts deviates strongly from a binomial
+(e.g. large over-dispersion), the `wilcoxExt` function can offer
+improved performance, in terms of recovery of the true partition of
+cell types by allelic imbalance. The partition is decided based on a
+loss function motivated by the Bayesian Information Criteria (TODO is
+that correct?).
+
 ```{r}
 thrs <- 10^seq(from=-2,to=-0.4,by=0.2)
 sce_sub <- wilcoxExt(sce, genecluster=1, threshold=thrs)
@@ -253,27 +290,44 @@ knitr::kable(metadata(sce_sub)$partition, row.names=FALSE)
 metadata(sce_sub)$threshold
 ```
 
-## Calculating allelic Ratio estimator by beta-binomial 
+## Calculating allelic ratio estimate via beta-binomial
 
-### Confidence interval with normal approximation
+After *airpart* determines a partition of cell types either by the fused
+lasso with binomial likelihood or the nonparametric approach described
+above, it offers estimation of the allelic ratio per cell type (and
+confidence intervals) via beta-binomial GLM, using functionality from
+the *VGAM* package.
 
-```{r, warning=FALSE, results="asis"}
-sce_sub <- allelicRatio(sce_sub,trace =FALSE)
+TODO: note why the estimates are not equal inside partition.
+So does the estimate make any use of the fused lasso solution?
+
+The following confidence interval options are provided:
+
+* Confidence interval with normal approximation.
+
+```{r, warning=FALSE, fig.width=12}
+sce_sub <- allelicRatio(sce_sub, trace=FALSE)
 makeForest(sce_sub)
+```
+
+```{r results="asis"}
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 
-### Confidence interval with bootstrap as alternative
+* Confidence interval with bootstrap percentiles.
 
 ```{r, warning=FALSE, results="asis"}
-sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=5, ncpus=2, parallel="multicore",trace = FALSE)
+sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=5, ncpus=2,
+                        parallel="multicore",trace=FALSE)
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
 
-# Displaying results on heatmap
+# Displaying allelic partition results on a heatmap
 
 To demonstrate showing partition results on a heatmap, let's make a more
-complex simulation:
+complex simulation, with 8 cell types, in 4 true groups by allelic ratio.
+
+TODO: need to work on this text
 
 The basic steps are:
 
@@ -308,17 +362,51 @@ keep_feature <- (featureQCmetric$filter_celltype &
 sce <- sce[keep_feature,]
 
 makeRatioHeatmap(sce)
+```
+
+```{r}
 sce <- geneCluster(sce, G=1:4)
-sce <- summaryAllelicRatio(sce) # identify interesting gene cluster
-estDisp(sce) # check for experiment-wide beta-binomial over-dispersion
+```
+
+We identify an interesting gene cluster, and then check for
+experiment-wide beta-binomial over-dispersion (again, not that larger
+`theta` (y-axis) corresponds to *less* over-dispersion.
+
+```{r}
+sce <- summaryAllelicRatio(sce)
+estDisp(sce)
+```
+
+We then run the fused lasso and make the forest plot:
+
+```{r fig.width=12}
 sce_sub <- fusedLasso(sce, model="binomial",
                       genecluster=1, ncores=2) 
-sce_sub <- allelicRatio(sce_sub)
+sce_sub <- allelicRatio(sce_sub, trace=FALSE)
 makeForest(sce_sub)
+```
+
+TODO: is this correct? Looks a bit strange
+
+A violin plot with allelic ratios on the y-axis:
+
+```{r}
 makeViolin(sce_sub)
+```
+
+TODO: do we need the label group1 printed twice in the plot? 
+
+Finally, a heatmap as before, but now with the cell types grouped
+according to the partition:
+
+```{r}
 makeRatioHeatmap(sce_sub)
 ```
+
 # Per gene testing 
+
+TODO: need a bit more motivation here, eg how this differs from the
+above approach
 
 If you are interested in specific gene allelic imbalance, you can do
 
@@ -328,7 +416,7 @@ rowData(sce_gene)$cluster <- seq_len(dim(sce_gene)[1])
 library(pbapply)
 fl <- pbsapply(1:dim(sce_gene)[1], function(i) {
   sce_genesub <- airpart::fusedLasso(sce_gene,model="binomial",genecluster = i,ncores=2)
-  sce_genesub <- allelicRatio(sce_genesub)
+  sce_genesub <- allelicRatio(sce_genesub, trace=FALSE)
   print(metadata(sce_genesub)$estimator)
 },cl=1)
 ```
