@@ -90,7 +90,8 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
 }
 
 gmmCluster <- function(ratio_pca, G, ...) {
-  init <- list(hcPairs = mclust::hc(ratio_pca, modelName = "EII", use = "VARS"))
+  init <- list(hcPairs = mclust::hc(ratio_pca,
+                                    modelName = "EII", use = "VARS"))
   d_clust <- mclust::Mclust(ratio_pca,
     G = G, modelNames = "EII",
     initialization = init, ...

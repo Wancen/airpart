@@ -26,9 +26,10 @@
 #' @param k number of cross-validation folds
 #' @param adj.matrix argument as described in \code{\link[smurf]{glmsmurf}}
 #' @param lambda.length argument as described in \code{\link[smurf]{glmsmurf}}
-#' @param se.rule.nct the number of cell types to trigger an other SE based rule
-#' (to prioritize larger models, less fusing, good to detect 0.05 allelic ratio
-#' difference).
+#' @param se.rule.nct the number of cell types to trigger
+#' another SE based rule
+#' (to prioritize larger models, less fusing,
+#' good to detect 0.05 allelic ratio difference).
 #' When the number of cell types is less than or equal to this value, the
 #' \code{se.rule.mult} SE rule is used
 #' @param se.rule.mult the multiplier of the SE in determining the lambda:
@@ -36,7 +37,8 @@
 #' deviance. Default is 0.5 SE
 #' @param ... additional arguments passed to \code{\link[smurf]{glmsmurf}}
 #'
-#' @return A matrix grouping factor partition and the penalized parameter lambda
+#' @return A matrix grouping factor partition
+#' and the penalized parameter lambda
 #' are returned in metadata \code{"partition"} and \code{"lambda"}.
 #' Partation also stored in colData\code{"part"}.
 #'

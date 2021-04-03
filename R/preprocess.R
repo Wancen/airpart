@@ -16,8 +16,10 @@
 #'
 #' @export
 preprocess <- function(sce, pc = 2) {
-  assays(sce)[["counts"]] <- assays(sce)[["ase.mat"]] + assays(sce)[["ase.pat"]]
-  assays(sce)[["ratio"]] <- assays(sce)[["ase.mat"]] / assays(sce)[["counts"]]
+  assays(sce)[["counts"]] <- assays(sce)[["ase.mat"]] +
+    assays(sce)[["ase.pat"]]
+  assays(sce)[["ratio"]] <- assays(sce)[["ase.mat"]] /
+    assays(sce)[["counts"]]
   assays(sce)[["ratio_pseudo"]] <- (assays(sce)[["ase.mat"]] + pc) /
     (assays(sce)[["counts"]] + 2 * pc)
   metadata(sce) <- list(airpartVersion = packageVersion("airpart"))
