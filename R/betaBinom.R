@@ -47,10 +47,9 @@
 #' @importFrom matrixStats colSds
 #'
 #' @export
-allelicRatio <- function(sce, level = 0.95, method = c("normal",
-                         "bootstrap"), type = "perc", R, trace =
-                         TRUE,...) {
-  method <- match.arg(method, c("normal", "bootstrap"))[1]
+allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"),
+                         type = "perc", R, trace = TRUE,...) {
+  method <- match.arg(method, c("normal", "bootstrap"))
   cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce)))
 

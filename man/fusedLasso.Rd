@@ -7,7 +7,7 @@
 fusedLasso(
   sce,
   formula,
-  model = "binomial",
+  model = c("binomial", "gaussian"),
   genecluster,
   niter = 1,
   pen.weights,

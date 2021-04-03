@@ -47,7 +47,7 @@
 #' @export
 geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
                         minClusterSize = 3, plot = TRUE, ...) {
-  method <- match.arg(method, c("GMM", "hierarchical"))[1]
+  method <- match.arg(method, c("GMM", "hierarchical"))
   if (missing(method)) {
     G <- c(8, 12, 16, 20, 24)
   }
