@@ -31,7 +31,7 @@ makeViolin <- function(sce) {
   sample_size = dat %>% group_by(.data$x) %>% summarise(num=n())
   dat <- dat %>%
     left_join(sample_size) %>%
-    mutate(myaxis = paste0(x, "\n", "n=", num))
+    mutate(myaxis = paste0(.data$x, "\n", "n=", .data$num))
   p <- ggplot(dat, aes(x = .data$myaxis, y = .data$ratio, fill = .data$part)) +
     geom_violin(width=1.2,color='#A4A4A4') +
     geom_boxplot(width=0.1,color="black")+
