@@ -158,7 +158,9 @@ We also recommend QC on genes for allelic ratio analysis.. Note that
 we require genes expressed in at least **25%** cells within each cell
 types and the genes has high allelic imbalance variation among cell
 types. The following code chunk is recommended (not evaluated here
-though). 
+though). If users want to estimate homogeneous cell type allelic imbalance, 
+can set `sd = 0` and look at below summary step to find interested gene clusters
+whose weighted mean deviate from 0.5.
 
 ```{r, eval=FALSE}
 featureQCmetric <- featureQC(sce)
@@ -171,6 +173,11 @@ sce <- sce[keep_feature,]
 # Gene clustering
 
 TODO: write more on gene clustering -- how it is part of our method...
+
+Answer: Clustering genes have several good things: 
+* More power on cell type partition
+* Narrow down the confidence interval which may be more accurate on giving allelic imbalance inference
+* speed concern
 
 We provide two methods for gene clustering. 
 
@@ -213,6 +220,9 @@ metadata(sce)$summary
 
 TODO need to clarify this maybe...
 
+Answer: This step is actually a complement of QC on genes step in case still some genes not filtered out. 
+And I add homogeneous selection choice at the above QC on genes last sentences. 
+
 Note that we recommend users only run `airpart` when the largest
 ordered allelic ratio difference > 0.05 for speed concerns. We find
 that the allelic ratio of most of the gene clusters in such cases
@@ -231,6 +241,8 @@ sapply(1:length(summary), function(i){
 ## Experiment-wide beta-binomial over-dispersion
 
 TODO need to motivate why are we looking at over-dispersion
+
+Answer: See the slack answer.
 
 ```{r}
 estDisp(sce)
@@ -308,6 +320,8 @@ the *VGAM* package.
 TODO: note why the estimates are not equal inside partition.
 So does the estimate make any use of the fused lasso solution?
 
+Answer: If we look at diff groups as a mixture of beta distributions. Then we modelled BB within each group so that they have the same overdispersion parameter. But I think it's ok that diff cell types within a group have a little bit difference. The way fussed lasso works is also fused cell types together when the difference below some threshold.
+
 The following confidence interval options are provided:
 
 * Confidence interval with normal approximation.
@@ -332,9 +346,13 @@ knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 # Displaying allelic partition results on a heatmap
 
 To demonstrate showing partition results on a heatmap, let's make a more
-complex simulation, with 8 cell types, in 4 true groups by allelic ratio.
+complex simulation, with 8 cell types, in 3 true groups disordered by allelic ratio.
 
 TODO: need to work on this text
+
+Answer: I change the p.vec value so that to show we can either 
+display result by group order or cell type order. 
+I am thinking if we will have tens of cell types in the future, use graph to show the network is better.
 
 The basic steps are:
 
@@ -346,9 +364,9 @@ The basic steps are:
 ```{r}
 nct <- 8
 p.vec <- ( rep(c(
-    seq(from=-4,to=4,length.out=nct/2),
+    -3,0,-3,3,
     rep(0,nct/2),
-    seq(from=2,to=4,length.out=nct/2)
+    2,3,4,2
   ), each=2) + 5 ) / 10
 sce <- makeSimulatedData(mu1=2, mu2=10, nct=nct, n=30,
                          ngenecl=50, theta=20, ncl=3, p.vec=p.vec)
@@ -394,7 +412,6 @@ sce_sub <- allelicRatio(sce_sub, trace=FALSE)
 makeForest(sce_sub)
 ```
 
-TODO: is this correct? Looks a bit strange
 
 A violin plot with allelic ratios on the y-axis:
 
@@ -403,6 +420,7 @@ makeViolin(sce_sub)
 ```
 
 TODO: do we need the label group1 printed twice in the plot? 
+Answer: Removed the top label.
 
 Finally, a heatmap as before, but now with the cell types grouped
 according to the partition:
@@ -410,11 +428,21 @@ according to the partition:
 ```{r}
 makeRatioHeatmap(sce_sub)
 ```
+Or a heatmap can be shown by cell type ordered.
+
+To do: I want to also split heatmap in this case, but I don't know how to detect change point on factors without importing another package.
+eg. I have c(1,1,2,2,1,1,3,3), how do I get c(1,1,2,2,3,3,4,4)?
+```{r}
+makeRatioHeatmap(sce_sub,order_by_group = FALSE)
+```
+
 
 # Per gene testing 
 
 TODO: need a bit more motivation here, eg how this differs from the
 above approach
+
+Answer: When users only want to find DAI for some specific well-known genes? Or they don't trust the gene cluster result which returns too narrow confidence interval?
 
 If you are interested in specific gene allelic imbalance, you can do
 

@@ -4,7 +4,7 @@
 \alias{estDisp}
 \title{Estimate overdispersion parameter of a betabinomial}
 \usage{
-estDisp(sce, pc = 2, genecluster)
+estDisp(sce, pc = 2, genecluster, type = c("plot", "values"))
 }
 \arguments{
 \item{sce}{SingleCellExperiment with \code{a1} matrix and \code{counts}}
@@ -15,6 +15,9 @@ ratio in the preprocess step.}
 \item{genecluster}{which gene cluster dispersion
 parameter want to be estimated.
 Default is the cluster with the most cells}
+
+\item{type}{indicated whether to output
+dispersion estimates as a plot or a value}
 }
 \value{
 A ggplot object of the dispersion estimates over the mean

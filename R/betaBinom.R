@@ -20,12 +20,13 @@
 #' functions.
 #'
 #' @return A matrix allelic ratio estimator is returned in metadata
-#'   \code{"estimator"} which includes \code{"estimate"},
-#'   \code{"confidence interval"} and \code{"std.error"} if use normal
-#'   approximation.
+#'   \code{"estimator"} which includes \code{"estimate"},\code{"std.error"},
+#'   \code{"pvalue"} indicated allelic imbalance significance
+#'   which calculated by \code{t} statistics
+#'   and \code{"confidence interval"}
 #'
 #' @examples
-#' 
+#'
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
@@ -108,7 +109,7 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"),
     list(metadata(sce)$partition, est, pvalue, ci)
   )
   # change cell type order
-  coldata <- coldata[order(match(coldata$x, levels(sce$x))), ] 
+  coldata <- coldata[order(match(coldata$x, levels(sce$x))), ]
   metadata(sce)$estimator <- coldata
   return(sce)
 }

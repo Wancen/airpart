@@ -47,14 +47,14 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
           labels_gp = gpar(col = "white", fontface = 4),
           labels = paste0("group", seq_len(nlevels(split)))
         ),
-        `cell type` = sce$x, border = FALSE,
+        `cell type` = sce$x, border = FALSE,group = sce$part,
         col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
                                            names = levels(sce$x)))
       )
       Heatmap(m,
         name = "Allelic Ratio", column_split = split,
-        column_order = order(seq_len(ncol(m))),
-        column_title = paste0("group", seq_len(nlevels(split))),
+        column_order = order(seq_len(ncol(m))),column_title = NULL,
+        # column_title = paste0("group", seq_len(nlevels(split))),
         cluster_columns = FALSE, cluster_rows = FALSE,
         show_column_names = FALSE,
         show_row_names = show_row_names, top_annotation = ha

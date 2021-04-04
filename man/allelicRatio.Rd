@@ -39,9 +39,10 @@ functions.}
 }
 \value{
 A matrix allelic ratio estimator is returned in metadata
-  \code{"estimator"} which includes \code{"estimate"},
-  \code{"confidence interval"} and \code{"std.error"} if use normal
-  approximation.
+  \code{"estimator"} which includes \code{"estimate"},\code{"std.error"},
+  \code{"pvalue"} indicated allelic imbalance significance
+  which calculated by \code{t} statistics
+  and \code{"confidence interval"}
 }
 \description{
 Fit betabinomial on each cell type groups
