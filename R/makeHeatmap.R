@@ -9,6 +9,7 @@
 #' @return generates a heatmap
 #'
 #' @examples
+#'
 #' sce <- makeSimulatedData(p.vec = c(0.3, 0.5, 0.3, 0.3), ncl = 1)
 #' sce <- preprocess(sce)
 #' # display allelic ratio pattern in whole dataset
@@ -20,6 +21,7 @@
 #' makeRatioHeatmap(sce_sub)
 #' # display by cell type orders
 #' makeRatioHeatmap(sce_sub, order_by_group = FALSE)
+#' 
 #' @importFrom ComplexHeatmap Heatmap HeatmapAnnotation anno_block
 #' @importFrom RColorBrewer brewer.pal
 #'
@@ -41,7 +43,7 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
   } else {
     if (order_by_group) {
       split <- sce$part
-      ha <- HeatmapAnnotation(
+      ha <- ComplexHeatmap::HeatmapAnnotation(
         group = anno_block(
           gp = gpar(fill = brewer.pal(9, "Pastel1")[seq_len(nlevels(split))]),
           labels_gp = gpar(col = "white", fontface = 4),
@@ -51,7 +53,7 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
         col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
                                            names = levels(sce$x)))
       )
-      Heatmap(m,
+      ComplexHeatmap::Heatmap(m,
         name = "Allelic Ratio", column_split = split,
         column_order = order(seq_len(ncol(m))),column_title = NULL,
         # column_title = paste0("group", seq_len(nlevels(split))),
@@ -60,7 +62,7 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
         show_row_names = show_row_names, top_annotation = ha
       )
     } else {
-      ha <- HeatmapAnnotation(
+      ha <- ComplexHeatmap::HeatmapAnnotation(
         group = sce$part, `cell type` = sce$x, border = FALSE,
         col = list(
           `cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
@@ -72,7 +74,7 @@ makeRatioHeatmap <- function(sce, show_row_names = FALSE,
           )
         )
       )
-      Heatmap(m,
+      ComplexHeatmap::Heatmap(m,
         name = "Allelic Ratio", cluster_columns = FALSE, cluster_rows = FALSE,
         show_column_names = FALSE, show_row_names = show_row_names,
         top_annotation = ha)

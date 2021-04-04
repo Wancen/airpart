@@ -402,7 +402,7 @@ sce_sub <- allelicRatio(sce_sub, trace=FALSE)
 makeForest(sce_sub)
 ```
 
-A violin plot with allelic ratios on the y-axis:
+A violin plot with smoothed allelic ratios on the y-axis:
 
 ```{r}
 makeViolin(sce_sub)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/makeViolin.R
 \name{makeViolin}
 \alias{makeViolin}
-\title{Plot allelic ratio as heatmap}
+\title{Smoothed allelic ratio in violin plots}
 \usage{
 makeViolin(sce)
 }
@@ -13,12 +13,14 @@ makeViolin(sce)
 a ggplot2 object
 }
 \description{
-Plot allelic ratio as heatmap
+Smoothed allelic ratio in violin plots
 }
 \examples{
+
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = 1:4)
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 makeViolin(sce_sub)
+
 }

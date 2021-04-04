@@ -1,23 +1,24 @@
-utils::globalVariables(c("x", "num"))
-#' Plot allelic ratio as heatmap
+#' Smoothed allelic ratio in violin plots
 #'
 #' @param sce SingleCellExperiment
 #'
 #' @return a ggplot2 object
 #'
 #' @examples
+#' 
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = 1:4)
 #' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' makeViolin(sce_sub)
+#' 
 #' @importFrom ggplot2 ggplot aes geom_boxplot geom_violin
 #' scale_fill_brewer theme labs
 #' @importFrom dplyr n
 #'
 #' @export
 makeViolin <- function(sce) {
-  cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
+  cl_ratio <- as.vector(unlist(assays(sce)[["ratio_pseudo"]]))
   cl_total <- as.vector(unlist(counts(sce)))
   dat <- data.frame(
     ratio = cl_ratio,

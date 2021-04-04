@@ -23,6 +23,7 @@ generates a heatmap
 Plot allelic ratio as heatmap
 }
 \examples{
+
 sce <- makeSimulatedData(p.vec = c(0.3, 0.5, 0.3, 0.3), ncl = 1)
 sce <- preprocess(sce)
 # display allelic ratio pattern in whole dataset
@@ -34,4 +35,5 @@ sce_sub <- wilcoxExt(sce, genecluster = 1)
 makeRatioHeatmap(sce_sub)
 # display by cell type orders
 makeRatioHeatmap(sce_sub, order_by_group = FALSE)
+
 }
