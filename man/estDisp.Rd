@@ -20,7 +20,8 @@ Default is the cluster with the most cells}
 dispersion estimates as a plot or a value}
 }
 \value{
-A ggplot object of the dispersion estimates over the mean
+A ggplot object of the dispersion estimates over the mean,
+or a data.frame of the mean and dispersion estimates (theta)
 }
 \description{
 Estimate overdispersion parameter of a betabinomial

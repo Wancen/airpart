@@ -9,7 +9,8 @@
 #' @param type indicated whether to output
 #' dispersion estimates as a plot or a value
 #'
-#' @return A ggplot object of the dispersion estimates over the mean
+#' @return A ggplot object of the dispersion estimates over the mean,
+#' or a data.frame of the mean and dispersion estimates (theta)
 #'
 #' @examples
 #'
@@ -50,10 +51,7 @@ estDisp <- function(sce, pc=2, genecluster, type = c("plot", "values")) {
   est <- data.frame(mean = gene_mean, theta = theta.hat)
   # focus on genes with evidence of over-dispersion
   est <- est[est$mean > 2 & est$theta < 100, ]
-
-  # TODO: consider also outputting the dispersion estimates?
-  # could do a `type="plot"` or `"values"` argument
-  if (type == plot) {
+  if (type == "plot") {
     p <- ggplot(est, aes(mean, .data$theta)) +
       geom_point() +
       geom_smooth() +
@@ -61,6 +59,7 @@ estDisp <- function(sce, pc=2, genecluster, type = c("plot", "values")) {
       theme_minimal() +
       labs(x = "gene mean", y = "theta")
     print(p)
+  } else {
+    est
   }
-
 }
