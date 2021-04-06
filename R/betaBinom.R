@@ -38,10 +38,9 @@
 #'
 #' # Alternative with bootstrap
 #' sce_sub <- allelicRatio(sce_sub,
-#'   method = "bootstrap", R = 5, type="norm",
-#'   parallel = "multicore", ncpus = 4
+#'   method = "bootstrap", R = 5, type = "norm",
+#'   parallel = "multicore", ncpus = 2
 #' )
-#'
 #' @importFrom boot boot boot.ci
 #' @importFrom stats setNames coef pt qnorm
 #' @importFrom VGAM vglm betabinomial confintvglm
@@ -49,12 +48,11 @@
 #'
 #' @export
 allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"),
-                         type = "perc", R, trace = TRUE,...) {
+                         type = "perc", R, trace = TRUE, ...) {
   method <- match.arg(method, c("normal", "bootstrap"))
   cl_ratio <- as.vector(unlist(assays(sce)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce)))
-
-  stopifnot(c("x","part") %in% names(colData(sce)))
+  stopifnot(c("x", "part") %in% names(colData(sce)))
 
   dat <- data.frame(
     ratio = cl_ratio,
@@ -68,18 +66,24 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"),
     if (missing(R)) {
       stop("No number of bootstrap replicates")
     }
-    boot <- boot(dat, statistic = boot_ci, R = R,
-                 strata = dat$part, trace = trace, ...)
+    boot <- boot(dat,
+      statistic = boot_ci, R = R,
+      strata = dat$part, trace = trace, ...
+    )
     confint <- vapply(seq_len(nlevels(dat$x)), function(m) {
       boot_ci <- boot.ci(boot, type = type, index = m, conf = level)
       ci <- boot_ci[[length(boot_ci)]]
       return(ci[(length(ci) - 1):length(ci)])
     }, double(2))
     statistics <- (as.vector(boot$t0) - 0.5) / colSds(boot$t)
-    pvalue <- data.frame(pvalue = format(2 * pt(abs(statistics), df = n - 1,
-                lower.tail = FALSE), digits = 4))
-    coef <- cbind(estimate = as.vector(boot$t0),
-                  std.error = colSds(boot$t)) %>%
+    pvalue <- data.frame(pvalue = format(2 * pt(abs(statistics),
+      df = n - 1,
+      lower.tail = FALSE
+    ), digits = 4))
+    coef <- cbind(
+      estimate = as.vector(boot$t0),
+      std.error = colSds(boot$t)
+    ) %>%
       as.data.frame()
     confint <- t(confint) %>%
       as.data.frame() %>%
@@ -95,13 +99,15 @@ allelicRatio <- function(sce, level = 0.95, method = c("normal", "bootstrap"),
     se <- (coef - confint[, 1]) / abs(fac)
     statistics <- (coef - 0.5) / se
     coef <- cbind(estimate = coef, std.error = se) %>% as.data.frame()
-    pvalue <- data.frame(pvalue = format(2 * pt(abs(statistics), df = n - 1,
-                lower.tail = FALSE), digits = 4))
+    pvalue <- data.frame(pvalue = format(2 * pt(abs(statistics),
+      df = n - 1,
+      lower.tail = FALSE
+    ), digits = 4))
   }
   order <- dat %>%
     group_by(.data$part) %>%
     summarise(x = unique(.data$x))
-  est <- cbind(x = order$x, round(coef, 3)) # allelic ratio estimator
+  est <- cbind(x = order$x, round(coef, 3)) # estimator by partition order
   pvalue <- cbind(x = order$x, pvalue = pvalue)
   ci <- cbind(x = order$x, round(confint, 3))
   coldata <- Reduce(
@@ -123,28 +129,37 @@ betaBinom <- function(data, ci, level, trace) {
     if (length(unique(data2$x)) == 1) {
       suppressWarnings({
         fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ 1,
-                          VGAM::betabinomial(lmu = "identitylink",
-                                             lrho = "identitylink"),
-                 data = data2, trace = trace)
+          VGAM::betabinomial(
+            lmu = "identitylink",
+            lrho = "identitylink"
+          ),
+          data = data2, trace = trace
+        )
       })
     } else {
       suppressWarnings({
         fit <- VGAM::vglm(cbind(ratio * cts, cts - ratio * cts) ~ x,
-                          VGAM::betabinomial(lmu = "identitylink",
-                                             lrho = "identitylink"),
-                 data = data2, trace = trace)
+          VGAM::betabinomial(
+            lmu = "identitylink",
+            lrho = "identitylink"
+          ),
+          data = data2, trace = trace
+        )
       })
     }
     coef <- coef(fit)[-2]
     coef <- coef + c(0, rep(coef[1], (length(coef) - 1)))
     if (ci) {
       suppressWarnings({
-        confint_bb <- VGAM::confintvglm(fit, matrix = TRUE,
-                                        level = level)[-2, ]
+        confint_bb <- VGAM::confintvglm(fit,
+          matrix = TRUE,
+          level = level
+        )[-2, ]
       })
       confint <- confint_bb +
         matrix(c(0, 0, rep(coef[1], 2 * (length(coef) - 1))),
-               byrow = TRUE, ncol = 2)
+          byrow = TRUE, ncol = 2
+        )
       return(list(coef, confint))
     } else {
       return(unname(coef))
@@ -162,6 +177,6 @@ betaBinom <- function(data, ci, level, trace) {
 # boostrap helper function
 boot_ci <- function(data, indices, trace) {
   data_b <- data[indices, ]
-  coef <- betaBinom(data_b, ci = FALSE, trace=trace)
+  coef <- betaBinom(data_b, ci = FALSE, trace = trace)
   return(unname(coef))
 }

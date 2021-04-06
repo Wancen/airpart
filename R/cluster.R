@@ -34,7 +34,6 @@
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
-#'
 #' @importFrom mclust Mclust hc hcEII mclustBIC
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_manual
 #' theme_minimal labs
@@ -68,7 +67,7 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
   if (method == "GMM") {
     fit <- gmmCluster(ratio_pca, G, ...)
   } else if (method == "hierarchical") {
-    fit <- hierCluster(ratio_pca,minClusterSize)
+    fit <- hierCluster(ratio_pca, minClusterSize)
   }
   nclust <- fit$nclust
   my_clusters <- fit$my_clusters
@@ -91,7 +90,8 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
 
 gmmCluster <- function(ratio_pca, G, ...) {
   init <- list(hcPairs = mclust::hc(ratio_pca,
-                                    modelName = "EII", use = "VARS"))
+    modelName = "EII", use = "VARS"
+  ))
   d_clust <- mclust::Mclust(ratio_pca,
     G = G, modelNames = "EII",
     initialization = init, ...
@@ -102,12 +102,14 @@ gmmCluster <- function(ratio_pca, G, ...) {
   list(nclust = nclust, my_clusters = my_clusters)
 }
 
-hierCluster <- function(ratio_pca,minClusterSize) {
+hierCluster <- function(ratio_pca, minClusterSize) {
   my_dist <- dist(ratio_pca, method = "manhattan")
   my_tree <- hclust(my_dist, method = "ward.D2")
   my_clusters <- unname(
-    cutreeDynamic(my_tree, distM = as.matrix(my_dist),
-                  verbose = 0, minClusterSize = minClusterSize)
+    cutreeDynamic(my_tree,
+      distM = as.matrix(my_dist),
+      verbose = 0, minClusterSize = minClusterSize
+    )
   )
   nclust <- max(my_clusters)
   list(nclust = nclust, my_clusters = my_clusters)

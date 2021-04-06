@@ -8,8 +8,9 @@ wilcoxExt(
   sce,
   genecluster,
   threshold,
-  p.adjust.method = "none",
   adj.matrix,
+  p.adjust.method = "none",
+  ncores = NULL,
   ...
 )
 }
@@ -25,11 +26,15 @@ Usually identified interesting gene cluster pattern by
 cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.2).
 For details please see vignette}
 
+\item{adj.matrix}{an adjacency matrix with 1 indicates cell states
+allowed to be grouped together, 0 otherwise.}
+
 \item{p.adjust.method}{method for adjusting p-values
 (see \code{\link[stats]{p.adjust}}). Can be abbreviated}
 
-\item{adj.matrix}{an adjacency matrix with 1 indicates cell states
-allowed to be grouped together, 0 otherwise.}
+\item{ncores}{A cluster object created by \code{\link[parallel]{makeCluster}},
+or an integer to indicate number of child-processes
+(integer values are ignored on Windows) for parallel evaluations}
 
 \item{...}{additional arguments to pass to \code{\link[stats]{wilcox.test}}.}
 }

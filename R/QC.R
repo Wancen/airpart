@@ -57,7 +57,6 @@
 #'   cellQCmetrics$sum > 2.4 |
 #'     cellQCmetrics$detected > 110
 #' )
-#'
 #' @importFrom SingleCellExperiment counts
 #' @importFrom SummarizedExperiment colData colData<- rowData
 #' rowData<- assayNames assays assays<-
@@ -73,7 +72,7 @@ cellQC <- function(sce, spike, threshold = 0,
 
   detected <- colSums(counts(sce) > threshold)
   filter_detected <- (detected > (median(detected) -
-                                  mad_detected * mad(detected)))
+    mad_detected * mad(detected)))
   if (missing(spike)) {
     spikePercent <- rep(0, ncol(sce))
     filter_spike <- rep(TRUE, ncol(sce))
@@ -85,9 +84,9 @@ cellQC <- function(sce, spike, threshold = 0,
     spikePercent <- colSums(counts(sce)[spike_gene, ], na.rm = TRUE) * 100 /
       colSums(counts(sce)[-spike_gene, ], na.rm = TRUE)
     filter_spike <- (spikePercent > (median(spikePercent) -
-                                     mad_spikegenes * mad(spikePercent)) &
-                     spikePercent < (median(spikePercent) +
-                                     mad_spikegenes * mad(spikePercent)))
+      mad_spikegenes * mad(spikePercent)) &
+      spikePercent < (median(spikePercent) +
+        mad_spikegenes * mad(spikePercent)))
   }
 
   coldata <- cbind(
@@ -134,8 +133,7 @@ cellQC <- function(sce, spike, threshold = 0,
 #'   threshold = 0.25, sd = 0.03, pc = 2
 #' )
 #' keep_feature <- (featureQCmetric$filter_celltype &
-#'   featureQCmetric$sd >0.02)
-#'
+#'   featureQCmetric$sd > 0.02)
 #' @importFrom pbapply pbsapply
 #' @importFrom scater nexprs
 #'
@@ -143,11 +141,13 @@ cellQC <- function(sce, spike, threshold = 0,
 featureQC <- function(sce, spike, threshold = 0.25, sd = 0.03, pc = 2) {
   check <- pbsapply(levels(sce$x), function(c) {
     poi <- which(sce$x == c)
-    ct_threshold <- nexprs(counts(sce), byrow = TRUE, detection_limit = 1,
-                           subset_col = poi) >=
+    ct_threshold <- nexprs(counts(sce),
+      byrow = TRUE, detection_limit = 1,
+      subset_col = poi
+    ) >=
       length(poi) * threshold
     weighted_mean <- rowSums(assays(sce[, poi])[["ratio_pseudo"]] *
-                             (counts(sce[, poi]) + 2 * pc) /
+      (counts(sce[, poi]) + 2 * pc) /
       rowSums(counts(sce[, poi]) + 2 * pc))
     return(list(ct_threshold, weighted_mean))
   })

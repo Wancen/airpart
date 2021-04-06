@@ -11,11 +11,14 @@
 #' @param threshold a vector with candidate thresholds for raw p-value
 #' cut-off. Default is 10^seq(from=-2,to=-0.4,by=0.2).
 #' For details please see vignette
-#' @param p.adjust.method method for adjusting p-values
-#' (see \code{\link[stats]{p.adjust}}). Can be abbreviated
-#' @param ... additional arguments to pass to \code{\link[stats]{wilcox.test}}.
 #' @param adj.matrix an adjacency matrix with 1 indicates cell states
 #' allowed to be grouped together, 0 otherwise.
+#' @param p.adjust.method method for adjusting p-values
+#' (see \code{\link[stats]{p.adjust}}). Can be abbreviated
+#' @param ncores A cluster object created by \code{\link[parallel]{makeCluster}},
+#' or an integer to indicate number of child-processes
+#' (integer values are ignored on Windows) for parallel evaluations
+#' @param ... additional arguments to pass to \code{\link[stats]{wilcox.test}}.
 #'
 #' @return A matrix grouping factor partition and
 #' the significant cut-off threshold
@@ -46,17 +49,21 @@
 #' @importFrom dplyr left_join
 #' @importFrom plyr mutate
 #' @importFrom stats pairwise.wilcox.test
+#' @importFrom pbapply pblapply
 #'
 #' @export
-wilcoxExt <- function(sce, genecluster, threshold,
-                      p.adjust.method = "none", adj.matrix, ...) {
+wilcoxExt <- function(sce, genecluster, threshold, adj.matrix,
+                      p.adjust.method = "none", ncores = NULL, ...) {
   if (missing(threshold)) {
     threshold <- 10^seq(from = -2, to = -0.4, by = 0.2)
   }
   if (missing(genecluster)) {
     stop("No gene cluster number")
   }
-
+  nct <- nlevels(sce$x)
+  if (missing(adj.matrix)) {
+    adj.matrix <- matrix(1, nct, nct)
+  }
   stopifnot(c("ratio", "counts") %in% assayNames(sce))
   stopifnot("x" %in% names(colData(sce)))
   stopifnot("cluster" %in% names(rowData(sce)))
@@ -71,33 +78,17 @@ wilcoxExt <- function(sce, genecluster, threshold,
     cts = cl_total
   )
 
-  nct <- nlevels(sce$x)
-
-  if (missing(adj.matrix)) {
-    adj.matrix <- matrix(1, nct, nct)
-  }
-
-  obj <- lapply(seq_len(length(threshold)), function(j) {
-    fit <- wilcoxInt(dat,
-      p.adjust.method = p.adjust.method,
-      threshold = threshold[j], adj.matrix = adj.matrix, ...
-    )
-    label <- data.frame(type = factor(levels(sce$x)), par = factor(fit))
-    dat2 <- dat %>%
-      left_join(label, by = c("x" = "type"))
-    dat2 <- dat2 %>%
-      group_by(.data$par) %>%
-      dplyr::mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
-    # loss function
-    loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
-      nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
-    return(list(cl = fit, loss1 = loss1))
-  })
+  obj <- pblapply(threshold, select_thrs,
+    data = dat, p.adjust.method = p.adjust.method,
+    adj.matrix = adj.matrix, cl = ncores, ...
+  )
 
   cl <- do.call(rbind, lapply(obj, `[[`, 1))
   loss1 <- do.call(rbind, lapply(obj, `[[`, 2))
-  partition <- data.frame(part = factor(cl[which.min(loss1), ]),
-                          x = levels(sce_sub$x))
+  partition <- data.frame(
+    part = factor(cl[which.min(loss1), ]),
+    x = levels(sce_sub$x)
+  )
   cd <- colData(sce_sub)
   cd2 <- cd[, !names(cd) %in% c("part", "rowname")] %>%
     as.data.frame() %>%
@@ -112,17 +103,34 @@ wilcoxExt <- function(sce, genecluster, threshold,
   return(sce_sub)
 }
 
-# TODO can we remove this code below then? 
+# not exported
+select_thrs <- function(threshold, data, p.adjust.method, adj.matrix, ...) {
+  fit <- wilcoxInt(dat,
+    p.adjust.method = p.adjust.method,
+    threshold = threshold, adj.matrix = adj.matrix, ...
+  )
+  label <- data.frame(type = factor(levels(dat$x)), par = factor(fit))
+  dat2 <- dat %>%
+    left_join(label, by = c("x" = "type"))
+  dat2 <- dat2 %>%
+    group_by(.data$par) %>%
+    dplyr::mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
+  # loss function
+  loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
+    nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
+  return(list(cl = fit, loss1 = loss1))
+}
 
 # not exported
 wilcoxInt <- function(data, threshold = 0.05,
                       p.adjust.method = "none", adj.matrix, ...) {
   nct <- length(levels(data$x))
   res <- pairwise.wilcox.test(data$ratio, data$x,
-                              p.adjust.method = p.adjust.method, ...)
+    p.adjust.method = p.adjust.method, ...
+  )
   adj <- as.data.frame(res$p.value)[lower.tri(res$p.value, diag = TRUE)]
   # Wilcoxon output Nan if ratio of two cell types are exactly same
-  adj <- ifelse(is.nan(adj), 1, adj) 
+  adj <- ifelse(is.nan(adj), 1, adj)
   b <- matrix(0, nct, nct)
   b[lower.tri(b, diag = FALSE)] <- adj
   b2 <- b + t(b)
@@ -131,7 +139,7 @@ wilcoxInt <- function(data, threshold = 0.05,
   # binarize p-value to be seen as dismilarity matrix
   bb <- ifelse(b2 < threshold, 1, 0)
   # hierarchical cluster on adjacency matrix
-  clust <- hclust(as.dist(bb)) 
+  clust <- hclust(as.dist(bb))
   my.clusters <- cutree(clust, h = 0)
   return(my.clusters)
 }

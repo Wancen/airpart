@@ -18,20 +18,19 @@
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
 #' estDisp(sce)
-#'
 #' @importFrom apeglm apeglm bbEstDisp
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' theme_minimal labs coord_cartesian
 #' @importFrom stats model.matrix
 #'
 #' @export
-estDisp <- function(sce, pc=2, genecluster, type = c("plot", "values")) {
+estDisp <- function(sce, pc = 2, genecluster, type = c("plot", "values")) {
   type <- match.arg(type, c("plot", "values"))
   if (missing(genecluster)) {
     cl <- metadata(sce)$geneCluster
     genecluster <- names(cl[which.max(cl)])
   }
-  sce_sub <- sce[rowData(sce)$cluster == genecluster,]
+  sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
   x <- model.matrix(~x, colData(sce))
   theta.hat <- 100
   param <- cbind(theta.hat, counts(sce_sub))

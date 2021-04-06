@@ -80,5 +80,4 @@ keep_cell <- (
   cellQCmetrics$sum > 2.4 |
     cellQCmetrics$detected > 110
 )
-
 }

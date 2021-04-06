@@ -65,7 +65,6 @@ xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
 attr(xticks, "labels") <- xtlab
 
 makeForest(sce_sub, xticks, col = fpColors(box = "royalblue"))
-
 }
 \seealso{
 \code{\link[forestplot]{forestplot}},

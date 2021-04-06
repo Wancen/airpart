@@ -60,8 +60,7 @@ sce_sub <- allelicRatio(sce_sub)
 
 # Alternative with bootstrap
 sce_sub <- allelicRatio(sce_sub,
-  method = "bootstrap", R = 5, type="norm",
-  parallel = "multicore", ncpus = 4
+  method = "bootstrap", R = 5, type = "norm",
+  parallel = "multicore", ncpus = 2
 )
-
 }

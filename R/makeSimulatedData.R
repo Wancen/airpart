@@ -33,7 +33,8 @@
 makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
                               ngenecl = 50, theta = 20, ncl = 3,
                               p.vec = rep(c(0.2, 0.8, 0.5, 0.5, 0.7, 0.9),
-                                          each = 2)) {
+                                each = 2
+                              )) {
   if ((length(p.vec) / ncl) != nct) {
     stop("allelic ratio number is not matched with the product of
   number of cell types and number of gene cluster")
@@ -44,7 +45,7 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
   # mean total count
   mean_total_count <- rep(rep(c(mu1, mu2), each = n / 2), times = nct * ngene)
   # total count matrix
-  cts <- matrix(rnbinom(n * nct * ngene, mu = mean_total_count, size = 5), 
+  cts <- matrix(rnbinom(n * nct * ngene, mu = mean_total_count, size = 5),
     nrow = ngene, byrow = TRUE
   )
 
@@ -74,7 +75,9 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
   colnames(true.ratio) <- paste0("ct", seq_len(nct)) # cell type names
   coldata <- data.frame(x = factor(x, levels = unique(x)))
   rowdata <- data.frame(true.ratio)
-  assay.list <- list(a1=a1,a2=a2)
-  SingleCellExperiment(assays = assay.list,
-                       colData = coldata, rowData = rowdata)
+  assay.list <- list(a1 = a1, a2 = a2)
+  SingleCellExperiment(
+    assays = assay.list,
+    colData = coldata, rowData = rowdata
+  )
 }

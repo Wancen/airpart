@@ -46,7 +46,6 @@
 #' attr(xticks, "labels") <- xtlab
 #'
 #' makeForest(sce_sub, xticks, col = fpColors(box = "royalblue"))
-#'
 #' @import grid
 #' @import forestplot
 #'
@@ -64,9 +63,11 @@ makeForest <- function(sce, xticks, boxsize = 0.1,
 
   ar <- apply(metadata(sce)$estimator, 2, as.character)
   forest_text <- rbind(colnames(ar), ar)
-  forest_plot <- data.frame(mean = c(NA, ar[, "estimate"]),
-                            lower = c(NA, ar[, ncol(ar) - 1]),
-                            upper = c(NA, ar[, ncol(ar)]))
+  forest_plot <- data.frame(
+    mean = c(NA, ar[, "estimate"]),
+    lower = c(NA, ar[, ncol(ar) - 1]),
+    upper = c(NA, ar[, ncol(ar)])
+  )
 
   forestplot::forestplot(forest_text,
     forest_plot,

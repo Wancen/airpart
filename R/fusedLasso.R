@@ -1,4 +1,4 @@
- #' Generalized fused lasso to partition cell types by allelic imbalance
+#' Generalized fused lasso to partition cell types by allelic imbalance
 #'
 #' Fits generalized fused lasso with either binomial(link="logit")
 #' or gaussian likelihood, leveraging functions from the
@@ -100,7 +100,7 @@
 #' @importFrom stats binomial gaussian
 #'
 #' @export
-fusedLasso <- function(sce, formula, model = c("binomial","gaussian"),
+fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
                        genecluster, niter = 1,
                        pen.weights, lambda = "cv1se.dev", k = 5,
                        adj.matrix, lambda.length = 25L,
@@ -113,7 +113,7 @@ fusedLasso <- function(sce, formula, model = c("binomial","gaussian"),
   stopifnot("x" %in% names(colData(sce)))
   stopifnot("cluster" %in% names(rowData(sce)))
   if (missing(formula)) {
-    formula <- ratio ~ p(x, pen="gflasso")
+    formula <- ratio ~ p(x, pen = "gflasso")
   }
   # default is empty list
   if (missing(adj.matrix)) {
@@ -122,9 +122,11 @@ fusedLasso <- function(sce, formula, model = c("binomial","gaussian"),
   sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
   cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
   cl_total <- as.vector(unlist(counts(sce_sub)))
-  dat <- data.frame(ratio = cl_ratio,
-                    x = factor(rep(sce_sub$x, each = length(sce_sub))),
-                    cts = cl_total)
+  dat <- data.frame(
+    ratio = cl_ratio,
+    x = factor(rep(sce_sub$x, each = length(sce_sub))),
+    cts = cl_total
+  )
   dat <- dat[!is.nan(dat$ratio), ]
   if (model == "binomial") {
     fam <- binomial(link = "logit")
@@ -137,16 +139,25 @@ fusedLasso <- function(sce, formula, model = c("binomial","gaussian"),
   }
   nct <- nlevels(sce$x)
   # need to use tryCatch to avoid lambda.max errors
-  res <- tryCatch({
-    vapply(seq_len(niter), function(t) {
-      # defined below, outputs fitted means with lambda on the end
-      fitSmurf(t, niter, formula, fam, dat, adj.matrix,
-               weight, lambda, lambda.length, k,
-               nct, se.rule.nct, se.rule.mult, ...)
-    }, double(nct+1))
-  }, error = function(e) { message(msg); return(NA) })
-  if (length(res) == 1 && is.na(res))
+  res <- tryCatch(
+    {
+      vapply(seq_len(niter), function(t) {
+        # defined below, outputs fitted means with lambda on the end
+        fitSmurf(
+          t, niter, formula, fam, dat, adj.matrix,
+          weight, lambda, lambda.length, k,
+          nct, se.rule.nct, se.rule.mult, ...
+        )
+      }, double(nct + 1))
+    },
+    error = function(e) {
+      message(msg)
+      return(NA)
+    }
+  )
+  if (length(res) == 1 && is.na(res)) {
     stop("Error occurred in attempting to run fused lasso")
+  }
   if (niter == 1) {
     coef <- res[seq_len(nct), ]
     lambda <- unname(res[nct + 1, ])
@@ -178,11 +189,12 @@ fitSmurf <- function(t, niter, formula, fam, dat, adj.matrix,
                      weight, lambda, lambda.length, k,
                      nct, se.rule.nct, se.rule.mult, ...) {
   fit <- smurf::glmsmurf(
-                  formula = formula, family = fam,
-                  data = dat, adj.matrix = adj.matrix,
-                  weights = weight,
-                  pen.weights = "glm.stand", lambda = lambda,
-                  control = list(lambda.length = lambda.length, k = k, ...))
+    formula = formula, family = fam,
+    data = dat, adj.matrix = adj.matrix,
+    weights = weight,
+    pen.weights = "glm.stand", lambda = lambda,
+    control = list(lambda.length = lambda.length, k = k, ...)
+  )
   co <- coef_reest(fit)
   co <- co + c(0, rep(co[1], nct - 1))
   lambda <- fit$lambda
@@ -197,12 +209,12 @@ fitSmurf <- function(t, niter, formula, fam, dat, adj.matrix,
     idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
     # this is faster, running the GFL for a single lambda value
     fit2 <- smurf::glmsmurf(
-                     formula = formula, family = fam,
-                     data = dat, adj.matrix = adj.matrix,
-                     weights = weight, pen.weights = "glm.stand",
-                     lambda = fit$lambda.vector[idx],
-                     control = list(...)
-                   )
+      formula = formula, family = fam,
+      data = dat, adj.matrix = adj.matrix,
+      weights = weight, pen.weights = "glm.stand",
+      lambda = fit$lambda.vector[idx],
+      control = list(...)
+    )
     # rearrange coefficients so not comparing to reference cell type
     co <- coef_reest(fit2)
     co <- co + c(0, rep(co[1], nct - 1))

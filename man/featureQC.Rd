@@ -50,6 +50,5 @@ featureQCmetric <- featureQC(sce,
   threshold = 0.25, sd = 0.03, pc = 2
 )
 keep_feature <- (featureQCmetric$filter_celltype &
-  featureQCmetric$sd >0.02)
-
+  featureQCmetric$sd > 0.02)
 }
