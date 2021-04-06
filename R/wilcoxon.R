@@ -79,7 +79,7 @@ wilcoxExt <- function(sce, genecluster, threshold, adj.matrix,
   )
 
   obj <- pblapply(threshold, select_thrs,
-    data = dat, p.adjust.method = p.adjust.method,
+    dat = dat, p.adjust.method = p.adjust.method,
     adj.matrix = adj.matrix, cl = ncores, ...
   )
 
@@ -104,7 +104,7 @@ wilcoxExt <- function(sce, genecluster, threshold, adj.matrix,
 }
 
 # not exported
-select_thrs <- function(threshold, data, p.adjust.method, adj.matrix, ...) {
+select_thrs <- function(threshold, dat, p.adjust.method, adj.matrix, ...) {
   fit <- wilcoxInt(dat,
     p.adjust.method = p.adjust.method,
     threshold = threshold, adj.matrix = adj.matrix, ...
