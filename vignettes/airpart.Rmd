@@ -298,8 +298,6 @@ improved performance, in terms of recovery of the true partition of
 cell types by allelic imbalance. The partition is decided based on a
 loss function motivated by the Bayesian Information Criteria 
 
-TODO: is the last line correct?
-
 ```{r}
 thrs <- 10^seq(from=-2,to=-0.4,by=0.2)
 sce_sub <- wilcoxExt(sce, genecluster=1, threshold=thrs)
@@ -335,7 +333,7 @@ knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 * Confidence interval with bootstrap percentiles.
 
 ```{r, warning=FALSE, results="asis"}
-sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=5, ncpus=2,
+sce_sub <- allelicRatio(sce_sub, method="bootstrap", R=5, ncpus=2, type="norm",
                         parallel="multicore",trace=FALSE)
 knitr::kable(metadata(sce_sub)$estimator, row.names=FALSE)
 ```
@@ -417,9 +415,7 @@ makeRatioHeatmap(sce_sub)
 
 Or a heatmap can be shown by cell type ordered.
 
-TODO: I want to also split heatmap in this case, but I don't know how
-to detect change point on factors without importing another package. 
-eg. I have c(1,1,2,2,1,1,3,3), how do I get c(1,1,2,2,3,3,4,4)?
+
 
 ```{r}
 makeRatioHeatmap(sce_sub,order_by_group = FALSE)

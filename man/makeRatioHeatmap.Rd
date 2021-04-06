@@ -23,13 +23,13 @@ generates a heatmap
 Plot allelic ratio as heatmap
 }
 \examples{
-
+set.seed(2021)
 sce <- makeSimulatedData(p.vec = c(0.3, 0.5, 0.3, 0.3), ncl = 1)
 sce <- preprocess(sce)
 # display allelic ratio pattern in whole dataset
 makeRatioHeatmap(sce)
 
-sce <- geneCluster(sce, G = seq_len(4))
+sce <- geneCluster(sce, G = seq_len(4), plot=FALSE)
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 # display specific gene cluster partition result
 makeRatioHeatmap(sce_sub)

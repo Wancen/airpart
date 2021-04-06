@@ -33,6 +33,6 @@ test_that("bootstrap CI", {
   sce <- preprocess(sce)
   sce <- geneCluster(sce, G = seq_len(4))
   sce_sub <- wilcoxExt(sce,genecluster = 1, plot=FALSE)
-  sce_sub <- allelicRatio(sce_sub,method="bootstrap", R=5, ncpus=2, parallel="multicore")
+  expect_warning(sce_sub <- allelicRatio(sce_sub,method="bootstrap", R=5, ncpus=2, parallel="multicore"))
   expect_true(!is.null(metadata(sce_sub)$estimator))
 })
