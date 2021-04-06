@@ -20,7 +20,7 @@ Description: Airpart identifies sets of genes displaying differential
     cell types is offered. The package includes a number of
     visualizations and quality control functions for examining single
     cell allelic imbalance datasets.
-License: GPL (>=2)
+License: GPL-2
 Depends: R (>= 4.0)
 Imports:
     SingleCellExperiment,
