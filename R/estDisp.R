@@ -57,7 +57,7 @@ estDisp <- function(sce, genecluster, type = c("plot", "values")) {
             coord_cartesian(ylim = c(0, 100)) +
             theme_minimal() +
             labs(x = "gene mean", y = "theta")
-        print(p)
+        p
     } else {
         est
     }
