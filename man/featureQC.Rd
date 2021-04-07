@@ -40,15 +40,15 @@ sce <- makeSimulatedData()
 sce <- preprocess(sce)
 featureQCmetric <- featureQC(sce)
 keep_feature <- (featureQCmetric$filter_celltype &
-  featureQCmetric$filter_sd &
-  featureQCmetric$filter_spike)
+    featureQCmetric$filter_sd &
+    featureQCmetric$filter_spike)
 sce <- sce[keep_feature, ]
 
 # or manually setting threshold
 featureQCmetric <- featureQC(sce,
-  spike = "Ercc",
-  threshold = 0.25, sd = 0.03, pc = 2
+    spike = "Ercc",
+    threshold = 0.25, sd = 0.03, pc = 2
 )
 keep_feature <- (featureQCmetric$filter_celltype &
-  featureQCmetric$sd > 0.02)
+    featureQCmetric$sd > 0.02)
 }

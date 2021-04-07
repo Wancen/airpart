@@ -32,8 +32,8 @@ allowed to be grouped together, 0 otherwise.}
 \item{p.adjust.method}{method for adjusting p-values
 (see \code{\link[stats]{p.adjust}}). Can be abbreviated}
 
-\item{ncores}{A cluster object created by \code{\link[parallel]{makeCluster}},
-or an integer to indicate number of child-processes
+\item{ncores}{A cluster object created by \code{\link[parallel]{makeCluster}}.
+Or an integer to indicate number of child-processes
 (integer values are ignored on Windows) for parallel evaluations}
 
 \item{...}{additional arguments to pass to \code{\link[stats]{wilcox.test}}.}
@@ -65,8 +65,8 @@ adj.matrix[1, c(2, 3, 4)] <- 0
 adj.matrix[c(2, 3, 4), 1] <- 0
 thrs <- 10^seq(from = -2, to = -0.4, by = 0.1)
 sce_sub <- wilcoxExt(sce,
-  genecluster = 1, threshold = thrs,
-  adj.matrix = adj.matrix
+    genecluster = 1, threshold = thrs,
+    adj.matrix = adj.matrix
 )
 metadata(sce_sub)$partition
 }
