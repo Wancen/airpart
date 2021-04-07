@@ -1,6 +1,6 @@
 Package: airpart
 Title: Differential cell-type-specific allelic imbalance
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: 
     c(person(given = "Wancen",
            family = "Mu",
@@ -21,7 +21,7 @@ Description: Airpart identifies sets of genes displaying differential
     visualizations and quality control functions for examining single
     cell allelic imbalance datasets.
 License: GPL-2
-Depends: R (>= 4.0)
+Depends: R (>= 4.1)
 Imports:
     SingleCellExperiment,
     SummarizedExperiment,
