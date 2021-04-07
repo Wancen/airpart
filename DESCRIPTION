@@ -39,7 +39,6 @@ Imports:
     matrixStats,
     dplyr,
     plyr,
-    pbapply,
     ggplot2,
     ComplexHeatmap,
     forestplot,
@@ -49,7 +48,8 @@ Imports:
     grid,
     grDevices,
     graphics,
-    utils
+    utils,
+    pbapply
 Suggests: 
     knitr,
     rmarkdown,
