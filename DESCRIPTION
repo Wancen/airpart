@@ -1,6 +1,6 @@
 Package: airpart
 Title: Differential cell-type-specific allelic imbalance
-Version: 0.99.2
+Version: 0.99.3
 Authors@R: 
     c(person(given = "Wancen",
            family = "Mu",
