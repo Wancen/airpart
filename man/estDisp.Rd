@@ -4,13 +4,10 @@
 \alias{estDisp}
 \title{Estimate overdispersion parameter of a betabinomial}
 \usage{
-estDisp(sce, pc = 2, genecluster, type = c("plot", "values"))
+estDisp(sce, genecluster, type = c("plot", "values"))
 }
 \arguments{
 \item{sce}{SingleCellExperiment with \code{a1} matrix and \code{counts}}
-
-\item{pc}{pseudocount for calculating the smoothed
-ratio in the preprocess step.}
 
 \item{genecluster}{which gene cluster dispersion
 parameter want to be estimated.
@@ -32,4 +29,5 @@ sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 estDisp(sce)
+
 }
