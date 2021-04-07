@@ -82,8 +82,8 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
             theme_minimal()
         print(p)
     }
-    rowdata <- cbind(rowData(sce), cluster = my_clusters)
-    rowData(sce) <- rowdata
+    
+    rowData(sce)$cluster <- my_clusters
     metadata(sce)$geneCluster <- table(my_clusters)
     return(sce)
 }
