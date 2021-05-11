@@ -7,6 +7,7 @@
 makeHeatmap(
   sce,
   assay = c("ratio_pseudo", "ratio", "counts"),
+  genecluster = NULL,
   show_row_names = FALSE,
   order_by_group = TRUE,
   ...
@@ -17,6 +18,8 @@ makeHeatmap(
 
 \item{assay}{the assay to be plotted. Choices are \code{"ratio_pseudo"} which is the default,
 \code{"ratio"}, \code{"counts"}.}
+
+\item{genecluster}{an integer indicates which gene cluster heatmap want to be returned.}
 
 \item{show_row_names}{show row names or not}
 

@@ -3,6 +3,7 @@
 #' @param sce SingleCellExperiment
 #' @param assay the assay to be plotted. Choices are \code{"ratio_pseudo"} which is the default,
 #' \code{"ratio"}, \code{"counts"}.
+#' @param genecluster an integer indicates which gene cluster heatmap want to be returned.
 #' @param show_row_names show row names or not
 #' @param order_by_group indicate whether order by group or order by cell types
 #' @param ... Passsed on the other argument in
@@ -27,10 +28,14 @@
 #' @importFrom RColorBrewer brewer.pal
 #'
 #' @export
-makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"),
+makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genecluster=NULL,
                         show_row_names = FALSE, order_by_group = TRUE, ...) {
   assay <- match.arg(assay, c("ratio_pseudo", "ratio", "counts"))
-  m <- assays(sce)[[assay]]
+  if(is.null(genecluster)){
+      m <- assays(sce)[[assay]]
+  }else{
+      m <- assays(sce[rowData(sce)$cluster==genecluster,])[[assay]]
+  }
   if (assay == "counts") {
     name <- "Total counts"
   } else {
