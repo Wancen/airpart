@@ -11,14 +11,14 @@ allelicRatio(sce, level = 0.95, ...)
 (\code{"ratio"}, \code{"counts"}) and colData (\code{"x"},
 \code{"part"})}
 
-\item{level}{the confidence interval required}
+\item{level}{the credible interval required}
 
 \item{...}{Argument for the \code{\link[apeglm]{apeglm}}
 functions.}
 }
 \value{
 Posterior mean (\code{"ar"}) for allelic ratio estimator is returned in
-rowData for each cell type as well as \code{"s"} value and confidence interval(\code{"lower"} and \code{"upper"}).
+rowData for each cell type as well as \code{"s"} value and credible interval(\code{"lower"} and \code{"upper"}).
 }
 \description{
 Fit betabinomial on each cell type groups

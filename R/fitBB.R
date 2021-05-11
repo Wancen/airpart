@@ -5,12 +5,12 @@
 #' @param sce A SingleCellExperiment containing assays
 #' (\code{"ratio"}, \code{"counts"}) and colData (\code{"x"},
 #' \code{"part"})
-#' @param level the confidence interval required
+#' @param level the credible interval required
 #' @param ... Argument for the \code{\link[apeglm]{apeglm}}
 #' functions.
 #'
 #' @return Posterior mean (\code{"ar"}) for allelic ratio estimator is returned in
-#' rowData for each cell type as well as \code{"s"} value and confidence interval(\code{"lower"} and \code{"upper"}).
+#' rowData for each cell type as well as \code{"s"} value and credible interval(\code{"lower"} and \code{"upper"}).
 #'
 #' @examples
 #'

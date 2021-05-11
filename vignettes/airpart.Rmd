@@ -3,7 +3,7 @@ title: "Differential cell-type-specific allelic imbalance with airpart"
 author: 
   - name: Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, 
           Rob Patro, Michael I. Love
-date: "Feb 1, 2021"
+date: "May 1, 2021"
 abstract: |
   Airpart identifies sets of genes displaying differential
   cell-type-specific allelic imbalance across cell types
@@ -30,7 +30,10 @@ vignette: |
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Overview of input data
+# Real Data example
+Vignette on Larsson 2019 data can be found in [here](https://htmlpreview.github.io/?https://github.com/Wancen/airpartpaper/blob/main/R/Larsson2019.html) which has Single-cell allelic RNA-seq with 4 cell states.
+
+# Overview of Toy example data
 
 The airpart package takes input data of counts from each of two
 alleles across genes (rows) and cells (columns) from a single-cell
@@ -316,19 +319,17 @@ metadata(sce_sub)$threshold
 
 After *airpart* determines a partition of cell types either by the fused
 lasso with binomial likelihood or the nonparametric approach described
-above, it give fused lasso estimate or weighted mean as prior Cauchy mean to estimate the allelic ratio per gene and per cell type (and confidence intervals) via beta-binomial loglikelihood, using functionality from the *apeglm* package.
+above, it give fused lasso estimate or weighted mean as prior Cauchy mean to estimate the allelic ratio per gene and per cell type (and credible intervals) via beta-binomial loglikelihood, using functionality from the *apeglm* package.
 
-Note that the estimates and confidence intervals are not equal for
+Note that the estimates and credible intervals are not equal for
 cell types in the same partition and for genes, because in this step we re-estimate
 the conditional cell type means per original cell type and accounting for each gene overdispersion. The dispersion parameter is using Efron-like formula shrinkage.
-
-The following confidence interval options are provided:
 
 ```{r, warning=FALSE, fig.width=12}
 sce_sub <- allelicRatio(sce_sub)
 makeForest(sce_sub,showtext = TRUE)
 ```
-Allelic ratio estimate(`ar`) as well as `s` value and confidence interval (`lower` and `upper`) are stored in `rowData`.
+Allelic ratio estimate(`ar`) as well as `s` value and credible interval (`lower` and `upper`) are stored in `rowData`.
 ```{r results="asis"}
 genepoi<-paste0("gene",seq_len(5))
 knitr::kable(rowData(sce_sub)[genepoi,c(grep('ar', colnames(rowData(sce_sub)), value=TRUE))])
