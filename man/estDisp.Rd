@@ -29,5 +29,4 @@ sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 estDisp(sce)
-
 }

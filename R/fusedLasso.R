@@ -40,7 +40,8 @@
 #' @return A matrix grouping factor partition
 #' and the penalized parameter lambda
 #' are returned in metadata \code{"partition"} and \code{"lambda"}.
-#' Partation also stored in colData\code{"part"}.
+#' Partation and logistic group allelic estimate are stored in
+#' colData\code{"part"} and \code{"coef"}.
 #'
 #' @details Usually, we used a Generalized Fused Lasso penalty for the
 #' cell states in order to regularize all possible coefficient differences.
@@ -76,8 +77,8 @@
 #' sce <- geneCluster(sce, G = seq_len(4))
 #' f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 #' sce_sub <- fusedLasso(sce,
-#'     formula = f, model = "binomial", genecluster = 1,
-#'     ncores = 2, se.rule.nct = 3
+#'   formula = f, model = "binomial", genecluster = 1,
+#'   ncores = 2, se.rule.nct = 3
 #' )
 #' metadata(sce_sub)$partition
 #' metadata(sce_sub)$lambda
@@ -90,9 +91,9 @@
 #' adj.matrix[c(2, 3, 4), 1] <- 0
 #' f <- ratio ~ p(x, pen = "ggflasso") # use graph-guided fused lasso
 #' sce_sub <- fusedLasso(sce,
-#'     formula = f, model = "binomial", genecluster = 1,
-#'     lambda = 0.5, ncores = 2, se.rule.nct = 3,
-#'     adj.matrix = adj.matrix
+#'   formula = f, model = "binomial", genecluster = 1,
+#'   lambda = 0.5, ncores = 2, se.rule.nct = 3,
+#'   adj.matrix = adj.matrix
 #' )
 #' metadata(sce_sub)$partition
 #' @import smurf
@@ -101,125 +102,120 @@
 #'
 #' @export
 fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
-    genecluster, niter = 1,
-    pen.weights, lambda = "cv1se.dev", k = 5,
-    adj.matrix, lambda.length = 25L,
-    se.rule.nct = 8,
-    se.rule.mult = 0.5,
-    ...) {
-    model <- match.arg(model, c("binomial", "gaussian"))
-    if (missing(genecluster)) stop("No gene cluster number")
-    stopifnot(c("ratio", "counts") %in% assayNames(sce))
-    stopifnot("x" %in% names(colData(sce)))
-    stopifnot("cluster" %in% names(rowData(sce)))
-    if (missing(formula)) {
-        formula <- ratio ~ p(x, pen = "gflasso")
+                       genecluster, niter = 1,
+                       pen.weights, lambda = "cv1se.dev", k = 5,
+                       adj.matrix, lambda.length = 25L,
+                       se.rule.nct = 8,
+                       se.rule.mult = 0.5,
+                       ...) {
+  model <- match.arg(model, c("binomial", "gaussian"))
+  if (missing(genecluster)) stop("No gene cluster number")
+  stopifnot(c("ratio", "counts") %in% assayNames(sce))
+  stopifnot("x" %in% names(colData(sce)))
+  stopifnot("cluster" %in% names(rowData(sce)))
+  if (missing(formula)) {
+    formula <- ratio ~ p(x, pen = "gflasso")
+  }
+  ## default is empty list
+  if (missing(adj.matrix)) {
+    adj.matrix <- list()
+  }
+  sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
+  cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
+  cl_total <- as.vector(unlist(counts(sce_sub)))
+  dat <- data.frame(
+    ratio = cl_ratio,
+    x = factor(rep(sce_sub$x, each = length(sce_sub))),
+    cts = cl_total
+  )
+  dat <- dat[!is.nan(dat$ratio), ]
+  if (model == "binomial") {
+    fam <- binomial(link = "logit")
+    msg <- "Failed determining max lambda, try other weights or gaussian model"
+    weight <- dat$cts
+  } else if (model == "gaussian") {
+    fam <- gaussian()
+    msg <- "Failed determining max of lambda, try other weights"
+    weight <- NULL
+  }
+  nct <- nlevels(sce$x)
+  ## need to use tryCatch to avoid lambda.max errors
+  res <- tryCatch(
+    {
+      vapply(seq_len(niter), function(t) {
+        ## defined below, outputs fitted means with lambda on the end
+        fitSmurf(
+          t, niter, formula, fam, dat, adj.matrix,
+          weight, lambda, lambda.length, k,
+          nct, se.rule.nct, se.rule.mult, ...
+        )
+      }, double(nct + 1))
+    },
+    error = function(e) {
+      message(msg)
+      return(NA)
     }
-    ## default is empty list
-    if (missing(adj.matrix)) {
-        adj.matrix <- list()
-    }
-    sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
-    cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
-    cl_total <- as.vector(unlist(counts(sce_sub)))
-    dat <- data.frame(
-        ratio = cl_ratio,
-        x = factor(rep(sce_sub$x, each = length(sce_sub))),
-        cts = cl_total
-    )
-    dat <- dat[!is.nan(dat$ratio), ]
-    if (model == "binomial") {
-        fam <- binomial(link = "logit")
-        msg <- "Failed determining max lambda, try other weights or gaussian model"
-        weight <- dat$cts
-    } else if (model == "gaussian") {
-        fam <- gaussian()
-        msg <- "Failed determining max of lambda, try other weights"
-        weight <- NULL
-    }
-    nct <- nlevels(sce$x)
-    ## need to use tryCatch to avoid lambda.max errors
-    res <- tryCatch(
-        {
-            vapply(seq_len(niter), function(t) {
-                ## defined below, outputs fitted means with lambda on the end
-                fitSmurf(
-                    t, niter, formula, fam, dat, adj.matrix,
-                    weight, lambda, lambda.length, k,
-                    nct, se.rule.nct, se.rule.mult, ...
-                )
-            }, double(nct + 1))
-        },
-        error = function(e) {
-            message(msg)
-            return(NA)
-        }
-    )
-    if (length(res) == 1 && is.na(res)) {
-        stop("Error occurred in attempting to run fused lasso")
-    }
-    if (niter == 1) {
-        coef <- res[seq_len(nct), ]
-        lambda <- unname(res[nct + 1, ])
-        part <- match(coef, unique(coef)) %>% as.factor()
-    } else {
-        ## multiple partitions
-        coef <- res[seq_len(nct), ]
-        lambda <- res[nct + 1, ]
-        part <- apply(coef, 2, function(z) match(z, unique(z)))
-        colnames(part) <- paste0("part", seq_len(niter))
-        names(lambda) <- paste0("part", seq_len(niter))
-    }
-    cl <- data.frame(part, x = levels(sce_sub$x))
-    cd <- colData(sce_sub)
-    cd2 <- cd[, !names(cd) %in% c("part", "rowname")] %>%
-        as.data.frame() %>%
-        setNames(names(cd)[!names(cd) %in% c("part", "rowname")])
-    coldata <- DataFrame(rowname = colnames(sce_sub), cd2)
-    coldata <- merge(coldata, cl, by = "x", sort = FALSE) %>%
-        DataFrame()
-    rownames(coldata) <- coldata$rowname
-    colData(sce_sub) <- coldata
-    metadata(sce_sub)$partition <- cl
-    metadata(sce_sub)$lambda <- lambda
-    sce_sub
+  )
+  if (length(res) == 1 && is.na(res)) {
+    stop("Error occurred in attempting to run fused lasso")
+  }
+  if (niter == 1) {
+    coef <- res[seq_len(nct), ]
+    lambda <- unname(res[nct + 1, ])
+    part <- match(coef, unique(coef)) %>% as.factor()
+  } else {
+    ## multiple partitions
+    coef <- res[seq_len(nct), ]
+    lambda <- res[nct + 1, ]
+    part <- apply(coef, 2, function(z) match(z, unique(z)))
+    colnames(part) <- paste0("part", seq_len(niter))
+    colnames(coef) <- paste0("coef", seq_len(niter))
+    names(lambda) <- paste0("part", seq_len(niter))
+  }
+  cl <- data.frame(part, x = levels(sce_sub$x), coef)
+  colData(sce_sub) <- merge(colData(sce_sub), cl, sort = FALSE) %>%
+    DataFrame() %>%
+    `rownames<-`(colnames(sce))
+  metadata(sce_sub)$partition <- cl
+  metadata(sce_sub)$lambda <- lambda
+  sce_sub
 }
 
 fitSmurf <- function(t, niter, formula, fam, dat, adj.matrix,
-    weight, lambda, lambda.length, k,
-    nct, se.rule.nct, se.rule.mult, ...) {
-    fit <- smurf::glmsmurf(
-        formula = formula, family = fam,
-        data = dat, adj.matrix = adj.matrix,
-        weights = weight,
-        pen.weights = "glm.stand", lambda = lambda,
-        control = list(lambda.length = lambda.length, k = k, ...)
+                     weight, lambda, lambda.length, k,
+                     nct, se.rule.nct, se.rule.mult, ...) {
+  fit <- smurf::glmsmurf(
+    formula = formula, family = fam,
+    data = dat, adj.matrix = adj.matrix,
+    weights = weight,
+    pen.weights = "glm.stand", lambda = lambda,
+    control = list(lambda.length = lambda.length, k = k, ...)
+  )
+  co <- coef_reest(fit)
+  co <- co + c(0, rep(co[1], nct - 1))
+  lambda <- fit$lambda
+  ## if number of cell types is 'se.rule.nct' or less:
+  if (nct <= se.rule.nct) {
+    ## choose lambda by the lowest deviance within 'se.rule.mult'
+    ## standard error of the min
+    mean.dev <- rowMeans(fit$lambda.measures$dev)
+    min.dev <- min(mean.dev)
+    sd.dev <- matrixStats::rowSds(fit$lambda.measures$dev)
+    se.dev <- mean(sd.dev) / sqrt(k)
+    idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
+    ## this is faster, running the GFL for a single lambda value
+    fit2 <- smurf::glmsmurf(
+      formula = formula, family = fam,
+      data = dat, adj.matrix = adj.matrix,
+      weights = weight, pen.weights = "glm.stand",
+      lambda = fit$lambda.vector[idx],
+      control = list(...)
     )
-    co <- coef_reest(fit)
+    ## rearrange coefficients so not comparing to reference cell type
+    co <- coef_reest(fit2)
     co <- co + c(0, rep(co[1], nct - 1))
-    lambda <- fit$lambda
-    ## if number of cell types is 'se.rule.nct' or less:
-    if (nct <= se.rule.nct) {
-        ## choose lambda by the lowest deviance within 'se.rule.mult'
-        ## standard error of the min
-        mean.dev <- rowMeans(fit$lambda.measures$dev)
-        min.dev <- min(mean.dev)
-        sd.dev <- matrixStats::rowSds(fit$lambda.measures$dev)
-        se.dev <- mean(sd.dev) / sqrt(k)
-        idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
-        ## this is faster, running the GFL for a single lambda value
-        fit2 <- smurf::glmsmurf(
-            formula = formula, family = fam,
-            data = dat, adj.matrix = adj.matrix,
-            weights = weight, pen.weights = "glm.stand",
-            lambda = fit$lambda.vector[idx],
-            control = list(...)
-        )
-        ## rearrange coefficients so not comparing to reference cell type
-        co <- coef_reest(fit2)
-        co <- co + c(0, rep(co[1], nct - 1))
-        lambda <- fit2$lambda
-    }
-    ## stick the fitted means with the lambda on the end of the vector
-    c(co, lambda)
+    lambda <- fit2$lambda
+  }
+  ## stick the fitted means with the lambda on the end of the vector
+  c(co, lambda)
 }

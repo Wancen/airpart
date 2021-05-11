@@ -17,12 +17,12 @@
 #'
 #' @export
 preprocess <- function(sce, pc = 2) {
-    assays(sce)[["counts"]] <- assays(sce)[["a1"]] +
-        assays(sce)[["a2"]]
-    assays(sce)[["ratio"]] <- assays(sce)[["a1"]] /
-        assays(sce)[["counts"]]
-    assays(sce)[["ratio_pseudo"]] <- (assays(sce)[["a1"]] + pc) /
-        (assays(sce)[["counts"]] + 2 * pc)
-    metadata(sce) <- list(airpartVersion = packageVersion("airpart"))
-    sce
+  assays(sce)[["counts"]] <- assays(sce)[["a1"]] +
+    assays(sce)[["a2"]]
+  assays(sce)[["ratio"]] <- assays(sce)[["a1"]] /
+    assays(sce)[["counts"]]
+  assays(sce)[["ratio_pseudo"]] <- (assays(sce)[["a1"]] + pc) /
+    (assays(sce)[["counts"]] + 2 * pc)
+  metadata(sce) <- list(airpartVersion = packageVersion("airpart"))
+  sce
 }

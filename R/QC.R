@@ -40,22 +40,22 @@
 #' sce <- preprocess(sce)
 #' cellQCmetrics <- cellQC(sce)
 #' keep_cell <- (
-#'     cellQCmetrics$filter_sum | # sufficient features (genes)
-#'         # sufficient molecules counted
-#'         cellQCmetrics$filter_detected |
-#'         # sufficient features expressed compared to spike genes
-#'         cellQCmetrics$filter_spike
+#'   cellQCmetrics$filter_sum | # sufficient features (genes)
+#'     # sufficient molecules counted
+#'     cellQCmetrics$filter_detected |
+#'     # sufficient features expressed compared to spike genes
+#'     cellQCmetrics$filter_spike
 #' )
 #' sce <- sce[, keep_cell]
 #'
 #' # or manually setting threshold
 #' cellQCmetrics <- cellQC(sce,
-#'     spike = "Ercc",
-#'     mad_detected = 4, mad_spikegenes = 4
+#'   spike = "Ercc",
+#'   mad_detected = 4, mad_spikegenes = 4
 #' )
 #' keep_cell <- (
-#'     cellQCmetrics$sum > 2.4 |
-#'         cellQCmetrics$detected > 110
+#'   cellQCmetrics$sum > 2.4 |
+#'     cellQCmetrics$detected > 110
 #' )
 #' @importFrom SingleCellExperiment counts
 #' @importFrom SummarizedExperiment colData colData<- rowData
@@ -64,36 +64,36 @@
 #'
 #' @export
 cellQC <- function(sce, spike, threshold = 0,
-    mad_sum = 5, mad_detected = 3, mad_spikegenes = 5) {
-    keep_feature <- rowSums(counts(sce)) > 0
-    sce <- sce[keep_feature, ]
-    sum <- log10(colSums(counts(sce)))
-    filter_sum <- (sum > (median(sum) - mad_sum * mad(sum)))
+                   mad_sum = 5, mad_detected = 3, mad_spikegenes = 5) {
+  keep_feature <- rowSums(counts(sce)) > 0
+  sce <- sce[keep_feature, ]
+  sum <- log10(colSums(counts(sce)))
+  filter_sum <- (sum > (median(sum) - mad_sum * mad(sum)))
 
-    detected <- colSums(counts(sce) > threshold)
-    filter_detected <- (detected > (median(detected) -
-        mad_detected * mad(detected)))
-    if (missing(spike)) {
-        spikePercent <- rep(0, ncol(sce))
-        filter_spike <- rep(TRUE, ncol(sce))
-    } else {
-        spike_gene <- grep(paste0("^", spike), row.names(sce))
-        if (length(spike_gene) == 0) {
-            message("No spike genes found")
-        }
-        spikePercent <- colSums(counts(sce)[spike_gene, ], na.rm = TRUE) * 100 /
-            colSums(counts(sce)[-spike_gene, ], na.rm = TRUE)
-        filter_spike <- (spikePercent > (median(spikePercent) -
-            mad_spikegenes * mad(spikePercent)) &
-            spikePercent < (median(spikePercent) +
-                mad_spikegenes * mad(spikePercent)))
+  detected <- colSums(counts(sce) > threshold)
+  filter_detected <- (detected > (median(detected) -
+    mad_detected * mad(detected)))
+  if (missing(spike)) {
+    spikePercent <- rep(0, ncol(sce))
+    filter_spike <- rep(TRUE, ncol(sce))
+  } else {
+    spike_gene <- grep(paste0("^", spike), row.names(sce))
+    if (length(spike_gene) == 0) {
+      message("No spike genes found")
     }
+    spikePercent <- colSums(counts(sce)[spike_gene, ], na.rm = TRUE) * 100 /
+      colSums(counts(sce)[-spike_gene, ], na.rm = TRUE)
+    filter_spike <- (spikePercent > (median(spikePercent) -
+      mad_spikegenes * mad(spikePercent)) &
+      spikePercent < (median(spikePercent) +
+        mad_spikegenes * mad(spikePercent)))
+  }
 
-    coldata <- cbind(
-        colData(sce), sum, detected, spikePercent,
-        filter_sum, filter_detected, filter_spike
-    )
-    coldata
+  coldata <- cbind(
+    colData(sce), sum, detected, spikePercent,
+    filter_sum, filter_detected, filter_spike
+  )
+  coldata
 }
 
 #' Quality control on features
@@ -123,46 +123,46 @@ cellQC <- function(sce, spike, threshold = 0,
 #' sce <- preprocess(sce)
 #' featureQCmetric <- featureQC(sce)
 #' keep_feature <- (featureQCmetric$filter_celltype &
-#'     featureQCmetric$filter_sd &
-#'     featureQCmetric$filter_spike)
+#'   featureQCmetric$filter_sd &
+#'   featureQCmetric$filter_spike)
 #' sce <- sce[keep_feature, ]
 #'
 #' # or manually setting threshold
 #' featureQCmetric <- featureQC(sce,
-#'     spike = "Ercc",
-#'     threshold = 0.25, sd = 0.03, pc = 2
+#'   spike = "Ercc",
+#'   threshold = 0.25, sd = 0.03, pc = 2
 #' )
 #' keep_feature <- (featureQCmetric$filter_celltype &
-#'     featureQCmetric$sd > 0.02)
+#'   featureQCmetric$sd > 0.02)
 #' @importFrom pbapply pbsapply
 #' @importFrom scater nexprs
 #'
 #' @export
 featureQC <- function(sce, spike, threshold = 0.25, sd = 0.03, pc = 2) {
-    check <- pbsapply(levels(sce$x), function(c) {
-        poi <- which(sce$x == c)
-        ct_threshold <- nexprs(counts(sce),
-            byrow = TRUE, detection_limit = 1,
-            subset_col = poi
-        ) >=
-            length(poi) * threshold
-        weighted_mean <- rowSums(assays(sce[, poi])[["ratio_pseudo"]] *
-            (counts(sce[, poi]) + 2 * pc) /
-            rowSums(counts(sce[, poi]) + 2 * pc))
-        return(list(ct_threshold, weighted_mean))
-    })
-    ct_threshold <- do.call(cbind, check[seq(1, length(check), 2)])
-    filter_celltype <- rowSums(ct_threshold) == nlevels(sce$x)
+  check <- pbsapply(levels(sce$x), function(c) {
+    poi <- which(sce$x == c)
+    ct_threshold <- nexprs(counts(sce),
+      byrow = TRUE, detection_limit = 1,
+      subset_col = poi
+    ) >=
+      length(poi) * threshold
+    weighted_mean <- rowSums(assays(sce[, poi])[["ratio_pseudo"]] *
+      (counts(sce[, poi]) + 2 * pc) /
+      rowSums(counts(sce[, poi]) + 2 * pc))
+    return(list(ct_threshold, weighted_mean))
+  })
+  ct_threshold <- do.call(cbind, check[seq(1, length(check), 2)])
+  filter_celltype <- rowSums(ct_threshold) == nlevels(sce$x)
 
-    weighted_mean <- do.call(cbind, check[seq(2, length(check), 2)])
-    gsd <- rowSds(weighted_mean)
-    filter_sd <- gsd > sd
+  weighted_mean <- do.call(cbind, check[seq(2, length(check), 2)])
+  gsd <- rowSds(weighted_mean)
+  filter_sd <- gsd > sd
 
-    filter_spike <- rep(TRUE, nrow(sce))
-    if (!missing(spike)) {
-        filter_spike[grep(paste0("^", spike), row.names(sce))] <- FALSE
-    }
+  filter_spike <- rep(TRUE, nrow(sce))
+  if (!missing(spike)) {
+    filter_spike[grep(paste0("^", spike), row.names(sce))] <- FALSE
+  }
 
-    rowdata <- cbind(rowData(sce), filter_celltype, gsd, filter_sd, filter_spike)
-    rowdata
+  rowdata <- cbind(rowData(sce), filter_celltype, gsd, filter_sd, filter_spike)
+  rowdata
 }

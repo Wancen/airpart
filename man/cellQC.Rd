@@ -63,21 +63,21 @@ sce <- makeSimulatedData()
 sce <- preprocess(sce)
 cellQCmetrics <- cellQC(sce)
 keep_cell <- (
-    cellQCmetrics$filter_sum | # sufficient features (genes)
-        # sufficient molecules counted
-        cellQCmetrics$filter_detected |
-        # sufficient features expressed compared to spike genes
-        cellQCmetrics$filter_spike
+  cellQCmetrics$filter_sum | # sufficient features (genes)
+    # sufficient molecules counted
+    cellQCmetrics$filter_detected |
+    # sufficient features expressed compared to spike genes
+    cellQCmetrics$filter_spike
 )
 sce <- sce[, keep_cell]
 
 # or manually setting threshold
 cellQCmetrics <- cellQC(sce,
-    spike = "Ercc",
-    mad_detected = 4, mad_spikegenes = 4
+  spike = "Ercc",
+  mad_detected = 4, mad_spikegenes = 4
 )
 keep_cell <- (
-    cellQCmetrics$sum > 2.4 |
-        cellQCmetrics$detected > 110
+  cellQCmetrics$sum > 2.4 |
+    cellQCmetrics$detected > 110
 )
 }

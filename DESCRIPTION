@@ -21,7 +21,7 @@ Description: Airpart identifies sets of genes displaying differential
     visualizations and quality control functions for examining single
     cell allelic imbalance datasets.
 License: GPL-2
-Depends: R (>= 4.1)
+Depends: R (>= 4.0)
 Imports:
     SingleCellExperiment,
     SummarizedExperiment,
@@ -29,13 +29,11 @@ Imports:
     scater,
     stats,
     smurf,
-    apeglm,
+    apeglm (>= 1.13.3),
     emdbook,
-    boot,
     mclust,
     clue,
     dynamicTreeCut,
-    VGAM,
     matrixStats,
     dplyr,
     plyr,
@@ -65,6 +63,5 @@ biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,
     DifferentialExpression,
     GraphAndNetwork, Regression, Clustering, QualityControl
 Encoding: UTF-8
-LazyData: true
 RoxygenNote: 7.1.1
 Config/testthat/edition: 3

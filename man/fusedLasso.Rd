@@ -70,7 +70,8 @@ deviance. Default is 0.5 SE}
 A matrix grouping factor partition
 and the penalized parameter lambda
 are returned in metadata \code{"partition"} and \code{"lambda"}.
-Partation also stored in colData\code{"part"}.
+Partation and logistic group allelic estimate are stored in
+colData\code{"part"} and \code{"coef"}.
 }
 \description{
 Fits generalized fused lasso with either binomial(link="logit")
@@ -99,8 +100,8 @@ sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce,
-    formula = f, model = "binomial", genecluster = 1,
-    ncores = 2, se.rule.nct = 3
+  formula = f, model = "binomial", genecluster = 1,
+  ncores = 2, se.rule.nct = 3
 )
 metadata(sce_sub)$partition
 metadata(sce_sub)$lambda
@@ -113,9 +114,9 @@ adj.matrix[1, c(2, 3, 4)] <- 0
 adj.matrix[c(2, 3, 4), 1] <- 0
 f <- ratio ~ p(x, pen = "ggflasso") # use graph-guided fused lasso
 sce_sub <- fusedLasso(sce,
-    formula = f, model = "binomial", genecluster = 1,
-    lambda = 0.5, ncores = 2, se.rule.nct = 3,
-    adj.matrix = adj.matrix
+  formula = f, model = "binomial", genecluster = 1,
+  lambda = 0.5, ncores = 2, se.rule.nct = 3,
+  adj.matrix = adj.matrix
 )
 metadata(sce_sub)$partition
 }

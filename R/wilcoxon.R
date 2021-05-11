@@ -42,8 +42,8 @@
 #' adj.matrix[c(2, 3, 4), 1] <- 0
 #' thrs <- 10^seq(from = -2, to = -0.4, by = 0.1)
 #' sce_sub <- wilcoxExt(sce,
-#'     genecluster = 1, threshold = thrs,
-#'     adj.matrix = adj.matrix
+#'   genecluster = 1, threshold = thrs,
+#'   adj.matrix = adj.matrix
 #' )
 #' metadata(sce_sub)$partition
 #' @importFrom dplyr left_join
@@ -53,93 +53,87 @@
 #'
 #' @export
 wilcoxExt <- function(sce, genecluster, threshold, adj.matrix,
-    p.adjust.method = "none", ncores = NULL, ...) {
-    if (missing(threshold)) {
-        threshold <- 10^seq(from = -2, to = -0.4, by = 0.2)
-    }
-    if (missing(genecluster)) {
-        stop("No gene cluster number")
-    }
-    nct <- nlevels(sce$x)
-    if (missing(adj.matrix)) {
-        adj.matrix <- matrix(1, nct, nct)
-    }
-    stopifnot(c("ratio", "counts") %in% assayNames(sce))
-    stopifnot("x" %in% names(colData(sce)))
-    stopifnot("cluster" %in% names(rowData(sce)))
+                      p.adjust.method = "none", ncores = NULL, ...) {
+  if (missing(threshold)) {
+    threshold <- 10^seq(from = -2, to = -0.4, by = 0.2)
+  }
+  if (missing(genecluster)) {
+    stop("No gene cluster number")
+  }
+  nct <- nlevels(sce$x)
+  if (missing(adj.matrix)) {
+    adj.matrix <- matrix(1, nct, nct)
+  }
+  stopifnot(c("ratio", "counts") %in% assayNames(sce))
+  stopifnot("x" %in% names(colData(sce)))
+  stopifnot("cluster" %in% names(rowData(sce)))
 
-    ## construct data frame
-    sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
-    cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
-    cl_total <- as.vector(unlist(counts(sce_sub)))
-    dat <- data.frame(
-        ratio = cl_ratio,
-        x = factor(rep(sce_sub$x, each = length(sce_sub))),
-        cts = cl_total
-    )
+  ## construct data frame
+  sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
+  cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
+  cl_total <- as.vector(unlist(counts(sce_sub)))
+  dat <- data.frame(
+    ratio = cl_ratio,
+    x = factor(rep(sce_sub$x, each = length(sce_sub))),
+    cts = cl_total
+  )
 
-    obj <- pblapply(threshold, select_thrs,
-        dat = dat, p.adjust.method = p.adjust.method,
-        adj.matrix = adj.matrix, cl = ncores, ...
-    )
+  obj <- pblapply(threshold, select_thrs,
+    dat = dat, p.adjust.method = p.adjust.method,
+    adj.matrix = adj.matrix, cl = ncores, ...
+  )
 
-    cl <- do.call(rbind, lapply(obj, `[[`, 1))
-    loss1 <- do.call(rbind, lapply(obj, `[[`, 2))
-    partition <- data.frame(
-        part = factor(cl[which.min(loss1), ]),
-        x = levels(sce_sub$x)
-    )
-    cd <- colData(sce_sub)
-    cd2 <- cd[, !names(cd) %in% c("part", "rowname")] %>%
-        as.data.frame() %>%
-        setNames(names(cd)[!names(cd) %in% c("part", "rowname")])
-    coldata <- DataFrame(rowname = colnames(sce_sub), cd2)
-    coldata <- merge(coldata, partition, by = "x", sort = FALSE) %>%
-        DataFrame()
-    rownames(coldata) <- coldata$rowname
-    colData(sce_sub) <- coldata
-    metadata(sce_sub)$partition <- partition
-    metadata(sce_sub)$threshold <- threshold[which.min(loss1)]
-    return(sce_sub)
+  cl <- do.call(rbind, lapply(obj, `[[`, 1))
+  loss1 <- do.call(rbind, lapply(obj, `[[`, 2))
+  partition <- data.frame(
+    part = factor(cl[which.min(loss1), ]),
+    x = levels(sce_sub$x)
+  )
+  colData(sce_sub) <- merge(colData(sce_sub), partition, sort = FALSE) %>%
+    DataFrame() %>%
+    `rownames<-`(colnames(sce))
+  metadata(sce_sub)$partition <- partition
+  metadata(sce_sub)$threshold <- threshold[which.min(loss1)]
+  return(sce_sub)
 }
 
 ## not exported
 select_thrs <- function(threshold, dat, p.adjust.method, adj.matrix, ...) {
-    fit <- wilcoxInt(dat,
-        p.adjust.method = p.adjust.method,
-        threshold = threshold, adj.matrix = adj.matrix, ...
-    )
-    label <- data.frame(type = factor(levels(dat$x)), par = factor(fit))
-    dat2 <- dat %>%
-        left_join(label, by = c("x" = "type"))
-    dat2 <- dat2 %>%
-        group_by(.data$par) %>%
-        dplyr::mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
-    ## loss function
-    loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
-        nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
-    return(list(cl = fit, loss1 = loss1))
+  fit <- wilcoxInt(dat,
+    p.adjust.method = p.adjust.method,
+    threshold = threshold, adj.matrix = adj.matrix, ...
+  )
+  label <- data.frame(type = factor(levels(dat$x)), par = factor(fit))
+  dat2 <- dat %>%
+    left_join(label, by = c("x" = "type"))
+  dat2 <- dat2 %>%
+    group_by(.data$par) %>%
+    dplyr::mutate(grpmean = mean(.data$ratio, na.rm = TRUE))
+  ## loss function
+  loss1 <- nrow(dat) * log(sum((dat2$ratio - dat2$grpmean)^2, na.rm = TRUE) /
+    nrow(dat2)) + length(unique(fit)) * log(nrow(dat2))
+  return(list(cl = fit, loss1 = loss1))
 }
 
 ## not exported
 wilcoxInt <- function(data, threshold = 0.05,
-    p.adjust.method = "none", adj.matrix, ...) {
-    nct <- length(levels(data$x))
-    res <- pairwise.wilcox.test(data$ratio, data$x,
-        p.adjust.method = p.adjust.method, ...
-    )
-    adj <- as.data.frame(res$p.value)[lower.tri(res$p.value, diag = TRUE)]
-    ## Wilcoxon output Nan if ratio of two cell types are exactly same
-    adj <- ifelse(is.nan(adj), 1, adj)
-    b <- matrix(0, nct, nct)
-    b[lower.tri(b, diag = FALSE)] <- adj
-    b2 <- b + t(b)
-    diag(b2) <- 1
-    b2[which(adj.matrix == 0)] <- 0
-    ## binarize p-value to be seen as dismilarity matrix
-    bb <- ifelse(b2 < threshold, 1, 0)
-    ## hierarchical cluster on adjacency matrix
-    clust <- hclust(as.dist(bb))
-    my.clusters <- cutree(clust, h = 0)
-    return(my.clusters)
+                      p.adjust.method = "none", adj.matrix, ...) {
+  nct <- length(levels(data$x))
+  res <- pairwise.wilcox.test(data$ratio, data$x,
+    p.adjust.method = p.adjust.method, ...
+  )
+  adj <- as.data.frame(res$p.value)[lower.tri(res$p.value, diag = TRUE)]
+  ## Wilcoxon output Nan if ratio of two cell types are exactly same
+  adj <- ifelse(is.nan(adj), 1, adj)
+  b <- matrix(0, nct, nct)
+  b[lower.tri(b, diag = FALSE)] <- adj
+  b2 <- b + t(b)
+  diag(b2) <- 1
+  b2[which(adj.matrix == 0)] <- 0
+  ## binarize p-value to be seen as dismilarity matrix
+  bb <- ifelse(b2 < threshold, 1, 0)
+  ## hierarchical cluster on adjacency matrix
+  clust <- hclust(as.dist(bb))
+  my.clusters <- cutree(clust, h = 0)
+  return(my.clusters)
 }

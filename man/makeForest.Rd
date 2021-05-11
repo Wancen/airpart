@@ -6,10 +6,13 @@
 \usage{
 makeForest(
   sce,
+  genepoi,
+  ctpoi = seq_len(nlevels(sce$x)),
+  showtext = FALSE,
   xticks,
-  boxsize = 0.1,
+  boxsize = 0.25,
   xlab = "Allelic Ratio",
-  col = fpColors(),
+  col,
   grid = structure(seq(0.1, 0.9, 0.1), gp = gpar(lty = 2, col = "#CCCCFF")),
   ...
 )
@@ -18,6 +21,15 @@ makeForest(
 \item{sce}{A SingleCellExperiment containing colData
 allelic ratio estimator in the third column
 and last two column is the confidence interval.}
+
+\item{genepoi}{the gene position index or gene name vector that want to be plotted.
+Ordered by increased cell type svalue.
+Default is the top 40 genes that has minimum svalue in any cell type
+or all genes if number of genes smaller than 40.}
+
+\item{ctpoi}{the cell type position index that want to be plotted.}
+
+\item{showtext}{indicate whether show the svalue information along the forestplot.}
 
 \item{xticks}{argument as described in \code{\link[forestplot]{forestplot}}}
 
@@ -48,7 +60,7 @@ generates a forest plot
 \description{
 Draw a forest plot to visualized cell type specific
 allelic ratio estimator and confidence interval.
-It is based on the \pkg{rmeta}-package`s \code{forestplot} function.
+It is based on the \pkg{forestplot}-package`s \code{forestplot} function.
 }
 \examples{
 sce <- makeSimulatedData()
@@ -56,15 +68,19 @@ sce <- preprocess(sce)
 sce <- geneCluster(sce, G = 1:4)
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 sce_sub <- allelicRatio(sce_sub)
-makeForest(sce_sub)
+makeForest(sce_sub, showtext = TRUE)
 
 # if want to change some properties, like ticks position
 library(forestplot)
-xticks <- seq(from = 0, to = 1, by = 0.1)
+xticks <- seq(from = 0, to = 1, by = 0.25)
 xtlab <- rep(c(TRUE, FALSE), length.out = length(xticks))
 attr(xticks, "labels") <- xtlab
-
-makeForest(sce_sub, xticks, col = fpColors(box = "royalblue"))
+genepoi <- paste0("gene", seq_len(5))
+ctpoi <- c(1, 3)
+makeForest(sce_sub, genepoi, ctpoi,
+  xticks = xticks,
+  col = fpColors(box = c("blue", "red", "black", "darkgreen"))
+)
 }
 \seealso{
 \code{\link[forestplot]{forestplot}},

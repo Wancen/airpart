@@ -110,7 +110,7 @@ from the `a2` allele.
 
 ```{r}
 sce <- preprocess(sce)
-makeRatioHeatmap(sce)
+makeHeatmap(sce)
 ```
 
 The true partition in the simulation is given by these underlying
@@ -316,35 +316,22 @@ metadata(sce_sub)$threshold
 
 After *airpart* determines a partition of cell types either by the fused
 lasso with binomial likelihood or the nonparametric approach described
-above, it offers estimation of the allelic ratio per cell type (and
-confidence intervals) via beta-binomial GLM, using functionality from
-the *VGAM* package.
+above, it give fused lasso estimate or weighted mean as prior Cauchy mean to estimate the allelic ratio per gene and per cell type (and confidence intervals) via beta-binomial loglikelihood, using functionality from the *apeglm* package.
 
 Note that the estimates and confidence intervals are not equal for
-cell types in the same partition, because in this step we re-estimate
-the conditional cell type means per original cell type.
+cell types in the same partition and for genes, because in this step we re-estimate
+the conditional cell type means per original cell type and accounting for each gene overdispersion. The dispersion parameter is using Efron-like formula shrinkage.
 
 The following confidence interval options are provided:
 
-* Confidence interval with normal approximation.
-
 ```{r, warning=FALSE, fig.width=12}
-sce_sub <- allelicRatio(sce_sub, trace = FALSE)
-makeForest(sce_sub)
+sce_sub <- allelicRatio(sce_sub)
+makeForest(sce_sub,showtext = TRUE)
 ```
-
+Allelic ratio estimate(`ar`) as well as `s` value and confidence interval (`lower` and `upper`) are stored in `rowData`.
 ```{r results="asis"}
-knitr::kable(metadata(sce_sub)$estimator, row.names = FALSE)
-```
-
-* Confidence interval with bootstrap percentiles.
-
-```{r, warning=FALSE, results="asis"}
-sce_sub <- allelicRatio(sce_sub,
-  method = "bootstrap", R = 5, ncpus = 2, type = "norm",
-  parallel = "multicore", trace = FALSE
-)
-knitr::kable(metadata(sce_sub)$estimator, row.names = FALSE)
+genepoi<-paste0("gene",seq_len(5))
+knitr::kable(rowData(sce_sub)[genepoi,c(grep('ar', colnames(rowData(sce_sub)), value=TRUE))])
 ```
 
 # Displaying allelic partition results on a heatmap
@@ -384,7 +371,7 @@ keep_feature <- (featureQCmetric$filter_celltype &
   featureQCmetric$filter_spike)
 sce <- sce[keep_feature, ]
 
-makeRatioHeatmap(sce)
+makeHeatmap(sce)
 ```
 
 We can then perform gene clustering:
@@ -409,11 +396,13 @@ sce_sub <- fusedLasso(sce,
   model = "binomial",
   genecluster = 1, ncores = 2
 )
-sce_sub <- allelicRatio(sce_sub, trace = FALSE)
-makeForest(sce_sub)
+sce_sub <- allelicRatio(sce_sub)
+## Plot all cell types together,
+## but can set ctpoi=c(1,3,7) to limit cell types be plotted when there is too many cell types.
+makeForest(sce_sub) 
 ```
 
-A violin plot with smoothed allelic ratios on the y-axis:
+A violin plot with posterior mean allelic ratios on the y-axis:
 
 ```{r}
 makeViolin(sce_sub)
@@ -423,35 +412,12 @@ Finally, a heatmap as before, but now with the cell types grouped
 according to the partition:
 
 ```{r}
-makeRatioHeatmap(sce_sub)
+makeHeatmap(sce_sub)
 ```
 
 Or a heatmap can be shown by cell type ordered.
-
-
-
 ```{r}
-makeRatioHeatmap(sce_sub, order_by_group = FALSE)
-```
-
-# Per gene testing 
-
-If users want to find differential allelic imbalance for a specific
-gene, the following code can be used. It runs the fused lasso to
-detect allelic imbalance partitions per gene.
-
-```{r}
-sce_gene <- sce_sub[c("gene1", "gene2"), ]
-rowData(sce_gene)$cluster <- seq_len(nrow(sce_gene))
-library(pbapply)
-fl <- pbsapply(seq_len(nrow(sce_gene)), function(i) {
-  sce_genesub <- fusedLasso(sce_gene,
-    model = "binomial",
-    genecluster = i, ncores = 2
-  )
-  sce_genesub <- allelicRatio(sce_genesub, trace = FALSE)
-  print(metadata(sce_genesub)$estimator)
-}, cl = 1)
+makeHeatmap(sce_sub, order_by_group = FALSE)
 ```
 
 # Session Info

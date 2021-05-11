@@ -2,7 +2,7 @@
 % Please edit documentation in R/makeViolin.R
 \name{makeViolin}
 \alias{makeViolin}
-\title{Smoothed allelic ratio in violin plots}
+\title{Posterior mean allelic ratio estimates in violin plots}
 \usage{
 makeViolin(sce)
 }
@@ -10,10 +10,10 @@ makeViolin(sce)
 \item{sce}{SingleCellExperiment}
 }
 \value{
-a ggplot2 object
+a ggplot2 object, \code{n} represents number of cells in that cell type.
 }
 \description{
-Smoothed allelic ratio in violin plots
+Posterior mean allelic ratio estimates in violin plots
 }
 \examples{
 
@@ -21,5 +21,6 @@ sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = 1:4)
 sce_sub <- wilcoxExt(sce, genecluster = 1)
+sce_sub <- allelicRatio(sce_sub)
 makeViolin(sce_sub)
 }
