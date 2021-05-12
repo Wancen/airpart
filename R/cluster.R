@@ -84,7 +84,7 @@ geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
   }
 
   rowData(sce)$cluster <- my_clusters
-  metadata(sce)$geneCluster <- table(my_clusters)
+  metadata(sce)$geneCluster <- unname(table(my_clusters))
   return(sce)
 }
 

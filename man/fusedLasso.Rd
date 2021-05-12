@@ -24,28 +24,28 @@ fusedLasso(
 \item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
 \code{"counts"}) and colData \code{"x"}}
 
-\item{formula}{A \code{\link[stats]{formula}} object which will typically be
-fused lasso penalty:
+\item{formula}{A \code{\link[stats]{formula}} object which will typically 
+involve a fused lasso penalty:
 \code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
 the Graph-Guided Fused Lasso penalty:
-\code{f <- ratio ~ p(x, pen = "ggflasso")}
+\code{ratio ~ p(x, pen = "ggflasso")}
 See \code{\link[smurf]{glmsmurf}} for more details}
 
 \item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit
 the generalized fused lasso}
 
-\item{genecluster}{which gene cluster result want to be returned.
-Usually identified interesting gene cluster pattern by
+\item{genecluster}{which gene cluster to run the fused lasso on.
+Usually one first identifies an interesting gene cluster pattern by
 \code{\link{summaryAllelicRatio}}}
 
-\item{niter}{number of iteration to run; recommended to run 5 times
-if allelic ratio differences are within [0.05,0.1]}
+\item{niter}{number of iterations to run; recommended to run 5 times
+if allelic ratio differences across cell types are within [0.05, 0.1]}
 
 \item{pen.weights}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
 \item{lambda}{argument as described in \code{\link[smurf]{glmsmurf}}.
 Default lambda is determined by \code{"cv1se.dev"}
-(cross validation within 1 standard error rule(SE); deviance)}
+(cross-validation within 1 standard error rule(SE); deviance)}
 
 \item{k}{number of cross-validation folds}
 
@@ -53,29 +53,30 @@ Default lambda is determined by \code{"cv1se.dev"}
 
 \item{lambda.length}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
-\item{se.rule.nct}{the number of cell types to trigger
-another SE based rule
+\item{se.rule.nct}{the number of cell types to trigger a different SE-based rule
 (to prioritize larger models, less fusing,
-good to detect 0.05 allelic ratio difference).
+good for detecting smaller, e.g. 0.05, allelic ratio differences).
 When the number of cell types is less than or equal to this value, the
-\code{se.rule.mult} SE rule is used}
+standard \code{se.rule.mult} SE rule is used}
 
 \item{se.rule.mult}{the multiplier of the SE in determining the lambda:
 the chosen lambda is within \code{se.rule.mult} x SE of the minimum
-deviance. Default is 0.5 SE}
+deviance. Default is 0.5 SE. Only used when number of cell types is
+larger than \code{se.rule.nct}}
 
 \item{...}{additional arguments passed to \code{\link[smurf]{glmsmurf}}}
 }
 \value{
-A matrix grouping factor partition
+A SummarizedExperiment with attached metadata and colData:
+a matrix grouping factor partition
 and the penalized parameter lambda
 are returned in metadata \code{"partition"} and \code{"lambda"}.
-Partation and logistic group allelic estimate are stored in
-colData\code{"part"} and \code{"coef"}.
+Partition and logistic group allelic estimates are stored in
+colData: \code{"part"} and \code{"coef"}.
 }
 \description{
 Fits generalized fused lasso with either binomial(link="logit")
-or gaussian likelihood, leveraging functions from the
+or Gaussian likelihood, leveraging functions from the
 \code{smurf} package.
 }
 \details{
@@ -84,6 +85,7 @@ cell states in order to regularize all possible coefficient differences.
 Another possibility would be to use the Graph-Guided Fused Lasso penalty
 to only regularize the differences of coefficients of neighboring
 cell states.
+
 When using a Graph-Guided Fused Lasso penalty, the adjacency matrix
 corresponding to the graph needs to be provided. The elements of this
 matrix are zero when two levels are not connected, and one when they are
@@ -119,6 +121,7 @@ sce_sub <- fusedLasso(sce,
   adj.matrix = adj.matrix
 )
 metadata(sce_sub)$partition
+
 }
 \references{
 This function leverages the glmsmurf function from the smurf package.

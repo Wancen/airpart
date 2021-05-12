@@ -31,9 +31,9 @@
 makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genecluster=NULL,
                         show_row_names = FALSE, order_by_group = TRUE, ...) {
   assay <- match.arg(assay, c("ratio_pseudo", "ratio", "counts"))
-  if(is.null(genecluster)){
+  if (is.null(genecluster)) {
       m <- assays(sce)[[assay]]
-  }else{
+  } else {
       m <- assays(sce[rowData(sce)$cluster==genecluster,])[[assay]]
   }
   if (assay == "counts") {

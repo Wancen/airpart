@@ -12,12 +12,14 @@
 #' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' sce_sub <- allelicRatio(sce_sub)
 #' makeViolin(sce_sub)
+#' 
 #' @importFrom ggplot2 ggplot aes geom_boxplot geom_violin
 #' scale_fill_brewer theme labs
 #'
 #' @export
 makeViolin <- function(sce) {
-  ar <- rowData(sce)[, c(grep("ar", colnames(rowData(sce)), value = TRUE))] %>% `colnames<-`(levels(sce$x))
+  ar <- rowData(sce)[, c(grep("ar", colnames(rowData(sce)), value = TRUE))] %>%
+    `colnames<-`(levels(sce$x))
   dat <- data.frame(
     ratio = as.vector(unlist(ar)),
     x = factor(rep(levels(sce$x), each = length(sce))),

@@ -1,6 +1,6 @@
 Package: airpart
 Title: Differential cell-type-specific allelic imbalance
-Version: 0.99.4
+Version: 0.99.5
 Authors@R: 
     c(person(given = "Wancen",
            family = "Mu",
@@ -53,7 +53,6 @@ Suggests:
     rmarkdown,
     roxygen2 (>= 6.0.0),
     testthat (>= 3.0.0),
-    pheatmap,
     gplots
 VignetteBuilder: knitr
 biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,

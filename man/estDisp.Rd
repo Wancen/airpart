@@ -2,31 +2,30 @@
 % Please edit documentation in R/estDisp.R
 \name{estDisp}
 \alias{estDisp}
-\title{Estimate overdispersion parameter of a betabinomial}
+\title{Estimate overdispersion parameter of a beta-binomial}
 \usage{
 estDisp(sce, genecluster, type = c("plot", "values"))
 }
 \arguments{
 \item{sce}{SingleCellExperiment with \code{a1} matrix and \code{counts}}
 
-\item{genecluster}{which gene cluster dispersion
-parameter want to be estimated.
-Default is the cluster with the most cells}
+\item{genecluster}{the gene cluster for which to estimate the
+over-dispersion parameter. Default is the cluster with the most cells}
 
-\item{type}{indicated whether to output
-dispersion estimates as a plot or a value}
+\item{type}{whether to output the over-dispersion estimates as a plot or a value}
 }
 \value{
 A ggplot object of the dispersion estimates over the mean,
 or a data.frame of the mean and dispersion estimates (theta)
 }
 \description{
-Estimate overdispersion parameter of a betabinomial
+Estimate overdispersion parameter of a beta-binomial
 }
 \examples{
 
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
-estDisp(sce)
+estDisp(sce, genecluster = 1)
+
 }

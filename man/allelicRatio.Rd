@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitBB.R
 \name{allelicRatio}
 \alias{allelicRatio}
-\title{Fit betabinomial on each cell type groups}
+\title{Fit beta-binomial across cell types}
 \usage{
 allelicRatio(sce, level = 0.95, ...)
 }
@@ -11,17 +11,24 @@ allelicRatio(sce, level = 0.95, ...)
 (\code{"ratio"}, \code{"counts"}) and colData (\code{"x"},
 \code{"part"})}
 
-\item{level}{the credible interval required}
+\item{level}{the level of credible interval (default is 0.95)}
 
-\item{...}{Argument for the \code{\link[apeglm]{apeglm}}
-functions.}
+\item{...}{arguments to pass to \code{\link[apeglm]{apeglm}}
+functions}
 }
 \value{
-Posterior mean (\code{"ar"}) for allelic ratio estimator is returned in
-rowData for each cell type as well as \code{"s"} value and credible interval(\code{"lower"} and \code{"upper"}).
+posterior mean (\code{"ar"}) for allelic ratio
+estimate is returned in the rowData for each cell type,
+as well as the \code{"s"} value and
+credible interval (\code{"lower"} and \code{"upper"}).
 }
 \description{
-Fit betabinomial on each cell type groups
+This function performs additional inference on the allelic ratio
+across cell types, giving posterior mean and credible
+intervals per cell type. A Cauchy prior is centered for
+each cell type on the allelic ratio from the fused lasso
+across all genes in the gene cluster
+(or using a weighted means if the fused lasso is not provided).
 }
 \examples{
 
@@ -30,4 +37,5 @@ sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 sce_sub <- allelicRatio(sce_sub)
+
 }

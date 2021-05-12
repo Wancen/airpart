@@ -1,8 +1,7 @@
 ---
 title: "Differential cell-type-specific allelic imbalance with airpart"
 author: 
-  - name: Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, 
-          Rob Patro, Michael I. Love
+  - name: "Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, Rob Patro, Michael I. Love"
 date: "May 1, 2021"
 abstract: |
   Airpart identifies sets of genes displaying differential
@@ -30,21 +29,24 @@ vignette: |
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Real Data example
-Vignette on Larsson 2019 data can be found in [here](https://htmlpreview.github.io/?https://github.com/Wancen/airpartpaper/blob/main/R/Larsson2019.html) which has Single-cell allelic RNA-seq with 4 cell states.
+# Real data example
 
-# Overview of Toy example data
+Vignette on Larsson 2019 data can be found 
+[here](https://htmlpreview.github.io/?https://github.com/Wancen/airpartpaper/blob/main/R/Larsson2019.html),
+which has allelic single-cell RNA-seq with 4 cell states.
 
-The airpart package takes input data of counts from each of two
+# Simulated data example I
+
+The *airpart* package takes input data of counts from each of two
 alleles across genes (rows) and cells (columns) from a single-cell
 RNA-seq experiment.
 
-For demonstration in the package vignette, We will simulate some data
+For demonstration in the package vignette, we will simulate some data
 using `makeSimulatedData` function provided within the *airpart*
 package. We will examine the allelic counts and then perform QC steps
 before analyzing the data for allelic imbalance across groups of cells.
 
-### Simulation set-up
+## Simulation set-up
 
 The simulated example dataset has 3 gene clusters with differential
 allelic imbalance (DAI): 
@@ -61,7 +63,7 @@ simulation function:
 * the "noisy" cell count is 2
 * the normal cell count is 10
 * 4 cell types
-* 20 cells within each cell types
+* 20 cells within each cell type
 * 25 genes within each gene cluster
 * overdispersion parameter `theta` in `rbetabinom` is 20 (higher is
   less dispersion)
@@ -84,7 +86,7 @@ table(sce$x) # counts of each cell type
 assays(sce)[["a1"]][1:5, 1:5] # allelic counts for the effect allele
 ```
 
-### Required input data
+## Required input data
 
 In summary, *airpart* expects a *SingleCellExperiment* object with:
 
@@ -92,6 +94,10 @@ In summary, *airpart* expects a *SingleCellExperiment* object with:
 * effect and non-effect allelic counts as assays `a1` and `a2`
 
 The allelic ratio is calculated as `a1 / (a1 + a2)`.
+
+Note: We assume that the cell types have been either provided by the
+experiment, or identified based on total count. We assume the allelic
+ratio was not used in determining the cell groupings in `x`.
 
 ```{r}
 assayNames(sce)
@@ -116,25 +122,6 @@ sce <- preprocess(sce)
 makeHeatmap(sce)
 ```
 
-The true partition in the simulation is given by these underlying
-ratios (this code only useful for simulated data, as true allelic
-ratio would not be known from scRNA-seq data).
-
-```{r}
-library(pheatmap)
-anno_df <- data.frame(
-  x = factor(1:length(p.vec)),
-  row.names = paste0("ct", 1:length(p.vec))
-)
-pheatmap(unique(rowData(sce)),
-  color = colorRampPalette(c("blue", "white", "red"))(101),
-  breaks = 0:100 / 100,
-  annotation_col = anno_df,
-  cluster_rows = FALSE, cluster_cols = FALSE,
-  show_colnames = FALSE, show_rownames = FALSE
-)
-```
-
 # Quality control steps
 
 ## QC on cells
@@ -154,7 +141,8 @@ out based on `sum`,`detected` and `spikePercent`.
 keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
     cellQCmetrics$filter_detected | # sufficient molecules counted
-    # sufficient features expressed compared to spike genes, high quality cells
+    # sufficient features expressed compared to spike genes,
+    # high quality cells
     cellQCmetrics$filter_spike
 )
 sce <- sce[, keep_cell]
@@ -163,12 +151,12 @@ sce <- sce[, keep_cell]
 ## QC on genes
 
 We also recommend QC on genes for allelic ratio analysis. Note that we
-require genes to be expressed in at least **25%** of cells within each
+require genes to be expressed in at least 25% of cells within each
 cell type and the genes to have high allelic imbalance variation
 across cell types. The following code chunk is recommended (not
 evaluated here though). If users want to estimate homogeneous cell
 type allelic imbalance, they can set `sd = 0` and examine the below
-summary step to find interested gene clusters with weighted mean
+summary step to find interesting gene clusters with weighted mean
 deviating from 0.5.
 
 ```{r, eval=FALSE}
@@ -182,7 +170,8 @@ sce <- sce[keep_feature, ]
 # Gene clustering
 
 *airpart* provides a function to cluster genes by their allelic
-imbalance profile across cells. We then recommend providing genes
+imbalance profile across cells (not using cell grouping information,
+e.g. `sce$x`). We then recommend providing genes
 within a cluster to the partition function. Clustering genes increases
 power for detecting cell type partitions, and improves speed as it
 reduces the number of times the partition must be estimated.
@@ -211,22 +200,23 @@ metadata(sce.hc)$geneCluster
 In this simulated dataset case, the clustering is very similar, but on
 allelic scRNA-seq datasets, we have found improved clustering with the
 Gaussian mixture model approach (more similar genes within cluster,
-based on visual inspection in PC space and of allelic ratio heatmaps).
+based on visual inspection of PCA plot and of allelic ratio heatmaps).
 
-# Running airpart for allelic imbalance across cells
+# Running airpart for allelic imbalance across groups of cells
 
-## Simple summary table of alleic ratio
+## Simple summary table of allelic ratio
 
 We first quickly look at the weighted mean of allelic ratio for each
 gene cluster. From this step we will identify the interesting gene
-clusters.
+clusters. The mean is calculated, weighting the information from each
+gene x cell element of the matrices by the total count.
 
 ```{r}
 sce <- summaryAllelicRatio(sce)
 metadata(sce)$summary
 ```
 
-The following step is a complement of the QC on genes step.  We
+The following step is a complement of the QC on genes step. We
 recommend users only run *airpart* when the largest ordered allelic
 ratio difference > 0.05 for speed concerns. We find that the allelic
 ratio of most of the gene clusters in such cases (small absolute
@@ -249,8 +239,16 @@ over-dispersion, which helps to inform whether to use a binomial
 likelihood or a nonparametric approach to partitioning the cell types
 by allelic imbalance.
 
+We focus on the first gene cluster (if a gene cluster is not provided,
+`estDisp` will choose the largest cluster).
+
+The blue trend line gives the typical values of over-dispersion across
+all the genes in the cluster, and across all the cell types
+(accounting for differences across the cell types in the expected
+ratio).
+
 ```{r}
-estDisp(sce)
+estDisp(sce, genecluster = 1)
 ```
 
 ## Modeling using fused lasso with binomial likelihood
@@ -258,7 +256,7 @@ estDisp(sce)
 *airpart* offers a method for partitioning cell types using the
 generalized fused lasso with binomial likelihood, as implemented in
 the *smurf* package. Cell types are merged based on their similarity
-of allelic ratios, accounting for excess variability on the ratio from
+of allelic ratios, accounting for excess variance on the ratio from
 low counts. The penalization is determined using deviance on held-out
 data, with a 1 SE cross-validation rule for favoring smaller models
 (more fused cell types).
@@ -266,12 +264,13 @@ data, with a 1 SE cross-validation rule for favoring smaller models
 ```{r}
 sce_sub <- fusedLasso(sce,
   model = "binomial",
-  genecluster = 1, ncores = 2, niter = 2
+  genecluster = 1, ncores = 1,
+  niter = 2
 )
 ```
 
-The penalty $\lambda$ in fused lasso as well as partition groups are
-stored in the metadata. 
+The partition groups and the penalty $\lambda$ from the fused lasso
+are stored in the metadata: 
 
 ```{r, results="asis"}
 knitr::kable(metadata(sce_sub)$partition, row.names = FALSE)
@@ -281,7 +280,7 @@ knitr::kable(metadata(sce_sub)$partition, row.names = FALSE)
 metadata(sce_sub)$lambda
 ```
 
-Here `ncores` is the number of CPU used for parallelization. As a
+Above, `ncores` is the number of CPU used for parallelization. As a
 guide, one can specify `niter=5` when the `cts` weighted allelic ratio
 difference is smaller than 0.1, in order to provide additional
 estimator robustness.
@@ -297,52 +296,72 @@ sce_sub <- consensusPart(sce_sub)
 knitr::kable(metadata(sce_sub)$partition, row.names = FALSE)
 ```
 
-## Modeling using pairwise Mann Whitney Wilcoxon extension
+## Modeling using pairwise Mann-Whitney-Wilcoxon extension
 
 An alternative to the fused lasso with binomial likelihood is an
 extension we have implemented wherein all pairs cell types are
-compared with Mann Whitney Wilcoxon rank sum tests. In practice, we
+compared with Mann-Whitney-Wilcoxon rank sum tests. In practice, we
 find that when the allelic counts deviates strongly from a binomial
-(e.g. large over-dispersion), the `wilcoxExt` function can offer
-improved performance, in terms of recovery of the true partition of
-cell types by allelic imbalance. The partition is decided based on a
-loss function motivated by the Bayesian Information Criteria 
+(e.g. large over-dispersion, small values of `theta`), the `wilcoxExt`
+function can offer improved performance, in terms of recovery of the
+true partition of cell types by allelic imbalance. The partition is
+decided based on a loss function motivated by the Bayesian Information
+Criteria.
 
 ```{r}
 thrs <- 10^seq(from = -2, to = -0.4, by = 0.2)
-sce_sub <- wilcoxExt(sce, genecluster = 1, threshold = thrs)
-knitr::kable(metadata(sce_sub)$partition, row.names = FALSE)
-metadata(sce_sub)$threshold
+sce_sub_w <- wilcoxExt(sce, genecluster = 1, threshold = thrs)
+knitr::kable(metadata(sce_sub_w)$partition, row.names = FALSE)
+metadata(sce_sub_w)$threshold
 ```
 
-## Calculating allelic ratio estimate via beta-binomial
+## Calculating allelic ratio estimates via beta-binomial model
 
 After *airpart* determines a partition of cell types either by the fused
 lasso with binomial likelihood or the nonparametric approach described
-above, it give fused lasso estimate or weighted mean as prior Cauchy mean to estimate the allelic ratio per gene and per cell type (and credible intervals) via beta-binomial loglikelihood, using functionality from the *apeglm* package.
+above, it uses those fused lasso estimates or weighted means as the
+center of a Cauchy prior for posterior estimation of allelic ratios
+per cell type and per gene. Posterior mean and credible intervals are
+provided. The posterior inference makes use of a beta-binomial
+likelihood, and a moderated estimate of the over-dispersion. The prior
+from the partition and the moderated estimate of over-dispersion are
+provided to the `apeglm` function from the Bioconductor package of the
+same name.
 
-Note that the estimates and credible intervals are not equal for
-cell types in the same partition and for genes, because in this step we re-estimate
-the conditional cell type means per original cell type and accounting for each gene overdispersion. The dispersion parameter is using Efron-like formula shrinkage.
+Note that the estimates and credible intervals are not equal for cell
+types in the same partition and for genes, because in this step we
+re-estimate the conditional cell type means per cell type (not per
+partition) and account for each gene's moderated estimate of
+over-dispersion.
+
+Here, in the first step, we use the coefficients from the first
+partition for setting the prior. This would be skipped if `niter=1`
+when running the fused lasso, or if the nonparametric approach was
+used.
 
 ```{r, warning=FALSE, fig.width=12}
+sce_sub$coef <- sce_sub$coef1
 sce_sub <- allelicRatio(sce_sub)
-makeForest(sce_sub,showtext = TRUE)
-```
-Allelic ratio estimate(`ar`) as well as `s` value and credible interval (`lower` and `upper`) are stored in `rowData`.
-```{r results="asis"}
-genepoi<-paste0("gene",seq_len(5))
-knitr::kable(rowData(sce_sub)[genepoi,c(grep('ar', colnames(rowData(sce_sub)), value=TRUE))])
+# the svalue column is empty?
+# the ct1 intervals are grey instead of red?
+makeForest(sce_sub, showtext = TRUE)
 ```
 
-# Displaying allelic partition results on a heatmap
+Allelic ratio estimates (`ar`) as well as `s` value and credible
+interval (`lower` and `upper`) are stored in `rowData`.
+
+```{r results="asis"}
+genepoi <- paste0("gene", seq_len(5))
+tab_cols <- c(grep("ar", colnames(rowData(sce_sub)), value = TRUE))
+knitr::kable(rowData(sce_sub)[genepoi, tab_cols])
+```
+
+# Allelic ratio partition and posterior inference, example II
 
 To demonstrate showing partition results on a heatmap, let's make a
 more complex simulation, with 8 cell types, in 3 true groups
-by allelic ratio.
-
-In the below code, we construct the more complex simulation, run
-preprocessing, and examine the allelic ratio heatmap.
+by allelic ratio. In the code below, we construct the more complex
+simulation, run preprocessing, and examine the allelic ratio heatmap.
 
 ```{r}
 nct <- 8
@@ -361,7 +380,8 @@ cellQCmetrics <- cellQC(sce, mad_detected = 4)
 keep_cell <- (
   cellQCmetrics$filter_sum | # sufficient features (genes)
     cellQCmetrics$filter_detected | # sufficient molecules counted
-    # sufficient features expressed compared to spike genes, high quality cells
+    # sufficient features expressed compared to spike genes,
+    # high quality cells
     cellQCmetrics$filter_spike
 )
 sce <- sce[, keep_cell]
@@ -379,46 +399,70 @@ We can then perform gene clustering:
 
 ```{r}
 sce <- geneCluster(sce, G = 1:4)
+table(mcols(sce)$cluster)
 ```
 
-We identify an interesting gene cluster, and then check for
-experiment-wide beta-binomial over-dispersion (again, not that larger
-`theta` (y-axis) corresponds to *less* over-dispersion.
+We check for experiment-wide beta-binomial over-dispersion.
+Note that larger `theta` (y-axis) corresponds to *less*
+over-dispersion. 
+
+We focus on the first gene cluster (if a gene cluster is not provided,
+`estDisp` will choose the largest cluster).
 
 ```{r}
 sce <- summaryAllelicRatio(sce)
-estDisp(sce)
+estDisp(sce, genecluster = 1)
 ```
 
-We then run the fused lasso and make the forest plot:
-
-```{r fig.width=12}
-sce_sub <- fusedLasso(sce,
-  model = "binomial",
-  genecluster = 1, ncores = 2
-)
-sce_sub <- allelicRatio(sce_sub)
-## Plot all cell types together,
-## but can set ctpoi=c(1,3,7) to limit cell types be plotted when there is too many cell types.
-makeForest(sce_sub) 
-```
-
-A violin plot with posterior mean allelic ratios on the y-axis:
+We identify an interesting gene cluster and run the fused lasso.
 
 ```{r}
-makeViolin(sce_sub)
+sce_sub <- fusedLasso(sce,
+  model = "binomial",
+  genecluster = 1, ncores = 1
+)
+```
+
+```{r, results="asis"}
+knitr::kable(metadata(sce_sub)$partition, row.names = FALSE)
+```
+
+Next we estimate allelic ratios per cell type and per gene, with
+credible intervals. For demonstration, we subset to the first 10
+genes. 
+
+```{r}
+sce_sub2 <- sce_sub[1:10, ]
+sce_sub2 <- allelicRatio(sce_sub2)
+```
+
+We plot all cell types together, but one can set `ctpoi=c(1,3,7)` to
+limit the cell types to be plotted when there are too many cell
+types.
+
+
+```{r}
+makeForest(sce_sub2)
+```
+
+A violin plot with posterior mean allelic ratios (one estimate per
+gene) on the y-axis:
+
+```{r}
+makeViolin(sce_sub2)
 ```
 
 Finally, a heatmap as before, but now with the cell types grouped
 according to the partition:
 
 ```{r}
-makeHeatmap(sce_sub)
+makeHeatmap(sce_sub2)
 ```
 
-Or a heatmap can be shown by cell type ordered.
+The heatmap can also be shown ordered by cell type.
+
 ```{r}
-makeHeatmap(sce_sub, order_by_group = FALSE)
+makeHeatmap(sce_sub2, order_by_group = FALSE)
 ```
 
 # Session Info

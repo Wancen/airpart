@@ -10,10 +10,11 @@ summaryAllelicRatio(sce, genecluster)
 \item{sce}{SingleCellExperiment}
 
 \item{genecluster}{an optional vector of gene cluster IDs.
-if nothing is given, all clusters' summary will be displayed}
+if nothing is given, all cluster's summaries will be
+calculated}
 }
 \value{
-a list of gene cluster's summary table contains
+a list of gene cluster summary tables containing:
 \itemize{
   \item{weighted.mean} {weighted mean of allelic ratio for the cell types}
   \item{mean} {mean allelic ratio for the cell types}
@@ -21,13 +22,15 @@ a list of gene cluster's summary table contains
 } is returned in metadata \code{summary}
 }
 \description{
-produce allelic ratio summary for each gene cluster
+Oroduce allelic ratio summaries for each gene cluster
 }
 \examples{
+
 library(S4Vectors)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = 1:4)
 sce <- summaryAllelicRatio(sce, genecluster = c(1, 3))
 metadata(sce)$summary
+
 }

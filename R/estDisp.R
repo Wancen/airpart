@@ -1,11 +1,9 @@
-#' Estimate overdispersion parameter of a betabinomial
+#' Estimate overdispersion parameter of a beta-binomial
 #'
 #' @param sce SingleCellExperiment with \code{a1} matrix and \code{counts}
-#' @param genecluster which gene cluster dispersion
-#' parameter want to be estimated.
-#' Default is the cluster with the most cells
-#' @param type indicated whether to output
-#' dispersion estimates as a plot or a value
+#' @param genecluster the gene cluster for which to estimate the
+#' over-dispersion parameter. Default is the cluster with the most cells
+#' @param type whether to output the over-dispersion estimates as a plot or a value
 #'
 #' @return A ggplot object of the dispersion estimates over the mean,
 #' or a data.frame of the mean and dispersion estimates (theta)
@@ -15,7 +13,8 @@
 #' sce <- makeSimulatedData()
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
-#' estDisp(sce)
+#' estDisp(sce, genecluster = 1)
+#' 
 #' @importFrom apeglm apeglm bbEstDisp
 #' @importFrom ggplot2 ggplot aes geom_point geom_smooth
 #' theme_minimal labs coord_cartesian
