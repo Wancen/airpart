@@ -24,7 +24,7 @@ fusedLasso(
 \item{sce}{A SingleCellExperiment containing assays (\code{"ratio"},
 \code{"counts"}) and colData \code{"x"}}
 
-\item{formula}{A \code{\link[stats]{formula}} object which will typically 
+\item{formula}{A \code{\link[stats]{formula}} object which will typically
 involve a fused lasso penalty:
 \code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
 the Graph-Guided Fused Lasso penalty:
@@ -121,7 +121,6 @@ sce_sub <- fusedLasso(sce,
   adj.matrix = adj.matrix
 )
 metadata(sce_sub)$partition
-
 }
 \references{
 This function leverages the glmsmurf function from the smurf package.

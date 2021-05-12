@@ -37,5 +37,4 @@ sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 sce_sub <- wilcoxExt(sce, genecluster = 1)
 sce_sub <- allelicRatio(sce_sub)
-
 }

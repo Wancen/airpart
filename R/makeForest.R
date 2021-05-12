@@ -64,42 +64,42 @@
 makeForest <- function(sce, genepoi, ctpoi = seq_len(nlevels(sce$x)), showtext = FALSE, xticks, boxsize = .25,
                        xlab = "Allelic Ratio", col,
                        grid = structure(seq(0.1, 0.9, 0.1),
-                         gp = gpar(lty = 2, col = "#CCCCFF")
+                           gp = gpar(lty = 2, col = "#CCCCFF")
                        ), ...) {
-  if (missing(xticks)) {
-    xticks <- seq(from = 0, to = 1, by = 0.1)
-    xtlab <- rep(c(TRUE, FALSE, TRUE, FALSE, FALSE), length.out = length(xticks))
-    attr(xticks, "labels") <- xtlab
-  }
-  if (missing(col)) {
-    col <- fpColors(box = brewer.pal(9, "Set1")[1:length(ctpoi)])
-  }
-  ar <- rowData(sce)[, c(grep("svalue", colnames(rowData(sce)), value = TRUE))] %>% `colnames<-`(levels(sce$x))
-  if (showtext) {
-    forest_text <- data.frame(`Gene` = rownames(sce), ar[, ctpoi])
-  } else {
-    forest_text <- data.frame(Gene = rownames(sce)) %>% `rownames<-`(rownames(ar))
-  }
-  if (missing(genepoi)) {
-    smin <- apply(apply(ar, 2, as.numeric), 1, min)
-    genepoi <- head(order(smin), min(40, nrow(sce)))
-  }
-  forest_text <- rbind(colnames(forest_text), forest_text[genepoi, ] %>% as.data.frame())
-  message("svalue shown in columns per cell type")
-  forestplot::forestplot(forest_text,
-    is.summary = c(TRUE, rep(FALSE, nrow(forest_text) - 1)),
-    hrzl_lines = list("2" = gpar(lty = 2)),
-    line.margin = .1, # We need to add this to avoid crowding
-    legend = levels(sce$x)[ctpoi], grid = grid,
-    txt_gp = fpTxtGp(
-      label = list(gpar(cex = 0.8), gpar(cex = 0.8, col = "#703C3C")),
-      ticks = gpar(cex = 0.9), xlab = gpar(cex = 0.9)
-    ),
-    boxsize = boxsize, graphwidth = unit(15, "cm"),
-    mean = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("ar", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
-    lower = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("lower", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
-    upper = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("upper", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
-    clip = c(0.01, 1), xticks = xticks, ref = 0.5,
-    col = col, xlab = xlab
-  )
+    if (missing(xticks)) {
+        xticks <- seq(from = 0, to = 1, by = 0.1)
+        xtlab <- rep(c(TRUE, FALSE, TRUE, FALSE, FALSE), length.out = length(xticks))
+        attr(xticks, "labels") <- xtlab
+    }
+    if (missing(col)) {
+        col <- fpColors(box = brewer.pal(9, "Set1")[seq_len(ctpoi)])
+    }
+    ar <- rowData(sce)[, c(grep("svalue", colnames(rowData(sce)), value = TRUE))] %>% `colnames<-`(levels(sce$x))
+    if (showtext) {
+        forest_text <- data.frame(`Gene` = rownames(sce), ar[, ctpoi])
+    } else {
+        forest_text <- data.frame(Gene = rownames(sce)) %>% `rownames<-`(rownames(ar))
+    }
+    if (missing(genepoi)) {
+        smin <- apply(apply(ar, 2, as.numeric), 1, min)
+        genepoi <- head(order(smin), min(40, nrow(sce)))
+    }
+    forest_text <- rbind(colnames(forest_text), forest_text[genepoi, ] %>% as.data.frame())
+    message("svalue shown in columns per cell type")
+    forestplot::forestplot(forest_text,
+        is.summary = c(TRUE, rep(FALSE, nrow(forest_text) - 1)),
+        hrzl_lines = list("2" = gpar(lty = 2)),
+        line.margin = .1, # We need to add this to avoid crowding
+        legend = levels(sce$x)[ctpoi], grid = grid,
+        txt_gp = fpTxtGp(
+            label = list(gpar(cex = 0.8), gpar(cex = 0.8, col = "#703C3C")),
+            ticks = gpar(cex = 0.9), xlab = gpar(cex = 0.9)
+        ),
+        boxsize = boxsize, graphwidth = unit(15, "cm"),
+        mean = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("ar", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
+        lower = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("lower", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
+        upper = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("upper", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
+        clip = c(0.01, 1), xticks = xticks, ref = 0.5,
+        col = col, xlab = xlab
+    )
 }

@@ -6,7 +6,7 @@
 #'
 #' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
 #' \code{"counts"}) and colData \code{"x"}
-#' @param formula A \code{\link[stats]{formula}} object which will typically 
+#' @param formula A \code{\link[stats]{formula}} object which will typically
 #' involve a fused lasso penalty:
 #' \code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
 #' the Graph-Guided Fused Lasso penalty:
@@ -49,7 +49,7 @@
 #' Another possibility would be to use the Graph-Guided Fused Lasso penalty
 #' to only regularize the differences of coefficients of neighboring
 #' cell states.
-#' 
+#'
 #' When using a Graph-Guided Fused Lasso penalty, the adjacency matrix
 #' corresponding to the graph needs to be provided. The elements of this
 #' matrix are zero when two levels are not connected, and one when they are
@@ -98,7 +98,6 @@
 #'   adj.matrix = adj.matrix
 #' )
 #' metadata(sce_sub)$partition
-#' 
 #' @import smurf
 #' @importFrom matrixStats rowSds
 #' @importFrom stats binomial gaussian

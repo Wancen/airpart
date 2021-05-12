@@ -32,5 +32,4 @@ sce <- preprocess(sce)
 sce <- geneCluster(sce, G = 1:4)
 sce <- summaryAllelicRatio(sce, genecluster = c(1, 3))
 metadata(sce)$summary
-
 }

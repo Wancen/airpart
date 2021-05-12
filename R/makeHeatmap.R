@@ -28,62 +28,62 @@
 #' @importFrom RColorBrewer brewer.pal
 #'
 #' @export
-makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genecluster=NULL,
+makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genecluster = NULL,
                         show_row_names = FALSE, order_by_group = TRUE, ...) {
-  assay <- match.arg(assay, c("ratio_pseudo", "ratio", "counts"))
-  if (is.null(genecluster)) {
-      m <- assays(sce)[[assay]]
-  } else {
-      m <- assays(sce[rowData(sce)$cluster==genecluster,])[[assay]]
-  }
-  if (assay == "counts") {
-    name <- "Total counts"
-  } else {
-    name <- "Allelic Ratio"
-  }
-  if (is.null(sce$part)) {
-    split <- NULL
-    ha <- ComplexHeatmap::HeatmapAnnotation(
-      `cell type` = sce$x, border = FALSE,
-      col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
-        names = levels(sce$x)
-      ))
-    )
-  } else {
-    if (order_by_group) {
-      split <- sce$part
-      ha <- ComplexHeatmap::HeatmapAnnotation(
-        group = anno_block(
-          gp = gpar(fill = brewer.pal(9, "Pastel1")[seq_len(nlevels(split))]),
-          labels_gp = gpar(col = "white", fontface = 4),
-          labels = paste0("group", seq_len(nlevels(split)))
-        ),
-        `cell type` = sce$x, border = FALSE, group = sce$part,
-        col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
-          names = levels(sce$x)
-        ))
-      )
+    assay <- match.arg(assay, c("ratio_pseudo", "ratio", "counts"))
+    if (is.null(genecluster)) {
+        m <- assays(sce)[[assay]]
     } else {
-      split0 <- rle(as.numeric(sce$part))
-      y <- split0$lengths
-      split <- rep(seq_along(y), y)
-      ha <- ComplexHeatmap::HeatmapAnnotation(
-        group = anno_block(
-          gp = gpar(fill = brewer.pal(9, "Pastel1")[split0$values]),
-          labels_gp = gpar(col = "white", fontface = 4),
-          labels = paste0("group", split0$values)
-        ),
-        `cell type` = sce$x, border = FALSE,
-        col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
-          names = levels(sce$x)
-        ))
-      )
+        m <- assays(sce[rowData(sce)$cluster == genecluster, ])[[assay]]
     }
-  }
-  ComplexHeatmap::Heatmap(m,
-    column_split = split, column_title = NULL, top_annotation = ha,
-    column_order = order(seq_len(ncol(m))), cluster_columns = FALSE,
-    cluster_rows = FALSE, name = name,
-    show_column_names = FALSE, show_row_names = show_row_names
-  )
+    if (assay == "counts") {
+        name <- "Total counts"
+    } else {
+        name <- "Allelic Ratio"
+    }
+    if (is.null(sce$part)) {
+        split <- NULL
+        ha <- ComplexHeatmap::HeatmapAnnotation(
+            `cell type` = sce$x, border = FALSE,
+            col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+                names = levels(sce$x)
+            ))
+        )
+    } else {
+        if (order_by_group) {
+            split <- sce$part
+            ha <- ComplexHeatmap::HeatmapAnnotation(
+                group = anno_block(
+                    gp = gpar(fill = brewer.pal(9, "Pastel1")[seq_len(nlevels(split))]),
+                    labels_gp = gpar(col = "white", fontface = 4),
+                    labels = paste0("group", seq_len(nlevels(split)))
+                ),
+                `cell type` = sce$x, border = FALSE, group = sce$part,
+                col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+                    names = levels(sce$x)
+                ))
+            )
+        } else {
+            split0 <- rle(as.numeric(sce$part))
+            y <- split0$lengths
+            split <- rep(seq_along(y), y)
+            ha <- ComplexHeatmap::HeatmapAnnotation(
+                group = anno_block(
+                    gp = gpar(fill = brewer.pal(9, "Pastel1")[split0$values]),
+                    labels_gp = gpar(col = "white", fontface = 4),
+                    labels = paste0("group", split0$values)
+                ),
+                `cell type` = sce$x, border = FALSE,
+                col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+                    names = levels(sce$x)
+                ))
+            )
+        }
+    }
+    ComplexHeatmap::Heatmap(m,
+        column_split = split, column_title = NULL, top_annotation = ha,
+        column_order = order(seq_len(ncol(m))), cluster_columns = FALSE,
+        cluster_rows = FALSE, name = name,
+        show_column_names = FALSE, show_row_names = show_row_names
+    )
 }
