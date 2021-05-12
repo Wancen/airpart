@@ -76,7 +76,7 @@ makeForest <- function(sce, genepoi, ctpoi = seq_len(nlevels(sce$x)), showtext =
   }
   ar <- rowData(sce)[, c(grep("svalue", colnames(rowData(sce)), value = TRUE))] %>% `colnames<-`(levels(sce$x))
   if (showtext) {
-    forest_text <- data.frame(`Gene_svalue` = rownames(sce), ar[, ctpoi])
+    forest_text <- data.frame(`Gene` = rownames(sce), ar[, ctpoi])
   } else {
     forest_text <- data.frame(Gene = rownames(sce)) %>% `rownames<-`(rownames(ar))
   }
@@ -85,6 +85,7 @@ makeForest <- function(sce, genepoi, ctpoi = seq_len(nlevels(sce$x)), showtext =
     genepoi <- head(order(smin), min(40, nrow(sce)))
   }
   forest_text <- rbind(colnames(forest_text), forest_text[genepoi, ] %>% as.data.frame())
+  message("svalue shown in columns per cell type")
   forestplot::forestplot(forest_text,
     is.summary = c(TRUE, rep(FALSE, nrow(forest_text) - 1)),
     hrzl_lines = list("2" = gpar(lty = 2)),

@@ -334,16 +334,8 @@ re-estimate the conditional cell type means per cell type (not per
 partition) and account for each gene's moderated estimate of
 over-dispersion.
 
-Here, in the first step, we use the coefficients from the first
-partition for setting the prior. This would be skipped if `niter=1`
-when running the fused lasso, or if the nonparametric approach was
-used.
-
 ```{r, warning=FALSE, fig.width=12}
-sce_sub$coef <- sce_sub$coef1
 sce_sub <- allelicRatio(sce_sub)
-# the svalue column is empty?
-# the ct1 intervals are grey instead of red?
 makeForest(sce_sub, showtext = TRUE)
 ```
 
