@@ -430,7 +430,8 @@ sce_sub2 <- allelicRatio(sce_sub2)
 
 We plot all cell types together, but one can set `ctpoi=c(1,3,7)` to
 limit the cell types to be plotted when there are too many cell
-types.
+types. And one can set `genepoi=c(1,3,7)` or `genepoi=c("gene1","gene3","gene7")` 
+to only plot selected genes.
 
 
 ```{r}
