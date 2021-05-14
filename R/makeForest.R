@@ -72,7 +72,7 @@ makeForest <- function(sce, genepoi, ctpoi = seq_len(nlevels(sce$x)), showtext =
         attr(xticks, "labels") <- xtlab
     }
     if (missing(col)) {
-        col <- fpColors(box = brewer.pal(9, "Set1")[seq_len(ctpoi)])
+        col <- fpColors(box = brewer.pal(9, "Set1")[seq_len(length(ctpoi))])
     }
     ar <- rowData(sce)[, c(grep("svalue", colnames(rowData(sce)), value = TRUE))] %>% `colnames<-`(levels(sce$x))
     if (showtext) {
