@@ -56,7 +56,7 @@ makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genec
                 group = anno_block(
                     gp = gpar(fill = brewer.pal(9, "Pastel1")[seq_len(nlevels(split))]),
                     labels_gp = gpar(col = "white", fontface = 4),
-                    labels = paste0("group", seq_len(nlevels(split)))
+                    labels = paste0("G", seq_len(nlevels(split)))
                 ),
                 `cell type` = sce$x, border = FALSE, group = sce$part,
                 col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
@@ -71,7 +71,7 @@ makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genec
                 group = anno_block(
                     gp = gpar(fill = brewer.pal(9, "Pastel1")[split0$values]),
                     labels_gp = gpar(col = "white", fontface = 4),
-                    labels = paste0("group", split0$values)
+                    labels = paste0("G", split0$values)
                 ),
                 `cell type` = sce$x, border = FALSE,
                 col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
