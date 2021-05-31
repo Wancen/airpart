@@ -100,6 +100,8 @@ cellQC <- function(sce, spike, threshold = 0,
 #'
 #' @param sce SingleCellExperiment with \code{counts} and \code{ratio}
 #' @param spike the character name of spike genes. The default is \code{Ercc}
+#' @param detection_limit Numeric scalar providing the value above which
+#' observations are deemed to be expressed.
 #' @param threshold A numeric scalar specifying the threshold above which
 #' percentage of cells expressed within each cell type. Default is 0.25
 #' @param sd A numeric scalar specifying the cell type weighted
@@ -138,11 +140,11 @@ cellQC <- function(sce, spike, threshold = 0,
 #' @importFrom scater nexprs
 #'
 #' @export
-featureQC <- function(sce, spike, threshold = 0.25, sd = 0.03, pc = 2) {
+featureQC <- function(sce, spike, detection_limit = 1, threshold = 0.25, sd = 0.03, pc = 2) {
   check <- pbsapply(levels(sce$x), function(c) {
     poi <- which(sce$x == c)
     ct_threshold <- nexprs(counts(sce),
-      byrow = TRUE, detection_limit = 1,
+      byrow = TRUE, detection_limit = detection_limit,
       subset_col = poi
     ) >=
       length(poi) * threshold

@@ -4,12 +4,15 @@
 \alias{featureQC}
 \title{Quality control on features}
 \usage{
-featureQC(sce, spike, threshold = 0.25, sd = 0.03, pc = 2)
+featureQC(sce, spike, detection_limit = 1, threshold = 0.25, sd = 0.03, pc = 2)
 }
 \arguments{
 \item{sce}{SingleCellExperiment with \code{counts} and \code{ratio}}
 
 \item{spike}{the character name of spike genes. The default is \code{Ercc}}
+
+\item{detection_limit}{Numeric scalar providing the value above which
+observations are deemed to be expressed.}
 
 \item{threshold}{A numeric scalar specifying the threshold above which
 percentage of cells expressed within each cell type. Default is 0.25}
