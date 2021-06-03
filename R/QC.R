@@ -77,7 +77,7 @@ cellQC <- function(sce, spike, threshold = 0,
     spikePercent <- rep(0, ncol(sce))
     filter_spike <- rep(TRUE, ncol(sce))
   } else {
-    spike_gene <- grep(paste0("^", spike), row.names(sce))
+    spike_gene <- grep(spike, row.names(sce))
     if (length(spike_gene) == 0) {
       message("No spike genes found")
     }
@@ -162,7 +162,7 @@ featureQC <- function(sce, spike, detection_limit = 1, threshold = 0.25, sd = 0.
 
   filter_spike <- rep(TRUE, nrow(sce))
   if (!missing(spike)) {
-    filter_spike[grep(paste0("^", spike), row.names(sce))] <- FALSE
+    filter_spike[grep(spike, row.names(sce))] <- FALSE
   }
 
   rowdata <- cbind(rowData(sce), filter_celltype, gsd, filter_sd, filter_spike)
