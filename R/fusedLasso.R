@@ -104,7 +104,8 @@
 #'
 #' @export
 fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
-                       genecluster, niter = 1,
+                       genecluster,
+                       niter = 1,
                        pen.weights, lambda = "cv1se.dev", k = 5,
                        adj.matrix, lambda.length = 25L,
                        se.rule.nct = 8,
@@ -130,6 +131,15 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
     x = factor(rep(sce_sub$x, each = length(sce_sub))),
     cts = cl_total
   )
+  # are there additional covariates besides x?
+  add_covs <- grep("p\\(",
+                   attr(terms(formula), "term.labels"),
+                   invert=TRUE, value=TRUE)
+  if (length(add_covs) > 0) {
+    for (v in add_covs) {
+      dat[[v]] <- colData(sce_sub)[[v]]
+    }
+  }
   dat <- dat[!is.nan(dat$ratio), ]
   if (model == "binomial") {
     fam <- binomial(link = "logit")
