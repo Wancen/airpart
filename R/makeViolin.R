@@ -27,7 +27,8 @@ makeViolin <- function(sce) {
     sample_size <- data.frame(table(sce$x)) %>% `colnames<-`(c("x", "n"))
     dat <- dat %>%
         left_join(sample_size)
-    dat$myaxis <- paste0(dat$x, "\n", "n=", dat$n)
+    dat$myaxis <- paste0(dat$x, "\n", "n=", dat$n) %>% as.factor()
+    dat$myaxis <- factor(dat$myaxis, levels = unique(paste0(dat$x, "\n", "n=", dat$n)))
     p <- ggplot(dat, aes(x = .data$myaxis, y = .data$ratio, fill = .data$part)) +
         geom_violin(width = 1.2, color = "#A4A4A4") +
         geom_boxplot(width = 0.1, color = "black") +
