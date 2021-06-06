@@ -7,10 +7,10 @@
 #' @param sce A SingleCellExperiment containing assays (\code{"ratio"},
 #' \code{"counts"}) and colData \code{"x"}
 #' @param formula A \code{\link[stats]{formula}} object which will typically
-#' involve a fused lasso penalty:
-#' \code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
-#' the Graph-Guided Fused Lasso penalty:
-#' \code{ratio ~ p(x, pen = "ggflasso")}
+#' involve a fused lasso penalty: default is
+#' \code{ratio ~ p(x, pen="gflasso")}. Other possibilities would be to use
+#' the Graph-Guided Fused Lasso penalty or add covariates want to be adjusted for:
+#' \code{ratio ~ p(x + batch, pen = "ggflasso")}
 #' See \code{\link[smurf]{glmsmurf}} for more details
 #' @param model Either \code{"binomial"} or \code{"gaussian"} used to fit
 #' the generalized fused lasso
@@ -100,17 +100,17 @@
 #' metadata(sce_sub)$partition
 #' @import smurf
 #' @importFrom matrixStats rowSds
-#' @importFrom stats binomial gaussian
+#' @importFrom stats binomial gaussian terms
 #'
 #' @export
 fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
-                       genecluster,
-                       niter = 1,
-                       pen.weights, lambda = "cv1se.dev", k = 5,
-                       adj.matrix, lambda.length = 25L,
-                       se.rule.nct = 8,
-                       se.rule.mult = 0.5,
-                       ...) {
+                        genecluster,
+                        niter = 1,
+                        pen.weights, lambda = "cv1se.dev", k = 5,
+                        adj.matrix, lambda.length = 25L,
+                        se.rule.nct = 8,
+                        se.rule.mult = 0.5,
+                        ...) {
   model <- match.arg(model, c("binomial", "gaussian"))
   if (missing(genecluster)) stop("No gene cluster number")
   stopifnot(c("ratio", "counts") %in% assayNames(sce))
@@ -131,16 +131,20 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
     x = factor(rep(sce_sub$x, each = length(sce_sub))),
     cts = cl_total
   )
+  index <- !is.nan(dat$ratio)
+  dat <- dat[index, ]
   # are there additional covariates besides x?
   add_covs <- grep("p\\(",
                    attr(terms(formula), "term.labels"),
                    invert=TRUE, value=TRUE)
+  nlevel <- vector()
   if (length(add_covs) > 0) {
     for (v in add_covs) {
-      dat[[v]] <- colData(sce_sub)[[v]]
+      dat[[v]] <- colData(sce_sub)[[v]][index]
+      dat[[v]] <- factor(dat[[v]],levels = unique(dat$id))
+      nlevel[[v]] <- nlevels(dat[[v]])
     }
   }
-  dat <- dat[!is.nan(dat$ratio), ]
   if (model == "binomial") {
     fam <- binomial(link = "logit")
     msg <- "Failed determining max lambda, try other weights or gaussian model"
@@ -157,11 +161,11 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
       vapply(seq_len(niter), function(t) {
         ## defined below, outputs fitted means with lambda on the end
         fitSmurf(
-          t, niter, formula, fam, dat, adj.matrix,
+          t, formula, fam, dat, adj.matrix,
           weight, lambda, lambda.length, k,
           nct, se.rule.nct, se.rule.mult, ...
         )
-      }, double(nct + 1))
+      }, double(nct + sum(nlevel) - length(nlevel) + 1))
     },
     error = function(e) {
       message(msg)
@@ -173,12 +177,12 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
   }
   if (niter == 1) {
     coef <- res[seq_len(nct), ]
-    lambda <- unname(res[nct + 1, ])
+    lambda <- unname(res[nrow(res), ])
     part <- match(coef, unique(coef)) %>% as.factor()
   } else {
     ## multiple partitions
     coef <- res[seq_len(nct), ]
-    lambda <- res[nct + 1, ]
+    lambda <- res[nrow(res), ]
     part <- apply(coef, 2, function(z) match(z, unique(z)))
     colnames(part) <- paste0("part", seq_len(niter))
     colnames(coef) <- paste0("coef", seq_len(niter))
@@ -193,7 +197,7 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
   sce_sub
 }
 
-fitSmurf <- function(t, niter, formula, fam, dat, adj.matrix,
+fitSmurf <- function(t, formula, fam, dat, adj.matrix,
                      weight, lambda, lambda.length, k,
                      nct, se.rule.nct, se.rule.mult, ...) {
   fit <- smurf::glmsmurf(
@@ -204,15 +208,17 @@ fitSmurf <- function(t, niter, formula, fam, dat, adj.matrix,
     control = list(lambda.length = lambda.length, k = k, ...)
   )
   co <- coef_reest(fit)
-  co <- co + c(0, rep(co[1], nct - 1))
-  lambda <- fit$lambda
+  co <- co + c(0, rep(co[1], nct - 1),rep(0,length(co) - nct))
+  fit_lambda <- fit$lambda
+  selection <- sub("\\..*", "", lambda)
   ## if number of cell types is 'se.rule.nct' or less:
-  if (nct <= se.rule.nct) {
+  if (nct <= se.rule.nct & grepl("cv",selection)) {
+    metric <- sub(".*\\.", "", lambda)
     ## choose lambda by the lowest deviance within 'se.rule.mult'
     ## standard error of the min
-    mean.dev <- rowMeans(fit$lambda.measures$dev)
+    mean.dev <- rowMeans(fit$lambda.measures[[metric]])
     min.dev <- min(mean.dev)
-    sd.dev <- matrixStats::rowSds(fit$lambda.measures$dev)
+    sd.dev <- matrixStats::rowSds(fit$lambda.measures[[metric]])
     se.dev <- mean(sd.dev) / sqrt(k)
     idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
     ## this is faster, running the GFL for a single lambda value
@@ -220,14 +226,14 @@ fitSmurf <- function(t, niter, formula, fam, dat, adj.matrix,
       formula = formula, family = fam,
       data = dat, adj.matrix = adj.matrix,
       weights = weight, pen.weights = "glm.stand",
-      lambda = fit$lambda.vector[idx],
-      control = list(...)
+      lambda = fit$lambda.vector[idx]
     )
     ## rearrange coefficients so not comparing to reference cell type
     co <- coef_reest(fit2)
-    co <- co + c(0, rep(co[1], nct - 1))
-    lambda <- fit2$lambda
+    co <- co + c(0, rep(co[1], nct - 1),rep(0,length(co) - nct))
+    fit_lambda <- fit2$lambda
   }
   ## stick the fitted means with the lambda on the end of the vector
-  c(co, lambda)
+  c(co, fit_lambda)
 }
+

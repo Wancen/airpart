@@ -4,12 +4,15 @@
 \alias{allelicRatio}
 \title{Fit beta-binomial across cell types}
 \usage{
-allelicRatio(sce, level = 0.95, ...)
+allelicRatio(sce, formula, level = 0.95, ...)
 }
 \arguments{
 \item{sce}{A SingleCellExperiment containing assays
 (\code{"ratio"}, \code{"counts"}) and colData (\code{"x"},
 \code{"part"})}
+
+\item{formula}{The same \code{\link[stats]{formula}} object
+used in \code{\link[airpart]{fusedLasso}}}
 
 \item{level}{the level of credible interval (default is 0.95)}
 

@@ -19,7 +19,7 @@ a list of gene cluster summary tables containing:
   \item{weighted.mean} {weighted mean of allelic ratio for the cell types}
   \item{mean} {mean allelic ratio for the cell types}
   \item{var} {variance of allelic ratio for the cell types}
-} is returned in metadata \code{summary}
+}
 }
 \description{
 Oroduce allelic ratio summaries for each gene cluster
@@ -30,6 +30,6 @@ library(S4Vectors)
 sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = 1:4)
-sce <- summaryAllelicRatio(sce, genecluster = c(1, 3))
-metadata(sce)$summary
+summary <- summaryAllelicRatio(sce, genecluster = c(1, 3))
+summary
 }

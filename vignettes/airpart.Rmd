@@ -2,7 +2,7 @@
 title: "Differential cell-type-specific allelic imbalance with airpart"
 author: 
   - name: "Wancen Mu, Hirak Sarkar, Avi Srivastava, Kwangbom Choi, Rob Patro, Michael I. Love"
-date: "May 1, 2021"
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: |
   Airpart identifies sets of genes displaying differential
   cell-type-specific allelic imbalance across cell types
@@ -212,8 +212,8 @@ clusters. The mean is calculated, weighting the information from each
 gene x cell element of the matrices by the total count.
 
 ```{r}
-sce <- summaryAllelicRatio(sce)
-metadata(sce)$summary
+summary <- summaryAllelicRatio(sce)
+summary
 ```
 
 The following step is a complement of the QC on genes step. We
@@ -224,7 +224,6 @@ allelic ratio differences) won't provide enough evidence to detect
 differential allelic imbalance.
 
 ```{r}
-summary <- metadata(sce)$summary
 sapply(1:length(summary), function(i) {
   inst <- summary[[i]]
   inst_order <- inst[order(inst$weighted.mean), ]
@@ -402,7 +401,6 @@ We focus on the first gene cluster (if a gene cluster is not provided,
 `estDisp` will choose the largest cluster).
 
 ```{r}
-sce <- summaryAllelicRatio(sce)
 estDisp(sce, genecluster = 1)
 ```
 
@@ -436,6 +434,8 @@ to only plot selected genes.
 
 ```{r}
 makeForest(sce_sub2)
+tab_cols <- c(grep("ar", colnames(rowData(sce_sub2)), value = TRUE))
+knitr::kable(rowData(sce_sub2)[genepoi, tab_cols])
 ```
 
 A violin plot with posterior mean allelic ratios (one estimate per

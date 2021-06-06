@@ -25,10 +25,10 @@ fusedLasso(
 \code{"counts"}) and colData \code{"x"}}
 
 \item{formula}{A \code{\link[stats]{formula}} object which will typically
-involve a fused lasso penalty:
-\code{ratio ~ p(x, pen="gflasso")}. Another possibility would be to use
-the Graph-Guided Fused Lasso penalty:
-\code{ratio ~ p(x, pen = "ggflasso")}
+involve a fused lasso penalty: default is
+\code{ratio ~ p(x, pen="gflasso")}. Other possibilities would be to use
+the Graph-Guided Fused Lasso penalty or add covariates want to be adjusted for:
+\code{ratio ~ p(x + batch, pen = "ggflasso")}
 See \code{\link[smurf]{glmsmurf}} for more details}
 
 \item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit

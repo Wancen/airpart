@@ -13,7 +13,7 @@
 #' sce_sub <- allelicRatio(sce_sub)
 #' makeViolin(sce_sub)
 #' @importFrom ggplot2 ggplot aes geom_boxplot geom_violin
-#' scale_fill_brewer theme labs
+#' scale_fill_brewer theme labs element_rect element_blank
 #'
 #' @export
 makeViolin <- function(sce) {
@@ -30,10 +30,12 @@ makeViolin <- function(sce) {
     dat$myaxis <- paste0(dat$x, "\n", "n=", dat$n) %>% as.factor()
     dat$myaxis <- factor(dat$myaxis, levels = unique(paste0(dat$x, "\n", "n=", dat$n)))
     p <- ggplot(dat, aes(x = .data$myaxis, y = .data$ratio, fill = .data$part)) +
-        geom_violin(width = 1.2, color = "#A4A4A4") +
+        geom_violin(color = "#A4A4A4", size = 1.2, alpha = .7) +
         geom_boxplot(width = 0.1, color = "black") +
-        theme_minimal() +
-        theme(legend.position = "none") +
+        theme_minimal()+
+        theme(legend.position="bottom",
+              panel.grid.minor = element_blank(),
+              panel.border = element_rect(fill = 'transparent')) +
         scale_fill_brewer(palette = "Set2") +
         labs(x = "cell type", y = "allelic ratio")
     p
