@@ -17,26 +17,28 @@
 #'
 #' @export
 makeViolin <- function(sce) {
-    ar <- rowData(sce)[, c(grep("ar", colnames(rowData(sce)), value = TRUE))] %>%
-        `colnames<-`(levels(sce$x))
-    dat <- data.frame(
-        ratio = as.vector(unlist(ar)),
-        x = factor(rep(levels(sce$x), each = length(sce))),
-        part = factor(rep(metadata(sce)$partition$part, each = length(sce)))
-    )
-    sample_size <- data.frame(table(sce$x)) %>% `colnames<-`(c("x", "n"))
-    dat <- dat %>%
-        left_join(sample_size)
-    dat$myaxis <- paste0(dat$x, "\n", "n=", dat$n) %>% as.factor()
-    dat$myaxis <- factor(dat$myaxis, levels = unique(paste0(dat$x, "\n", "n=", dat$n)))
-    p <- ggplot(dat, aes(x = .data$myaxis, y = .data$ratio, fill = .data$part)) +
-        geom_violin(color = "#A4A4A4", size = 1.2, alpha = .7) +
-        geom_boxplot(width = 0.1, color = "black") +
-        theme_minimal()+
-        theme(legend.position="bottom",
-              panel.grid.minor = element_blank(),
-              panel.border = element_rect(fill = 'transparent')) +
-        scale_fill_brewer(palette = "Set2") +
-        labs(x = "cell type", y = "allelic ratio")
-    p
+  ar <- rowData(sce)[, c(grep("ar", colnames(rowData(sce)), value = TRUE))] %>%
+    `colnames<-`(levels(sce$x))
+  dat <- data.frame(
+    ratio = as.vector(unlist(ar)),
+    x = factor(rep(levels(sce$x), each = length(sce))),
+    part = factor(rep(metadata(sce)$partition$part, each = length(sce)))
+  )
+  sample_size <- data.frame(table(sce$x)) %>% `colnames<-`(c("x", "n"))
+  dat <- dat %>%
+    left_join(sample_size)
+  dat$myaxis <- paste0(dat$x, "\n", "n=", dat$n) %>% as.factor()
+  dat$myaxis <- factor(dat$myaxis, levels = unique(paste0(dat$x, "\n", "n=", dat$n)))
+  p <- ggplot(dat, aes(x = .data$myaxis, y = .data$ratio, fill = .data$part)) +
+    geom_violin(color = "#A4A4A4", size = 1.2, alpha = .7) +
+    geom_boxplot(width = 0.1, color = "black") +
+    theme_minimal() +
+    theme(
+      legend.position = "bottom",
+      panel.grid.minor = element_blank(),
+      panel.border = element_rect(fill = "transparent")
+    ) +
+    scale_fill_brewer(palette = "Set2") +
+    labs(x = "cell type", y = "allelic ratio")
+  p
 }

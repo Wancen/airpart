@@ -104,13 +104,13 @@
 #'
 #' @export
 fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
-                        genecluster,
-                        niter = 1,
-                        pen.weights, lambda = "cv1se.dev", k = 5,
-                        adj.matrix, lambda.length = 25L,
-                        se.rule.nct = 8,
-                        se.rule.mult = 0.5,
-                        ...) {
+                       genecluster,
+                       niter = 1,
+                       pen.weights, lambda = "cv1se.dev", k = 5,
+                       adj.matrix, lambda.length = 25L,
+                       se.rule.nct = 8,
+                       se.rule.mult = 0.5,
+                       ...) {
   model <- match.arg(model, c("binomial", "gaussian"))
   if (missing(genecluster)) stop("No gene cluster number")
   stopifnot(c("ratio", "counts") %in% assayNames(sce))
@@ -135,23 +135,24 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
   dat <- dat[index, ]
   # are there additional covariates besides x?
   add_covs <- grep("p\\(",
-                   attr(terms(formula), "term.labels"),
-                   invert=TRUE, value=TRUE)
+    attr(terms(formula), "term.labels"),
+    invert = TRUE, value = TRUE
+  )
   nlevel <- vector()
   if (length(add_covs) > 0) {
     for (v in add_covs) {
       dat[[v]] <- colData(sce_sub)[[v]][index]
-      dat[[v]] <- factor(dat[[v]],levels = unique(dat$id))
+      dat[[v]] <- droplevels(dat[[v]])
       nlevel[[v]] <- nlevels(dat[[v]])
     }
   }
   if (model == "binomial") {
     fam <- binomial(link = "logit")
-    msg <- "Failed determining max lambda, try other weights or gaussian model"
+    msg <- "Failed determining max lambda, try other lambda, weights or gaussian model"
     weight <- dat$cts
   } else if (model == "gaussian") {
     fam <- gaussian()
-    msg <- "Failed determining max of lambda, try other weights"
+    msg <- "Failed determining max of lambda, try other lambda or weights"
     weight <- NULL
   }
   nct <- nlevels(sce$x)
@@ -208,11 +209,11 @@ fitSmurf <- function(t, formula, fam, dat, adj.matrix,
     control = list(lambda.length = lambda.length, k = k, ...)
   )
   co <- coef_reest(fit)
-  co <- co + c(0, rep(co[1], nct - 1),rep(0,length(co) - nct))
+  co <- co + c(0, rep(co[1], nct - 1), rep(0, length(co) - nct))
   fit_lambda <- fit$lambda
   selection <- sub("\\..*", "", lambda)
   ## if number of cell types is 'se.rule.nct' or less:
-  if (nct <= se.rule.nct & grepl("cv",selection)) {
+  if (nct <= se.rule.nct & grepl("cv", selection)) {
     metric <- sub(".*\\.", "", lambda)
     ## choose lambda by the lowest deviance within 'se.rule.mult'
     ## standard error of the min
@@ -230,10 +231,9 @@ fitSmurf <- function(t, formula, fam, dat, adj.matrix,
     )
     ## rearrange coefficients so not comparing to reference cell type
     co <- coef_reest(fit2)
-    co <- co + c(0, rep(co[1], nct - 1),rep(0,length(co) - nct))
+    co <- co + c(0, rep(co[1], nct - 1), rep(0, length(co) - nct))
     fit_lambda <- fit2$lambda
   }
   ## stick the fitted means with the lambda on the end of the vector
   c(co, fit_lambda)
 }
-
