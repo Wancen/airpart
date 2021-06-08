@@ -68,11 +68,17 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
   # construct offset if adjusted for batch, and sum them over different batch
   theta <- theta.hat[, 1]
   if (length(add_covs) > 0) {
-    offset <- matrix(0, ncol = ncol(sce), nrow = 1)
+    offset <- matrix(0, ncol = ncol(sce), nrow = nrow(sce))
     for (v in add_covs) {
-      batch <- fit.mle$map[, match(levels(sce[[v]]), colnames(x))]
+      if (nrow(sce) == 1) {
+        batch <- fit.mle$map[, match(levels(sce[[v]]), colnames(x))] %>%
+          as.matrix() %>%
+          t()
+      } else {
+        batch <- fit.mle$map[, match(levels(sce[[v]]), colnames(x))]
+      }
       feat <- sce[[v]]
-      offset <- offset + matrix(batch[match(feat, names(batch))], ncol = ncol(sce))
+      offset <- offset + batch[, match(feat, colnames(batch))]
     }
   } else {
     offset <- NULL
@@ -136,6 +142,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
   sce
 }
 
+## Betabinomial log link
 betabinom.log.lik <- function(y, x, beta, param, offset) {
   xbeta <- x %*% beta
   p.hat <- (1 + exp(-xbeta))^-1
@@ -145,6 +152,7 @@ betabinom.log.lik <- function(y, x, beta, param, offset) {
   )
 }
 
+## derive adaptive shrinkage with prior
 adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method, ...) {
   npart <- nlevels(sce$part)
   nct <- nlevels(sce$x)

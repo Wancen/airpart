@@ -89,9 +89,7 @@ wilcoxExt <- function(sce, genecluster, threshold, adj.matrix,
     part = factor(cl[which.min(loss1), ]),
     x = levels(sce_sub$x)
   )
-  colData(sce_sub) <- merge(colData(sce_sub), partition, sort = FALSE) %>%
-    DataFrame() %>%
-    `rownames<-`(colnames(sce))
+  colData(sce_sub)$part <- partition$part[match(colData(sce_sub)$x, partition$x)]
   metadata(sce_sub)$partition <- partition
   metadata(sce_sub)$threshold <- threshold[which.min(loss1)]
   return(sce_sub)

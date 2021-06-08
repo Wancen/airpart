@@ -338,13 +338,13 @@ sce_sub <- allelicRatio(sce_sub)
 makeForest(sce_sub, showtext = TRUE)
 ```
 
-Allelic ratio estimates (`ar`) as well as `s` value and credible
-interval (`lower` and `upper`) are stored in `rowData`.
+Allelic ratio estimates (`ar`) as well as `svalue` and credible
+interval (`lower` and `upper`) are stored in `rowData`. Can use `extractResult` function to derive them.
 
 ```{r results="asis"}
 genepoi <- paste0("gene", seq_len(5))
-tab_cols <- c(grep("ar", colnames(rowData(sce_sub)), value = TRUE))
-knitr::kable(rowData(sce_sub)[genepoi, tab_cols])
+ar <- extractResult(sce_sub)
+knitr::kable(ar[genepoi,])
 ```
 
 # Allelic ratio partition and posterior inference, example II
@@ -434,8 +434,8 @@ to only plot selected genes.
 
 ```{r}
 makeForest(sce_sub2)
-tab_cols <- c(grep("ar", colnames(rowData(sce_sub2)), value = TRUE))
-knitr::kable(rowData(sce_sub2)[genepoi, tab_cols])
+ar <- extractResult(sce_sub2)
+knitr::kable(ar)
 ```
 
 A violin plot with posterior mean allelic ratios (one estimate per

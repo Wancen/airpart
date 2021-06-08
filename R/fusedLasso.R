@@ -141,7 +141,7 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
   nlevel <- vector()
   if (length(add_covs) > 0) {
     for (v in add_covs) {
-      dat[[v]] <- colData(sce_sub)[[v]][index]
+      dat[[v]] <- factor(rep(sce_sub[[v]], each = length(sce_sub)))[index]
       dat[[v]] <- droplevels(dat[[v]])
       nlevel[[v]] <- nlevels(dat[[v]])
     }
@@ -190,9 +190,8 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
     names(lambda) <- paste0("part", seq_len(niter))
   }
   cl <- data.frame(part, x = levels(sce_sub$x), coef)
-  colData(sce_sub) <- merge(colData(sce_sub), cl, sort = FALSE) %>%
-    DataFrame() %>%
-    `rownames<-`(colnames(sce))
+  colData(sce_sub)$part <- cl$part[match(colData(sce_sub)$x, cl$x)]
+  colData(sce_sub)$coef <- cl$coef[match(colData(sce_sub)$x, cl$x)]
   metadata(sce_sub)$partition <- cl
   metadata(sce_sub)$lambda <- lambda
   sce_sub

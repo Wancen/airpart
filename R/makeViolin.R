@@ -1,6 +1,7 @@
 #' Posterior mean allelic ratio estimates in violin plots
 #'
 #' @param sce SingleCellExperiment
+#' @param xlab the x axis name.
 #'
 #' @return a ggplot2 object, \code{n} represents number of cells in that cell type.
 #'
@@ -12,11 +13,8 @@
 #' sce_sub <- wilcoxExt(sce, genecluster = 1)
 #' sce_sub <- allelicRatio(sce_sub)
 #' makeViolin(sce_sub)
-#' @importFrom ggplot2 ggplot aes geom_boxplot geom_violin
-#' scale_fill_brewer theme labs element_rect element_blank
-#'
 #' @export
-makeViolin <- function(sce) {
+makeViolin <- function(sce, xlab = "cell type") {
   ar <- rowData(sce)[, c(grep("ar", colnames(rowData(sce)), value = TRUE))] %>%
     `colnames<-`(levels(sce$x))
   dat <- data.frame(
@@ -39,6 +37,6 @@ makeViolin <- function(sce) {
       panel.border = element_rect(fill = "transparent")
     ) +
     scale_fill_brewer(palette = "Set2") +
-    labs(x = "cell type", y = "allelic ratio")
+    labs(x = xlab, y = "allelic ratio")
   p
 }

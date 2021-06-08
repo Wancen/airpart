@@ -35,8 +35,7 @@
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
 #' @importFrom mclust Mclust hc hcEII mclustBIC
-#' @importFrom ggplot2 ggplot aes geom_point scale_color_manual
-#' theme_minimal labs
+#' @import ggplot2
 #' @importFrom dynamicTreeCut cutreeDynamic
 #' @importFrom stats prcomp hclust cutree dist as.dist median mad
 #' @importFrom grDevices rainbow

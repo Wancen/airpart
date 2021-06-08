@@ -15,8 +15,6 @@
 #' sce <- geneCluster(sce, G = seq_len(4))
 #' estDisp(sce, genecluster = 1)
 #' @importFrom apeglm apeglm bbEstDisp
-#' @importFrom ggplot2 ggplot aes geom_point geom_smooth
-#' theme_minimal labs coord_cartesian
 #' @importFrom stats model.matrix
 #'
 #' @export
