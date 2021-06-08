@@ -345,6 +345,7 @@ interval (`lower` and `upper`) are stored in `rowData`. Can use `extractResult` 
 genepoi <- paste0("gene", seq_len(5))
 ar <- extractResult(sce_sub)
 knitr::kable(ar[genepoi,])
+makeStep(sce_sub[genepoi,])
 ```
 
 # Allelic ratio partition and posterior inference, example II

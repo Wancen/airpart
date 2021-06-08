@@ -28,5 +28,4 @@ sce_sub <- wilcoxExt(sce, genecluster = 1)
 sce_sub <- allelicRatio(sce_sub)
 ar <- extractResult(sce_sub)
 ar
-
 }
