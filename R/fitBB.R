@@ -40,7 +40,11 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     attr(terms(formula), "term.labels"),
     invert = TRUE, value = TRUE
   )
-  x <- list(part = model.matrix(~ part + 0, colData(sce)))
+  if (nlevels(sce$part) == 1){
+    x <- list(part = sce$part)
+  }else{
+    x <- list(part = model.matrix(~ part + 0, colData(sce)))
+  }
   if (length(add_covs) > 0) {
     for (v in add_covs) {
       x[[v]] <- model.matrix(as.formula(paste("~", add_covs, "+0")), colData(sce))
@@ -144,7 +148,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
 
 ## Betabinomial log link
 betabinom.log.lik <- function(y, x, beta, param, offset) {
-  xbeta <- x %*% beta
+  xbeta <- x %*% beta + offset
   p.hat <- (1 + exp(-xbeta))^-1
   emdbook::dbetabinom(y,
     prob = p.hat, size = param[-1],
@@ -172,7 +176,11 @@ adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method
       sep = "_"
     ))
   part <- unique(data.frame(x = sce$x, part = sce$part))$part
-  x <- model.matrix(~ part + 0, colData(sce))
+  if (nlevels(sce$part) == 1){
+    x <- data.frame(part = as.numeric(sce$part)) %>% as.matrix()
+  }else{
+    x <- model.matrix(~ part + 0, colData(sce))
+  }
   for (i in seq_len(npart)) {
     mle <- cbind(fit.mle$map[, i], fit.mle$sd[, i])
     fit.post <- apeglm(
