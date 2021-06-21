@@ -57,7 +57,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
   maxDisp <- 75
   niter <- 5
   for (i in seq_len(niter)) {
-    param <- cbind(theta.hat[, 1], counts(sce))
+    param <- cbind(theta.hat[, 1], assays(sce)[["counts"]])
     fit.mle <- apeglm(
       Y = assays(sce)[["a1"]], x = x, log.lik = NULL,
       param = param, no.shrink = TRUE, log.link = FALSE,
@@ -86,7 +86,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     }
   }
   if (nrow(sce) == 1) {
-    param <- cbind(theta, counts(sce))
+    param <- cbind(theta, assays(sce)[["counts"]])
     coef <- 0
     res <- adp.shrink(sce, fit.mle, param, level, offset, coef, log.lik = NULL, method = "betabinCR", ...)
   } else {
@@ -99,7 +99,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     B <- as.numeric((sigma_sampling2) / (sigma_prior2 + sigma_sampling2))
     log_disp_0 <- mean(log_disp)
     theta2 <- exp((1 - B) * log_disp + B * log_disp_0)
-    param <- cbind(theta2, counts(sce))
+    param <- cbind(theta2, assays(sce)[["counts"]])
     ## estimating prior mean
     if ("coef" %in% colnames(colData(sce))) {
       ## use fused lasso estimates as prior
