@@ -25,12 +25,14 @@
 #' # display by cell type orders
 #' makeHeatmap(sce_sub, order_by_group = FALSE)
 #' @importFrom ComplexHeatmap Heatmap HeatmapAnnotation anno_block
-#' @importFrom RColorBrewer brewer.pal
+#' @importFrom RColorBrewer brewer.pal brewer.pal.info
 #'
 #' @export
 makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genecluster = NULL,
                         show_row_names = FALSE, order_by_group = TRUE, ...) {
   assay <- match.arg(assay, c("ratio_pseudo", "ratio", "counts"))
+  qual_col_pals <- brewer.pal.info[brewer.pal.info$category == "qual", ]
+  col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
   if (is.null(genecluster)) {
     m <- assays(sce)[[assay]]
   } else {
@@ -45,7 +47,7 @@ makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genec
     split <- NULL
     ha <- ComplexHeatmap::HeatmapAnnotation(
       `cell type` = sce$x, border = FALSE,
-      col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+      col = list(`cell type` = structure(col_vector[seq_len(nlevels(sce$x))],
         names = levels(sce$x)
       ))
     )
@@ -54,12 +56,12 @@ makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genec
       split <- sce$part
       ha <- ComplexHeatmap::HeatmapAnnotation(
         group = anno_block(
-          gp = gpar(fill = brewer.pal(9, "Pastel1")[seq_len(nlevels(split))]),
+          gp = gpar(fill = col_vector[seq_len(nlevels(split))]),
           labels_gp = gpar(col = "white", fontface = 4),
           labels = paste0("G", seq_len(nlevels(split)))
         ),
         `cell type` = sce$x, border = FALSE, group = sce$part,
-        col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+        col = list(`cell type` = structure(col_vector[seq_len(nlevels(sce$x))],
           names = levels(sce$x)
         ))
       )
@@ -69,12 +71,12 @@ makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genec
       split <- rep(seq_along(y), y)
       ha <- ComplexHeatmap::HeatmapAnnotation(
         group = anno_block(
-          gp = gpar(fill = brewer.pal(9, "Pastel1")[split0$values]),
+          gp = gpar(fill = col_vector[split0$values]),
           labels_gp = gpar(col = "white", fontface = 4),
           labels = paste0("G", split0$values)
         ),
         `cell type` = sce$x, border = FALSE,
-        col = list(`cell type` = structure(brewer.pal(nlevels(sce$x), "Set3"),
+        col = list(`cell type` = structure(col_vector[seq_len(nlevels(sce$x))],
           names = levels(sce$x)
         ))
       )

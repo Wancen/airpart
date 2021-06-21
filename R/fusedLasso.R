@@ -33,7 +33,7 @@
 #' standard \code{se.rule.mult} SE rule is used
 #' @param se.rule.mult the multiplier of the SE in determining the lambda:
 #' the chosen lambda is within \code{se.rule.mult} x SE of the minimum
-#' deviance. Default is 0.5 SE. Only used when number of cell types is
+#' deviance. Range>=0 Default is 0.5 SE. Only used when number of cell types is
 #' larger than \code{se.rule.nct}
 #' @param ... additional arguments passed to \code{\link[smurf]{glmsmurf}}
 #'
@@ -220,7 +220,7 @@ fitSmurf <- function(t, formula, fam, dat, adj.matrix,
     min.dev <- min(mean.dev)
     sd.dev <- matrixStats::rowSds(fit$lambda.measures[[metric]])
     se.dev <- mean(sd.dev) / sqrt(k)
-    idx <- which(mean.dev < min.dev + se.rule.mult * se.dev)[1]
+    idx <- which(mean.dev <= min.dev + se.rule.mult * se.dev)[1]
     ## this is faster, running the GFL for a single lambda value
     fit2 <- smurf::glmsmurf(
       formula = formula, family = fam,

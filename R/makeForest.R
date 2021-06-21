@@ -66,13 +66,15 @@ makeForest <- function(sce, genepoi, ctpoi = seq_len(nlevels(sce$x)), showtext =
                        grid = structure(seq(0.1, 0.9, 0.1),
                          gp = gpar(lty = 2, col = "#CCCCFF")
                        ), ...) {
+    qual_col_pals <- brewer.pal.info[brewer.pal.info$category == "qual", ]
+    col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
   if (missing(xticks)) {
     xticks <- seq(from = 0, to = 1, by = 0.1)
     xtlab <- rep(c(TRUE, FALSE, TRUE, FALSE, FALSE), length.out = length(xticks))
     attr(xticks, "labels") <- xtlab
   }
   if (missing(col)) {
-    col <- fpColors(box = brewer.pal(9, "Set1")[seq_len(length(ctpoi))])
+    col <- fpColors(box = col_vector[seq_len(length(ctpoi))])
   }
   ar <- rowData(sce)[, c(grep("svalue", colnames(rowData(sce)), value = TRUE))] %>% `colnames<-`(levels(sce$x))
   if (showtext) {

@@ -40,9 +40,9 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     attr(terms(formula), "term.labels"),
     invert = TRUE, value = TRUE
   )
-  if (nlevels(sce$part) == 1){
+  if (nlevels(sce$part) == 1) {
     x <- list(part = sce$part)
-  }else{
+  } else {
     x <- list(part = model.matrix(~ part + 0, colData(sce)))
   }
   if (length(add_covs) > 0) {
@@ -71,8 +71,8 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
   }
   # construct offset if adjusted for batch, and sum them over different batch
   theta <- theta.hat[, 1]
+  offset <- matrix(0, ncol = ncol(sce), nrow = nrow(sce))
   if (length(add_covs) > 0) {
-    offset <- matrix(0, ncol = ncol(sce), nrow = nrow(sce))
     for (v in add_covs) {
       if (nrow(sce) == 1) {
         batch <- fit.mle$map[, match(levels(sce[[v]]), colnames(x))] %>%
@@ -84,8 +84,6 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
       feat <- sce[[v]]
       offset <- offset + batch[, match(feat, colnames(batch))]
     }
-  } else {
-    offset <- NULL
   }
   if (nrow(sce) == 1) {
     param <- cbind(theta, counts(sce))
@@ -140,8 +138,9 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
   ) %>%
     `rownames<-`(rownames(sce))
   est_sub <- est[, setdiff(colnames(est), colnames(rowData(sce)))]
-  rowData(sce) <- merge(rowData(sce), est_sub, by = 0)[-1] %>%
-    DataFrame() %>%
+  merged <- merge(rowData(sce), est_sub, by = 0) %>% DataFrame()
+  order <- match(rownames(sce), merged$Row.names)
+  rowData(sce) <- merged[order, ][-1] %>%
     `rownames<-`(rownames(sce))
   sce
 }
@@ -176,9 +175,9 @@ adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method
       sep = "_"
     ))
   part <- unique(data.frame(x = sce$x, part = sce$part))$part
-  if (nlevels(sce$part) == 1){
+  if (nlevels(sce$part) == 1) {
     x <- data.frame(part = as.numeric(sce$part)) %>% as.matrix()
-  }else{
+  } else {
     x <- model.matrix(~ part + 0, colData(sce))
   }
   for (i in seq_len(npart)) {

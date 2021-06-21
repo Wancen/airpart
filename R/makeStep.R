@@ -19,7 +19,7 @@ makeStep <- function(sce, xlab = "cell type") {
     `colnames<-`(levels(sce$x))
   dat <- data.frame(
     ratio = as.vector(unlist(ar)),
-    x = factor(rep(levels(sce$x), each = length(sce))),
+    x = factor(rep(unique(sce$x), each = length(sce))),
     part = factor(rep(metadata(sce)$partition$part, each = length(sce))),
     feat = factor(rep(row.names(sce), nlevels(sce$x)), levels = row.names(sce))
   )

@@ -61,7 +61,7 @@ standard \code{se.rule.mult} SE rule is used}
 
 \item{se.rule.mult}{the multiplier of the SE in determining the lambda:
 the chosen lambda is within \code{se.rule.mult} x SE of the minimum
-deviance. Default is 0.5 SE. Only used when number of cell types is
+deviance. Range>=0 Default is 0.5 SE. Only used when number of cell types is
 larger than \code{se.rule.nct}}
 
 \item{...}{additional arguments passed to \code{\link[smurf]{glmsmurf}}}
