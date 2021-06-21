@@ -125,7 +125,7 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
   }
   sce_sub <- sce[rowData(sce)$cluster == genecluster, ]
   cl_ratio <- as.vector(unlist(assays(sce_sub)[["ratio"]]))
-  cl_total <- as.vector(unlist(counts(sce_sub)))
+  cl_total <- as.vector(unlist(assays(sce_sub)[["counts"]]))
   dat <- data.frame(
     ratio = cl_ratio,
     x = factor(rep(sce_sub$x, each = length(sce_sub))),
