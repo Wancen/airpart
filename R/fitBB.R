@@ -65,7 +65,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     )
     theta.hat <- bbEstDisp(
       success = assays(sce)[["a1"]],
-      size = counts(sce), x = x,
+      size = assays(sce)[["counts"]], x = x,
       beta = fit.mle$map, minDisp = .01, maxDisp = maxDisp, se = TRUE
     )
   }
