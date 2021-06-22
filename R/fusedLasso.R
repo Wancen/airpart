@@ -133,6 +133,8 @@ fusedLasso <- function(sce, formula, model = c("binomial", "gaussian"),
   )
   index <- !is.nan(dat$ratio)
   dat <- dat[index, ]
+  x <- model.matrix(~ x,dat)
+  stopifnot(qr(x)$rank==ncol(x))
   # are there additional covariates besides x?
   add_covs <- grep("p\\(",
     attr(terms(formula), "term.labels"),
