@@ -23,5 +23,8 @@ extractResult <- function(sce, estimates = c("ar", "svalue", "lower", "upper")) 
   estimates <- match.arg(estimates, c("ar", "svalue", "lower", "upper"))
   res <- rowData(sce)[, c(grep(estimates, colnames(rowData(sce)), value = TRUE))] %>%
     `colnames<-`(levels(sce$x))
+  if(estimates=="svalue"){
+    res <- DataFrame(sapply(res, as.numeric))
+  }
   res
 }

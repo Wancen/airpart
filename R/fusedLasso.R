@@ -33,8 +33,9 @@
 #' standard \code{se.rule.mult} SE rule is used
 #' @param se.rule.mult the multiplier of the SE in determining the lambda:
 #' the chosen lambda is within \code{se.rule.mult} x SE of the minimum
-#' deviance. Range>=0 Default is 0.5 SE. Only used when number of cell types is
-#' larger than \code{se.rule.nct}
+#' deviance. Range>=0. Default is 0.5 SE and we recommend smaller this value, smaller number of cell type.
+#' Only used when number of cell types is
+#' larger than \code{se.rule.nct}.
 #' @param ... additional arguments passed to \code{\link[smurf]{glmsmurf}}
 #'
 #' @return A SummarizedExperiment with attached metadata and colData:
@@ -85,17 +86,17 @@
 #' metadata(sce_sub)$partition
 #' metadata(sce_sub)$lambda
 #'
-#' # Suppose we have 4 cell states, if we don't want cell state 1
-#' # to be grouped together with other cell states
-#' adj.matrix <- 1 - diag(4)
-#' colnames(adj.matrix) <- rownames(adj.matrix) <- levels(sce$x)
-#' adj.matrix[1, c(2, 3, 4)] <- 0
-#' adj.matrix[c(2, 3, 4), 1] <- 0
+#' # Suppose we have 4 cell states, if we only want neibouring cell states
+#' # to be grouped together with other cell states. Note here the names of
+#' the cell states should be given as row and column names.
+#' nct <- nlevels(sce$x)
+#' adjmatrix <- makeOffByOneAdjMat(nct)
+#' colnames(adjmatrix) <- rownames(adjmatrix) <- levels(sce$x)
 #' f <- ratio ~ p(x, pen = "ggflasso") # use graph-guided fused lasso
 #' sce_sub <- fusedLasso(sce,
 #'   formula = f, model = "binomial", genecluster = 1,
 #'   lambda = 0.5, ncores = 2, se.rule.nct = 3,
-#'   adj.matrix = adj.matrix
+#'   adj.matrix = list(x = adjmatrix)
 #' )
 #' metadata(sce_sub)$partition
 #' @import smurf
@@ -237,4 +238,31 @@ fitSmurf <- function(t, formula, fam, dat, adj.matrix,
   }
   ## stick the fitted means with the lambda on the end of the vector
   c(co, fit_lambda)
+}
+
+
+#' Generating adjancy matrix for neighboring cell states.
+#'
+#' To use the Graph-Guided Fused Lasso penalty to only regularize the differences
+#' of coefficients of neighboring areas, suitable for time/spatial analysis.
+#' The adjacency matrix corresponding to the graph needs to be provided.
+#' The elements of this matrix are zero when two levels are not connected, and one when they are adjacent.
+#'
+#' @param nct the number of cell types/states
+#' @details If manually input the adjacency matrix, this matrix has to be symmetric and the names of
+#' the cell states should be given as row and column names.
+#'
+#' @examples
+#' sce <- makeSimulatedData()
+#' nct <- nlevels(sce$x)
+#' adjmatrix <- makeOffByOneAdjMat(nct)
+#' colnames(adjmatrix) <- rownames(adjmatrix) <- levels(sce$x)
+#'
+#' @export
+makeOffByOneAdjMat <- function(nct) {
+  nct <- nlevels(sce$x)
+  b <- matrix(0, nct, nct)
+  a <- diag(nct - 1)
+  b[lower.tri(b, diag = FALSE)] <- a[lower.tri(a, diag = TRUE)]
+  b + t(b)
 }
