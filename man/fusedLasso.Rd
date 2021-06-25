@@ -111,7 +111,7 @@ metadata(sce_sub)$lambda
 
 # Suppose we have 4 cell states, if we only want neibouring cell states
 # to be grouped together with other cell states. Note here the names of
-the cell states should be given as row and column names.
+# the cell states should be given as row and column names.
 nct <- nlevels(sce$x)
 adjmatrix <- makeOffByOneAdjMat(nct)
 colnames(adjmatrix) <- rownames(adjmatrix) <- levels(sce$x)
