@@ -53,17 +53,17 @@ Default lambda is determined by \code{"cv1se.dev"}
 
 \item{lambda.length}{argument as described in \code{\link[smurf]{glmsmurf}}}
 
-\item{se.rule.nct}{the number of cell types to trigger a different SE-based rule
+\item{se.rule.nct}{the number of cell types to trigger a different SE-based rule than 1 SE
 (to prioritize larger models, less fusing,
 good for detecting smaller, e.g. 0.05, allelic ratio differences).
-When the number of cell types is less than or equal to this value, the
-standard \code{se.rule.mult} SE rule is used}
+When the number of cell types is less than or equal to this value,
+\code{se.rule.mult} SE rule is used. When the number of cell types
+is larger than this value, the standard 1 SE rule is used.}
 
 \item{se.rule.mult}{the multiplier of the SE in determining the lambda:
-the chosen lambda is within \code{se.rule.mult} x SE of the minimum
-deviance. Range>=0. Default is 0.5 SE and we recommend smaller this value, smaller number of cell type.
-Only used when number of cell types is
-larger than \code{se.rule.nct}.}
+the chosen lambda is within \code{se.rule.mult} x SE of the minimum deviance.
+Small values will prioritize larger models, less fusing.
+Only used when number of cell types is equal to or less than \code{se.rule.nct}}
 
 \item{...}{additional arguments passed to \code{\link[smurf]{glmsmurf}}}
 }
