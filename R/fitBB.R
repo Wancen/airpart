@@ -120,7 +120,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
           na.rm = TRUE
         )) %>%
         as.data.frame()
-      coef <- merge(summary, metadata(sce)$partition,
+      coef <- merge(summary, unique(data.frame(part = sce$part, x = sce$x)),
         by = "part", sort = FALSE
       )$coef
       coef <- log(coef / (1 - coef))
