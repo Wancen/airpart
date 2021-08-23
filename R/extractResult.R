@@ -5,7 +5,7 @@
 #'
 #' @param sce SingleCellExperiment
 #' @param estimates the estimates want to be extracted. Default is allelic ratio estimates,
-#' can be \code{"svalue"}, \code{"lower"}(confidence interval) and \code{"upper"}(confidence interval)
+#' can be \code{"svalue"}, \code{"lower"}(credible interval) and \code{"upper"}(credible interval)
 #'
 #' @return a DataFrame of estimates
 #'
