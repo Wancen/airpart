@@ -46,7 +46,7 @@
 geneCluster <- function(sce, G, method = c("GMM", "hierarchical"),
                         minClusterSize = 3, plot = TRUE, ...) {
   method <- match.arg(method, c("GMM", "hierarchical"))
-  if (missing(method)) {
+  if (missing(G)) {
     G <- c(8, 12, 16, 20, 24)
   }
   if (!"x" %in% names(colData(sce))) {

@@ -4,12 +4,14 @@
 \alias{makeViolin}
 \title{Posterior mean allelic ratio estimates in violin plots}
 \usage{
-makeViolin(sce, xlab = "cell type")
+makeViolin(sce, xlab = "cell type", ylim = c(0, 1))
 }
 \arguments{
 \item{sce}{SingleCellExperiment}
 
 \item{xlab}{the x axis name.}
+
+\item{ylim}{the y axis range}
 }
 \value{
 a ggplot2 object, \code{n} represents number of cells in that cell type.

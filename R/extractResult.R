@@ -19,8 +19,8 @@
 #' ar <- extractResult(sce_sub)
 #' ar
 #' @export
-extractResult <- function(sce, estimates = c("ar", "svalue", "lower", "upper")) {
-  estimates <- match.arg(estimates, c("ar", "svalue", "lower", "upper"))
+extractResult <- function(sce, estimates = c("ar_", "svalue_", "lower_", "upper_")) {
+  estimates <- match.arg(estimates, c("ar_", "svalue_", "lower_", "upper_"))
   res <- rowData(sce)[, c(grep(estimates, colnames(rowData(sce)), value = TRUE))] %>%
     `colnames<-`(levels(sce$x))
   if(estimates=="svalue"){

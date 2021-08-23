@@ -42,7 +42,8 @@ Or an integer to indicate number of child-processes
 A matrix grouping factor partition and
 the significant cut-off threshold
 are returned in metadata \code{"partition"} and \code{"threshold"}.
-Partation also stored in colData\code{"part"}.
+Partation also stored in colData\code{"part"}. Note we recommend the returned 
+\code{"threshold"} is not at the ends of input \code{"threshold"}.
 }
 \description{
 Extends the Pairwise Mann Whitney Wilcoxon Test by combining

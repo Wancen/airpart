@@ -2,6 +2,7 @@
 #'
 #' @param sce SingleCellExperiment
 #' @param xlab the x axis name.
+#' @param ylim the y axis range
 #'
 #' @return a ggplot2 object, \code{n} represents number of cells in that cell type.
 #'
@@ -14,8 +15,10 @@
 #' sce_sub <- allelicRatio(sce_sub)
 #' makeViolin(sce_sub)
 #' @export
-makeViolin <- function(sce, xlab = "cell type") {
-  ar <- rowData(sce)[, c(grep("ar", colnames(rowData(sce)), value = TRUE))] %>%
+makeViolin <- function(sce, xlab = "cell type", ylim = c(0,1)) {
+  ylim1<- ylim[1]
+  ylim2<- ylim[2]
+  ar <- rowData(sce)[, c(grep("ar_", colnames(rowData(sce)), value = TRUE))] %>%
     `colnames<-`(levels(sce$x))
   dat <- data.frame(
     ratio = as.vector(unlist(ar)),
@@ -30,7 +33,7 @@ makeViolin <- function(sce, xlab = "cell type") {
   p <- ggplot(dat, aes(x = .data$myaxis, y = .data$ratio, fill = .data$part)) +
     geom_violin(color = "#A4A4A4", size = 1.2, alpha = .7) +
     geom_boxplot(width = 0.1, color = "black") +
-    theme_minimal() +
+    theme_minimal() + ylim(ylim1,ylim2) + 
     theme(
       legend.position = "bottom",
       panel.grid.minor = element_blank(),

@@ -98,9 +98,9 @@ makeForest <- function(sce, genepoi, ctpoi = seq_len(nlevels(sce$x)), showtext =
       ticks = gpar(cex = 0.9), xlab = gpar(cex = 0.9)
     ),
     boxsize = boxsize, graphwidth = unit(15, "cm"),
-    mean = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("ar", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
-    lower = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("lower", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
-    upper = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("upper", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
+    mean = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("ar_", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
+    lower = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("lower_", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
+    upper = rbind(rep(NA, length(ctpoi)), rowData(sce)[genepoi, c(grep("upper_", colnames(rowData(sce)), value = TRUE))[ctpoi]] %>% as.matrix()),
     clip = c(0.01, 1), xticks = xticks, ref = 0.5,
     col = col, xlab = xlab
   )

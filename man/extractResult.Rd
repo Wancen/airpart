@@ -4,7 +4,7 @@
 \alias{extractResult}
 \title{Extract results from an airpart analysis}
 \usage{
-extractResult(sce, estimates = c("ar", "svalue", "lower", "upper"))
+extractResult(sce, estimates = c("ar_", "svalue_", "lower_", "upper_"))
 }
 \arguments{
 \item{sce}{SingleCellExperiment}
