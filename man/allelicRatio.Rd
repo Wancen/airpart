@@ -22,7 +22,7 @@ functions}
 \value{
 posterior mean (\code{"ar"}) for allelic ratio
 estimate is returned in the rowData for each cell type,
-as well as the \code{"s"} value and
+as well as the \code{"s"} value, \code{"fsr"} false sign rate and
 credible interval (\code{"lower"} and \code{"upper"}).
 }
 \description{

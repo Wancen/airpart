@@ -18,7 +18,7 @@
 #'
 #' @return posterior mean (\code{"ar"}) for allelic ratio
 #' estimate is returned in the rowData for each cell type,
-#' as well as the \code{"s"} value and
+#' as well as the \code{"s"} value, \code{"fsr"} false sign rate and
 #' credible interval (\code{"lower"} and \code{"upper"}).
 #'
 #' @examples
@@ -37,8 +37,8 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     formula <- ratio ~ p(x, pen = "gflasso")
   }
   add_covs <- grep("p\\(",
-    attr(terms(formula), "term.labels"),
-    invert = TRUE, value = TRUE
+                   attr(terms(formula), "term.labels"),
+                   invert = TRUE, value = TRUE
   )
   if (nlevels(sce$part) == 1) {
     x <- list(part = sce$part)
@@ -116,12 +116,12 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
       summary <- dat %>%
         group_by(.data$part) %>%
         summarise(coef = weighted.mean(.data$ratio,
-          .data$cts,
-          na.rm = TRUE
+                                       .data$cts,
+                                       na.rm = TRUE
         )) %>%
         as.data.frame()
       coef <- merge(summary, unique(data.frame(part = sce$part, x = sce$x)),
-        by = "part", sort = FALSE
+                    by = "part", sort = FALSE
       )$coef
       coef <- log(coef / (1 - coef))
     }
@@ -130,10 +130,11 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
   }
   mean <- res$mean
   s <- res$s
+  fsr <- res$fsr
   lower <- res$lower
   upper <- res$upper
   est <- data.frame(
-    round(mean, 3), format(s, digits = 3),
+    round(mean, 3), format(s, digits = 3), format(fsr, digits = 3),
     round(lower, 3), round(upper, 3)
   ) %>%
     `rownames<-`(rownames(sce))
@@ -150,8 +151,8 @@ betabinom.log.lik <- function(y, x, beta, param, offset) {
   xbeta <- x %*% beta + offset
   p.hat <- (1 + exp(-xbeta))^-1
   emdbook::dbetabinom(y,
-    prob = p.hat, size = param[-1],
-    theta = param[1], log = TRUE
+                      prob = p.hat, size = param[-1],
+                      theta = param[1], log = TRUE
   )
 }
 
@@ -164,15 +165,17 @@ adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method
     `colnames<-`(paste("ar", levels(sce$x), sep = "_"))
   s <- matrix(0, nrow = length(sce), ncol = nct) %>%
     `colnames<-`(paste("svalue", levels(sce$x), sep = "_"))
+  fsr <- matrix(0, nrow = length(sce), ncol = nct) %>%
+    `colnames<-`(paste("fsr", levels(sce$x), sep = "_"))
   lower <- matrix(0, nrow = length(sce), ncol = nct) %>%
     `colnames<-`(paste("lower", paste0((1 - level) * 50, "pct"),
-      levels(sce$x),
-      sep = "_"
+                       levels(sce$x),
+                       sep = "_"
     ))
   upper <- matrix(0, nrow = length(sce), ncol = nct) %>%
     `colnames<-`(paste("upper", paste0(100 - (1 - level) * 50, "pct"),
-      levels(sce$x),
-      sep = "_"
+                       levels(sce$x),
+                       sep = "_"
     ))
   part <- unique(data.frame(x = sce$x, part = sce$part))$part
   if (nlevels(sce$part) == 1) {
@@ -194,8 +197,21 @@ adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method
     )
     mean[, which(part == i)] <- (1 + exp(-fit.post$map[, i]))^-1
     s[, which(part == i)] <- fit.post$svalue
+    fsr[, which(part == i)] <- fit.post$fsr
     lower[, which(part == i)] <- (1 + exp(-fit.post$interval[, 1]))^-1
     upper[, which(part == i)] <- (1 + exp(-fit.post$interval[, 2]))^-1
   }
-  return(list(mean = mean, s = s, lower = lower, upper = upper))
+  return(list(mean = mean, s = s, fsr = fsr, lower = lower, upper = upper))
+}
+
+
+extractResult <- function(sce, estimates = c("ar", "svalue", "fsr", "lower", "upper")) {
+  estimates <- match.arg(estimates, c("ar", "svalue", "fsr", "lower", "upper"))
+  estimates <- paste0(estimates,"_")
+  res <- rowData(sce)[, c(grep(estimates, colnames(rowData(sce)), value = TRUE))] %>%
+    `colnames<-`(levels(sce$x))
+  if(estimates %in% c("svalue_","fsr_")){
+    res <- DataFrame(sapply(res, as.numeric))
+  }
+  res
 }

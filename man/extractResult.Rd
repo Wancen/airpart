@@ -4,20 +4,20 @@
 \alias{extractResult}
 \title{Extract results from an airpart analysis}
 \usage{
-extractResult(sce, estimates = c("ar_", "svalue_", "lower_", "upper_"))
+extractResult(sce, estimates = c("ar", "svalue", "fsr", "lower", "upper"))
 }
 \arguments{
 \item{sce}{SingleCellExperiment}
 
 \item{estimates}{the estimates want to be extracted. Default is allelic ratio estimates,
-can be \code{"svalue"}, \code{"lower"}(confidence interval) and \code{"upper"}(confidence interval)}
+can be \code{"svalue"}, \code{"fsr"}, \code{"lower"}(credible interval) and \code{"upper"}(credible interval)}
 }
 \value{
 a DataFrame of estimates
 }
 \description{
 results extracts a result table from an airpart analysis giving posterior allelic ratio estimates,
-s values, upper confidence interval and lower confidence interval.
+s values, false sign rate(fsr), upper confidence interval and lower confidence interval.
 }
 \examples{
 
