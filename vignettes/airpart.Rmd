@@ -32,7 +32,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Real data example
 
 Vignette on Larsson 2019 data can be found 
-[here](https://htmlpreview.github.io/?https://github.com/Wancen/airpartpaper/blob/main/R/Larsson2019.html),
+[here](https://htmlpreview.github.io/?https://github.com/Wancen/airpartpaper/blob/main/Larsson2019/Larsson2019.html),
 which has allelic single-cell RNA-seq with 4 cell states.
 
 # Simulated data example I
