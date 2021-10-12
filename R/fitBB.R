@@ -12,14 +12,21 @@
 #' \code{"part"})
 #' @param formula The same \code{\link[stats]{formula}} object
 #' used in \code{\link[airpart]{fusedLasso}}
+#' @param nogroup Indicate whether there is previous group step. Default is FALSE represents either
+#' Generalized fused lasso or nonparametric method is used to derive partition. nogroup == TRUE means
+#' partition step is not needed to estimate allelic ratio.
 #' @param level the level of credible interval (default is 0.95)
+#' @param DAItest Indicate whether to do Likelihood Ratio test on differential allelic imbalance(DAI)
+#' or equivalent to heterogeneity.
 #' @param ... arguments to pass to \code{\link[apeglm]{apeglm}}
 #' functions
 #'
 #' @return posterior mean (\code{"ar"}) for allelic ratio
 #' estimate is returned in the rowData for each cell type,
 #' as well as the \code{"s"} value, \code{"fsr"} false sign rate and
-#' credible interval (\code{"lower"} and \code{"upper"}).
+#' credible interval (\code{"lower"} and \code{"upper"}). One can use \code{"fsr"} < 0.005 or
+#' credible intervals contain 0.5 or not for AI test significance. \code{"p.value"} shows DAI test result
+#' and \code{"adj.p.value"} is false discovery rate corrected p values.
 #'
 #' @examples
 #'
@@ -27,12 +34,12 @@
 #' sce <- preprocess(sce)
 #' sce <- geneCluster(sce, G = seq_len(4))
 #' sce_sub <- wilcoxExt(sce, genecluster = 1)
-#' sce_sub <- allelicRatio(sce_sub)
+#' sce_sub <- allelicRatio(sce_sub, DAItest = TRUE)
 #' @importFrom emdbook dbetabinom
 #' @importFrom stats as.formula
 #'
 #' @export
-allelicRatio <- function(sce, formula, level = 0.95, ...) {
+allelicRatio <- function(sce, formula, nogroup = FALSE, level = 0.95, DAItest = FALSE, ...) {
   if (missing(formula)) {
     formula <- ratio ~ p(x, pen = "gflasso")
   }
@@ -40,11 +47,57 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
                    attr(terms(formula), "term.labels"),
                    invert = TRUE, value = TRUE
   )
+  if (isTRUE(nogroup)){
+    sce$part = sce$x
+  }
+
+  x <- designMatrix(sce, add_covs)
+  # rough initial estimate of dispersion
+  res <- part(sce, level = level, ...)
+  if(isTRUE(DAItest)){
+    npart = nlevels(sce$part)
+    # reconstruct coefficient matrix
+    coef = res$beta[,!duplicated(res$beta[1,])]
+    ratio <- inv.logit(coef %*% t(x) + res$offset)
+    loglik1 <- rowSums(emdbook::dbetabinom(assays(sce)[["a1"]], ratio, assays(sce)[["counts"]], res$theta, log=TRUE))
+
+    sce0 <- sce
+    sce0$part = factor(1)
+    x <- designMatrix(sce0, add_covs)
+    res0 <- part(sce0, level = level, ...)
+    coef0 = res0$beta[,!duplicated(res0$beta[1,])]
+    ratio0 <- inv.logit(coef0 %*% t(x) + res0$offset)
+    loglik0 <- rowSums(emdbook::dbetabinom(assays(sce0)[["a1"]], ratio0, assays(sce0)[["counts"]], res0$theta, log=TRUE))
+    LR = -2 * (loglik0-loglik1)
+    rowData(sce)$p.value = pchisq(LR, npart-1, lower.tail = FALSE)
+    rowData(sce)$adj.p.value = p.adjust(rowData(sce)$p.value, method = "fdr")
+  }
+  mean <- inv.logit(res$beta)
+  s <- res$s
+  fsr <- res$fsr
+  lower <- res$lower
+  upper <- res$upper
+  est <- data.frame(
+    round(mean, 3), format(s, digits = 3), format(fsr, digits = 3),
+    round(lower, 3), round(upper, 3)
+  ) %>%
+    `rownames<-`(rownames(sce))
+  est_sub <- est[, setdiff(colnames(est), colnames(rowData(sce)))]
+  merged <- merge(rowData(sce), est_sub, by = 0) %>% DataFrame()
+  order <- match(rownames(sce), merged$Row.names)
+  rowData(sce) <- merged[order, ][-1] %>%
+    `rownames<-`(rownames(sce))
+  sce
+}
+
+## construct design matrix
+designMatrix <- function(sce, add_covs){
   if (nlevels(sce$part) == 1) {
     x <- list(part = sce$part)
   } else {
     x <- list(part = model.matrix(~ part + 0, colData(sce)))
   }
+
   if (length(add_covs) > 0) {
     for (v in add_covs) {
       x[[v]] <- model.matrix(as.formula(paste("~", add_covs, "+0")), colData(sce))
@@ -52,7 +105,10 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     }
   }
   x <- do.call(cbind, x)
-  # rough initial estimate of dispersion
+}
+
+
+part <-function(sce, level, ...){
   theta.hat <- matrix(rep(100, dim(sce)[1]))
   maxDisp <- 75
   niter <- 5
@@ -128,22 +184,7 @@ allelicRatio <- function(sce, formula, level = 0.95, ...) {
     ## Shrink one cell type/time
     res <- adp.shrink(sce, fit.mle, param, level, offset, coef, log.lik = betabinom.log.lik, method = "general", ...)
   }
-  mean <- res$mean
-  s <- res$s
-  fsr <- res$fsr
-  lower <- res$lower
-  upper <- res$upper
-  est <- data.frame(
-    round(mean, 3), format(s, digits = 3), format(fsr, digits = 3),
-    round(lower, 3), round(upper, 3)
-  ) %>%
-    `rownames<-`(rownames(sce))
-  est_sub <- est[, setdiff(colnames(est), colnames(rowData(sce)))]
-  merged <- merge(rowData(sce), est_sub, by = 0) %>% DataFrame()
-  order <- match(rownames(sce), merged$Row.names)
-  rowData(sce) <- merged[order, ][-1] %>%
-    `rownames<-`(rownames(sce))
-  sce
+  return(res)
 }
 
 ## Betabinomial log link
@@ -161,7 +202,7 @@ adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method
   npart <- nlevels(sce$part)
   nct <- nlevels(sce$x)
   ## store results
-  mean <- matrix(0, nrow = length(sce), ncol = nct) %>%
+  beta <- matrix(0, nrow = length(sce), ncol = nct) %>%
     `colnames<-`(paste("ar", levels(sce$x), sep = "_"))
   s <- matrix(0, nrow = length(sce), ncol = nct) %>%
     `colnames<-`(paste("svalue", levels(sce$x), sep = "_"))
@@ -183,35 +224,25 @@ adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method
   } else {
     x <- model.matrix(~ part + 0, colData(sce))
   }
-  for (i in seq_len(npart)) {
-    mle <- cbind(fit.mle$map[, i], fit.mle$sd[, i])
+  for (j in seq_len(npart)) {
+    mle <- cbind(fit.mle$map[, j], fit.mle$sd[, j])
     fit.post <- apeglm(
       Y = assays(sce)[["a1"]], x = x, param = param, log.lik = log.lik,
-      coef = i, interval.level = level, offset = offset,
+      coef = j, interval.level = level, offset = offset,
       log.link = FALSE, method = method,
       prior.control = list(
-        no.shrink = setdiff(seq_len(ncol(x)), i), prior.mean = coef,
+        no.shrink = setdiff(seq_len(ncol(x)), j), prior.mean = coef,
         prior.scale = 1, prior.df = 1,
         prior.no.shrink.mean = 0, prior.no.shrink.scale = 15
       ), ...
     )
-    mean[, which(part == i)] <- (1 + exp(-fit.post$map[, i]))^-1
-    s[, which(part == i)] <- fit.post$svalue
-    fsr[, which(part == i)] <- fit.post$fsr
-    lower[, which(part == i)] <- (1 + exp(-fit.post$interval[, 1]))^-1
-    upper[, which(part == i)] <- (1 + exp(-fit.post$interval[, 2]))^-1
+    beta[, which(part == levels(part)[j])] <- fit.post$map[, j]
+    s[, which(part == levels(part)[j])] <- fit.post$svalue
+    fsr[, which(part == levels(part)[j])] <- fit.post$fsr
+    lower[, which(part == levels(part)[j])] <- inv.logit(fit.post$interval[, 1])
+    upper[, which(part == levels(part)[j])] <- inv.logit(fit.post$interval[, 2])
   }
-  return(list(mean = mean, s = s, fsr = fsr, lower = lower, upper = upper))
+  return(list(beta = beta, s = s, fsr = fsr, lower = lower, upper = upper, offset = offset, theta = param[,1]))
 }
 
-
-extractResult <- function(sce, estimates = c("ar", "svalue", "fsr", "lower", "upper")) {
-  estimates <- match.arg(estimates, c("ar", "svalue", "fsr", "lower", "upper"))
-  estimates <- paste0(estimates,"_")
-  res <- rowData(sce)[, c(grep(estimates, colnames(rowData(sce)), value = TRUE))] %>%
-    `colnames<-`(levels(sce$x))
-  if(estimates %in% c("svalue_","fsr_")){
-    res <- DataFrame(sapply(res, as.numeric))
-  }
-  res
-}
+inv.logit <- function(x) (1 + exp(-x))^-1

@@ -4,7 +4,7 @@
 \alias{allelicRatio}
 \title{Fit beta-binomial across cell types}
 \usage{
-allelicRatio(sce, formula, level = 0.95, ...)
+allelicRatio(sce, formula, nogroup = FALSE, level = 0.95, DAItest = FALSE, ...)
 }
 \arguments{
 \item{sce}{A SingleCellExperiment containing assays
@@ -14,7 +14,14 @@ allelicRatio(sce, formula, level = 0.95, ...)
 \item{formula}{The same \code{\link[stats]{formula}} object
 used in \code{\link[airpart]{fusedLasso}}}
 
+\item{nogroup}{Indicate whether there is previous group step. Default is FALSE represents either
+Generalized fused lasso or nonparametric method is used to derive partition. nogroup == TRUE means
+partition step is not needed to estimate allelic ratio.}
+
 \item{level}{the level of credible interval (default is 0.95)}
+
+\item{DAItest}{Indicate whether to do Likelihood Ratio test on differential allelic imbalance(DAI)
+or equivalent to heterogeneity.}
 
 \item{...}{arguments to pass to \code{\link[apeglm]{apeglm}}
 functions}
@@ -23,7 +30,9 @@ functions}
 posterior mean (\code{"ar"}) for allelic ratio
 estimate is returned in the rowData for each cell type,
 as well as the \code{"s"} value, \code{"fsr"} false sign rate and
-credible interval (\code{"lower"} and \code{"upper"}).
+credible interval (\code{"lower"} and \code{"upper"}). One can use \code{"fsr"} < 0.005 or
+credible intervals contain 0.5 or not for AI test significance. \code{"p.value"} shows DAI test result
+and \code{"adj.p.value"} is false discovery rate corrected p values.
 }
 \description{
 This function performs additional inference on the allelic ratio
@@ -39,5 +48,5 @@ sce <- makeSimulatedData()
 sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 sce_sub <- wilcoxExt(sce, genecluster = 1)
-sce_sub <- allelicRatio(sce_sub)
+sce_sub <- allelicRatio(sce_sub, DAItest = TRUE)
 }
