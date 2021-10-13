@@ -51,23 +51,25 @@ allelicRatio <- function(sce, formula, nogroup = FALSE, level = 0.95, DAItest = 
     sce$part = sce$x
   }
 
+  # derive alternative hypothesis result
   x <- designMatrix(sce, add_covs)
-  # rough initial estimate of dispersion
-  res <- part(sce, level = level, ...)
+  res <- part(sce, x, add_covs, level = level)
+
   if(isTRUE(DAItest)){
     npart = nlevels(sce$part)
     # reconstruct coefficient matrix
     coef = res$beta[,!duplicated(res$beta[1,])]
     ratio <- inv.logit(coef %*% t(x) + res$offset)
     loglik1 <- rowSums(emdbook::dbetabinom(assays(sce)[["a1"]], ratio, assays(sce)[["counts"]], res$theta, log=TRUE))
-
+    # derive null hypothesis result
     sce0 <- sce
     sce0$part = factor(1)
-    x <- designMatrix(sce0, add_covs)
-    res0 <- part(sce0, level = level, ...)
+    x0 <- designMatrix(sce0, add_covs)
+    res0 <- part(sce0, x0, add_covs, level = level)
     coef0 = res0$beta[,!duplicated(res0$beta[1,])]
-    ratio0 <- inv.logit(coef0 %*% t(x) + res0$offset)
+    ratio0 <- inv.logit(coef0 %*% t(x0) + res0$offset)
     loglik0 <- rowSums(emdbook::dbetabinom(assays(sce0)[["a1"]], ratio0, assays(sce0)[["counts"]], res0$theta, log=TRUE))
+    # Construct LR
     LR = -2 * (loglik0-loglik1)
     rowData(sce)$p.value = pchisq(LR, npart-1, lower.tail = FALSE)
     rowData(sce)$adj.p.value = p.adjust(rowData(sce)$p.value, method = "fdr")
@@ -93,22 +95,24 @@ allelicRatio <- function(sce, formula, nogroup = FALSE, level = 0.95, DAItest = 
 ## construct design matrix
 designMatrix <- function(sce, add_covs){
   if (nlevels(sce$part) == 1) {
-    x <- list(part = sce$part)
+    X <- list(part = sce$part)
   } else {
-    x <- list(part = model.matrix(~ part + 0, colData(sce)))
+    X <- list(part = model.matrix(~ part + 0, colData(sce)))
   }
 
   if (length(add_covs) > 0) {
     for (v in add_covs) {
-      x[[v]] <- model.matrix(as.formula(paste("~", add_covs, "+0")), colData(sce))
-      colnames(x[[v]]) <- levels(sce[[v]])
+      X[[v]] <- model.matrix(as.formula(paste("~", add_covs, "+0")), colData(sce))
+      colnames(X[[v]]) <- levels(sce[[v]])
     }
   }
-  x <- do.call(cbind, x)
+  X <- do.call(cbind, X)
+  return(X)
 }
 
 
-part <-function(sce, level, ...){
+part <-function(sce, x, add_covs, level, ...){
+  # rough initial estimate of dispersion
   theta.hat <- matrix(rep(100, dim(sce)[1]))
   maxDisp <- 75
   niter <- 5
