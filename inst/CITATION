@@ -1,0 +1,15 @@
+citEntry(entry="article",
+         title = "Airpart: Interpretable statistical models for analyzing allelic imbalance in single-cell datasets",
+         author = personList(as.person("Wancen Mu"),
+							 as.person("Hirak Sarkar"),
+                             as.person("Avi Srivastava"),
+                             as.person("Kwangbom Choi"),
+                             as.person("Rob Patro"),
+                             as.person("Michael I. Love")),
+         year = 2021,
+         journal = "bioRxiv",
+         doi = "10.1101/2021.10.15.464546",
+         textVersion =
+         paste("Mu, W., Sarkar, H., Srivastava, A., Choi, K., Patro, R., Love, M.I.",
+               "Airpart: Interpretable statistical models for analyzing allelic imbalance in single-cell datasets",
+               "bioRxiv(2021)" ) )
