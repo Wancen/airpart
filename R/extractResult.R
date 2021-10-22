@@ -25,7 +25,7 @@ extractResult <- function(sce, estimates = c("ar", "svalue", "fsr", "lower", "up
   res <- rowData(sce)[, c(grep(estimates, colnames(rowData(sce)), value = TRUE))] %>%
     `colnames<-`(levels(sce$x))
   if(estimates %in% c("svalue_","fsr_")){
-    res <- DataFrame(sapply(res, as.numeric))
+    res <- DataFrame(sapply(res, as.numeric) %>% `rownames<-`(rownames(sce)))
   }
   res
 }

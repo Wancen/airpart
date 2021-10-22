@@ -12,11 +12,12 @@ allelicRatio(sce, formula, nogroup = FALSE, level = 0.95, DAItest = FALSE, ...)
 \code{"part"})}
 
 \item{formula}{The same \code{\link[stats]{formula}} object
-used in \code{\link[airpart]{fusedLasso}}}
+used in \code{\link[airpart]{fusedLasso}} or used in \code{\link[splines]{ns}}
+when want to detect smooth continuous-axis estimates. eg. formula <- ratio ~ ns(x, df = 5)}
 
 \item{nogroup}{Indicate whether there is previous group step. Default is FALSE represents either
 Generalized fused lasso or nonparametric method is used to derive partition. nogroup == TRUE means
-partition step is not needed to estimate allelic ratio.}
+the hypothesis that groups of cell types sharing a common regulatory context is not valid}
 
 \item{level}{the level of credible interval (default is 0.95)}
 

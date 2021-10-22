@@ -334,7 +334,7 @@ partition) and account for each gene's moderated estimate of
 over-dispersion.
 
 ```{r, warning=FALSE, fig.width=12}
-sce_sub <- allelicRatio(sce_sub)
+sce_sub <- allelicRatio(sce_sub, DAItest = TRUE)
 makeForest(sce_sub, showtext = TRUE)
 ```
 
@@ -347,6 +347,24 @@ ar <- extractResult(sce_sub)
 knitr::kable(ar[genepoi,])
 makeStep(sce_sub[genepoi,])
 ```
+
+### Derive statistical inference
+
+To derive statistical inference of allelic imbalance(AI), we suggest a low aggregate probability of false-sign-or-small (FSOS) events (s-value < .005) or examine credible intervals not overlapping an allelic ratio of 0.5. Here all selected 5 genes demonstrated AI on each cell type. 
+
+
+```{r}
+s <- extractResult(sce_sub, "svalue")
+apply(s[genepoi,],2, function(s){s<0.005})
+```
+
+To derive statistical inference of dynamic AI(DAI), raw p values from likelihood ratio test(LRT) and Benjamini-Hochberg (BH) corrected p value are stored in `p.value` and `adj.p.value`, respectively. Here all 25 genes demonstrated DAI across cells. 
+
+```{r}
+adj.p <- mcols(sce_sub)$adj.p.value
+adj.p < 0.05
+```
+
 
 # Allelic ratio partition and posterior inference, example II
 
