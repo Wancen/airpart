@@ -10,6 +10,8 @@
 #' @param ncl number of gene cluster
 #' @param p.vec the allelic ratio vector which follows gene cluster order.
 #' (length is nct * ncl)
+#' @param totalClusters logical, whether cell types should cluster by total
+#' count
 #'
 #' @return SingleCellExperiment with the following elements as assays
 #' \itemize{
@@ -33,8 +35,9 @@
 makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
                               ngenecl = 50, theta = 20, ncl = 3,
                               p.vec = rep(c(0.2, 0.8, 0.5, 0.5, 0.7, 0.9),
-                                each = 2
-                              )) {
+                                          each = 2),
+                              totalClusters=FALSE
+                              ) {
   if ((length(p.vec) / ncl) != nct) {
     stop("allelic ratio number is not matched with the product of
   number of cell types and number of gene cluster")
@@ -42,12 +45,19 @@ makeSimulatedData <- function(mu1 = 2, mu2 = 10, nct = 4, n = 30,
 
   ngene <- ncl * ngenecl # total number of genes
   nclcell <- nct * n * ngenecl # number elements within each gene cluster
-  ## mean total count
-  mean_total_count <- rep(rep(c(mu1, mu2), each = n / 2), times = nct * ngene)
-  ## total count matrix
+  
+  if (!totalClusters) {
+    ## mean total count
+    mean_total_count <- rep(rep(c(mu1, mu2), each = n / 2), times = nct * ngene)
+    ## total count matrix
+  } else {
+    ## cell types cluster by total count
+    mean_total_count = as.vector(replicate(ngene, {
+      rep(sample(c(mu1,mu2),size=nct,TRUE), each=n)
+    }))
+  }
   cts <- matrix(rnbinom(n * nct * ngene, mu = mean_total_count, size = 5),
-    nrow = ngene, byrow = TRUE
-  )
+                nrow = ngene, byrow = TRUE)
   p <- rep(p.vec, each = n * nct * ngene / length(p.vec))
 
   ## allelic expression matrix for the effect allele

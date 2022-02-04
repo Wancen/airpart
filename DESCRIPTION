@@ -1,6 +1,6 @@
 Package: airpart
 Title: Differential cell-type-specific allelic imbalance
-Version: 1.3.0
+Version: 1.3.1
 Authors@R: 
     c(person(given = "Wancen",
            family = "Mu",
@@ -62,5 +62,5 @@ biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,
     DifferentialExpression,
     GraphAndNetwork, Regression, Clustering, QualityControl
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Config/testthat/edition: 3

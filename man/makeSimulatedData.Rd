@@ -12,7 +12,8 @@ makeSimulatedData(
   ngenecl = 50,
   theta = 20,
   ncl = 3,
-  p.vec = rep(c(0.2, 0.8, 0.5, 0.5, 0.7, 0.9), each = 2)
+  p.vec = rep(c(0.2, 0.8, 0.5, 0.5, 0.7, 0.9), each = 2),
+  totalClusters = FALSE
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ makeSimulatedData(
 
 \item{p.vec}{the allelic ratio vector which follows gene cluster order.
 (length is nct * ncl)}
+
+\item{totalClusters}{logical, whether cell types should cluster by total
+count}
 }
 \value{
 SingleCellExperiment with the following elements as assays
