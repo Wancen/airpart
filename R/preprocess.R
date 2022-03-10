@@ -17,8 +17,9 @@
 #'
 #' @export
 preprocess <- function(sce, pc = 2) {
-  if(any(assays(sce)[["a1"]]!= round(assays(sce)[["a1"]]) %>% isTRUE() )) {
-    warning("Functions estDisp, fusedLasso expect integers")}
+  if (any(assays(sce)[["a1"]] != round(assays(sce)[["a1"]]))) {
+    warning("Functions estDisp, fusedLasso expect integers")
+  }
   assays(sce)[["counts"]] <- assays(sce)[["a1"]] +
     assays(sce)[["a2"]]
   assays(sce)[["ratio"]] <- assays(sce)[["a1"]] /
