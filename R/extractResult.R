@@ -22,10 +22,17 @@
 extractResult <- function(sce, estimates = c("ar", "svalue", "fsr", "lower", "upper")) {
   estimates <- match.arg(estimates, c("ar", "svalue", "fsr", "lower", "upper"))
   estimates <- paste0(estimates,"_")
+  group <- unique(data.frame(x = sce$x, part = sce$part))
   res <- rowData(sce)[, c(grep(estimates, colnames(rowData(sce)), value = TRUE))] %>%
-    `colnames<-`(levels(sce$x))
+    `colnames<-`(group$x %>% as.character())
+  order <- match(levels(sce$x),colnames(res))
+  res <- res[,order]
   if(estimates %in% c("svalue_","fsr_")){
-    res <- DataFrame(sapply(res, as.numeric) %>% `rownames<-`(rownames(sce)))
+    if(nrow(sce)==1){
+      res <- sapply(res, as.numeric) %>% as.matrix() %>% t() %>% `rownames<-`(rownames(sce))
+    }else{
+      res <- DataFrame(sapply(res, as.numeric) %>% `rownames<-`(rownames(sce)))
+    }
   }
   res
 }

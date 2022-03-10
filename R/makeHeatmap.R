@@ -30,6 +30,7 @@
 #' @export
 makeHeatmap <- function(sce, assay = c("ratio_pseudo", "ratio", "counts"), genecluster = NULL,
                         show_row_names = FALSE, order_by_group = TRUE, ...) {
+  stopifnot("x" %in% names(colData(sce)))
   assay <- match.arg(assay, c("ratio_pseudo", "ratio", "counts"))
   qual_col_pals <- brewer.pal.info[brewer.pal.info$category == "qual", ]
   col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))

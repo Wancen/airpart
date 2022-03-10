@@ -229,21 +229,23 @@ betabinom.log.lik <- function(y, x, beta, param, offset) {
 adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method, df=NULL, ...) {
   npart <- nlevels(sce$part)
   nct <- nlevels(sce$x)
+  ##
+  group <- unique(data.frame(x = sce$x, part = sce$part))
   ## store results
   beta <- matrix(0, nrow = length(sce), ncol = nct) %>%
-    `colnames<-`(paste("ar", levels(sce$x), sep = "_"))
+    `colnames<-`(paste("ar", group$x, sep = "_"))
   s <- matrix(0, nrow = length(sce), ncol = nct) %>%
-    `colnames<-`(paste("svalue", levels(sce$x), sep = "_"))
+    `colnames<-`(paste("svalue", group$x, sep = "_"))
   fsr <- matrix(0, nrow = length(sce), ncol = nct) %>%
-    `colnames<-`(paste("fsr", levels(sce$x), sep = "_"))
+    `colnames<-`(paste("fsr", group$x, sep = "_"))
   lower <- matrix(0, nrow = length(sce), ncol = nct) %>%
     `colnames<-`(paste("lower", paste0((1 - level) * 50, "pct"),
-                       levels(sce$x),
+                       group$x,
                        sep = "_"
     ))
   upper <- matrix(0, nrow = length(sce), ncol = nct) %>%
     `colnames<-`(paste("upper", paste0(100 - (1 - level) * 50, "pct"),
-                       levels(sce$x),
+                       group$x,
                        sep = "_"
     ))
   if(!is.null(df)){
@@ -256,7 +258,7 @@ adp.shrink <- function(sce, fit.mle, param, level, offset, coef, log.lik, method
     beta = fit2$map
     return(list(beta = beta, offset = offset, theta = param[,1]))
   }else{
-    part <- unique(data.frame(x = sce$x, part = sce$part))$part
+    part <- group$part
     if (nlevels(sce$part) == 1) {
       x <- data.frame(part = as.numeric(sce$part)) %>% as.matrix()
     } else {
