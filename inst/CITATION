@@ -6,10 +6,10 @@ citEntry(entry="article",
                              as.person("Kwangbom Choi"),
                              as.person("Rob Patro"),
                              as.person("Michael I. Love")),
-         year = 2021,
-         journal = "bioRxiv",
-         doi = "10.1101/2021.10.15.464546",
+         year = 2022,
+         journal = "Bioinformatics",
+         doi = "10.1093/bioinformatics/btac212",
          textVersion =
          paste("Mu, W., Sarkar, H., Srivastava, A., Choi, K., Patro, R., Love, M.I.",
                "Airpart: Interpretable statistical models for analyzing allelic imbalance in single-cell datasets",
-               "bioRxiv(2021)" ) )
+               "Bioinformatics(2022)" ) )
