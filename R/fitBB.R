@@ -96,7 +96,7 @@ allelicRatio <- function(sce, formula, nogroup = FALSE, level = 0.95, DAItest = 
       `rownames<-`(rownames(sce))
   }else{
     ## currently only return estimates for continuous case
-    ratio <- inv.logit(res %*% t(x))
+    ratio <- inv.logit(res$beta %*% t(x))
     mean <- ratio[,!duplicated(ratio[1,])] %>% `colnames<-`(paste("ar", levels(sce$x), sep = "_"))
     est <-data.frame(round(mean, 3))%>% `rownames<-`(rownames(sce))
   }
