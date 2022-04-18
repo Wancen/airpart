@@ -63,5 +63,7 @@ biocViews: SingleCell, RNASeq, ATACSeq, ChIPSeq, Sequencing,
     DifferentialExpression,
     GraphAndNetwork, Regression, Clustering, QualityControl
 Encoding: UTF-8
+BugReports: https://github.com/Wancen/airpart/issues
+URL: https://github.com/Wancen/airpart
 RoxygenNote: 7.1.2
 Config/testthat/edition: 3
