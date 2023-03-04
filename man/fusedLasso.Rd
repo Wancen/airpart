@@ -25,10 +25,11 @@ fusedLasso(
 \code{"counts"}) and colData \code{"x"}}
 
 \item{formula}{A \code{\link[stats]{formula}} object which will typically
-involve a fused lasso penalty: default is
+involve a fused lasso penalty: default is just using cell-type `x`:
 \code{ratio ~ p(x, pen="gflasso")}. Other possibilities would be to use
-the Graph-Guided Fused Lasso penalty or add covariates want to be adjusted for:
-\code{ratio ~ p(x + batch, pen = "ggflasso")}
+the Graph-Guided Fused Lasso penalty, or add covariates want to be
+adjusted for, which can include a gene-level baseline `gene`
+\code{ratio ~ p(x, pen = "ggflasso") + gene + batch}
 See \code{\link[smurf]{glmsmurf}} for more details}
 
 \item{model}{Either \code{"binomial"} or \code{"gaussian"} used to fit
@@ -103,11 +104,15 @@ sce <- preprocess(sce)
 sce <- geneCluster(sce, G = seq_len(4))
 f <- ratio ~ p(x, pen = "gflasso") # formula for the GFL
 sce_sub <- fusedLasso(sce,
-  formula = f, model = "binomial", genecluster = 1,
-  ncores = 2, se.rule.nct = 3
-)
+  formula = f, model = "binomial", genecluster = 1, ncores = 1)
 metadata(sce_sub)$partition
 metadata(sce_sub)$lambda
+
+# can add covariates or `gene` to the formula
+f2 <- ratio ~ p(x, pen = "gflasso") + gene
+sce_sub <- fusedLasso(sce[1:5,],
+  formula = f2, model = "binomial",
+  genecluster = 1, ncores = 1)
 
 # Suppose we have 4 cell states, if we only want neibouring cell states
 # to be grouped together with other cell states. Note here the names of
@@ -118,7 +123,7 @@ colnames(adjmatrix) <- rownames(adjmatrix) <- levels(sce$x)
 f <- ratio ~ p(x, pen = "ggflasso") # use graph-guided fused lasso
 sce_sub <- fusedLasso(sce,
   formula = f, model = "binomial", genecluster = 1,
-  lambda = 0.5, ncores = 2, se.rule.nct = 3,
+  lambda = 0.5, ncores = 1,
   adj.matrix = list(x = adjmatrix)
 )
 metadata(sce_sub)$partition

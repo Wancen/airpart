@@ -260,6 +260,10 @@ low counts. The penalization is determined using deviance on held-out
 data, with a 1 SE cross-validation rule for favoring smaller models
 (more fused cell types).
 
+The fusion step can also taken into account both cell-level and
+gene-level baseline effects, through the use of a `formula` 
+(see `?fusedLasso` for example).
+
 ```{r}
 sce_sub <- fusedLasso(sce,
   model = "binomial",
